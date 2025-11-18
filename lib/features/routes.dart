@@ -9,6 +9,7 @@ import 'package:ti3h_k1_jawara/features/favorites/view/favorites_view.dart';
 final router = GoRouter(
   initialLocation: '/dashboard',
   routes: [
+    /// Main Pages
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return MainLayout(navigationShell: navigationShell);
@@ -55,6 +56,12 @@ final router = GoRouter(
           ],
         ),
       ],
+    ),
+
+    // Routes
+    GoRoute(
+      path: '/start',
+      builder: (context, state) => const ProfileView(),
     ),
   ],
 );

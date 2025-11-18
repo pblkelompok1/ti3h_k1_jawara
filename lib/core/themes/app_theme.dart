@@ -7,6 +7,7 @@ class AppTheme {
     brightness: Brightness.light,
     primaryColor: AppColors.primaryLight,
     scaffoldBackgroundColor: AppColors.backgroundLight,
+
     colorScheme: const ColorScheme.light(
       primary: AppColors.primaryLight,
       secondary: AppColors.secondaryLight,

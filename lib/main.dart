@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ti3h_k1_jawara/core/themes/theme_provider.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_theme.dart';
@@ -22,6 +23,13 @@ class MyApp extends ConsumerWidget {
   }
 }
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
   runApp(const ProviderScope(child: MyApp()));
 }

@@ -68,9 +68,19 @@ class AppColors {
   static Color primaryBorder(BuildContext context) =>
       adaptive(context, light: primaryBorderLight, dark: primaryBorderDark);
 
+  /// Literate custom
   static Color bgPrimaryInputBox(BuildContext context) => adaptive(
     context,
     light: bgPrimaryInputBoxLight,
     dark: bgPrimaryInputBoxDark,
   );
+
+  static Color textPrimaryReverse(BuildContext context) =>
+      adaptive(context, light: textPrimaryDark, dark: textPrimaryLight);
+
+  static Color bgDashboardAppHeader(BuildContext context) =>
+      adaptive(context, light: primaryLight, dark: backgroundDark);
+
+  static Color bgDashboardCard(BuildContext context) =>
+      adaptive(context, light: textPrimaryDark, dark: textPrimaryLight);
 }
