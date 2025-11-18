@@ -6,8 +6,10 @@ import 'package:ti3h_k1_jawara/features/profile/view/profile_view.dart';
 import 'package:ti3h_k1_jawara/features/create/view/create_view.dart';
 import 'package:ti3h_k1_jawara/features/favorites/view/favorites_view.dart';
 
+import 'auth/view/start_screen.dart';
+
 final router = GoRouter(
-  initialLocation: '/dashboard',
+  initialLocation: '/start',
   routes: [
     /// Main Pages
     StatefulShellRoute.indexedStack(
@@ -61,7 +63,7 @@ final router = GoRouter(
     // Routes
     GoRoute(
       path: '/start',
-      builder: (context, state) => const ProfileView(),
+      builder: (context, state) => const StartScreen(),
     ),
   ],
 );
