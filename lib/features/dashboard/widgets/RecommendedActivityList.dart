@@ -30,7 +30,7 @@ class RecommendedActivityList extends ConsumerWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: AppColors.primary(context),
+                color: AppColors.textPrimary(context),
               ),
             ),
             _buildSubTitleSelector(context, ref, selectedType),
@@ -89,7 +89,7 @@ class RecommendedActivityList extends ConsumerWidget {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primary(context),
+                  color: AppColors.textPrimary(context),
                 ),
               ),
             ),
@@ -162,7 +162,7 @@ class RecommendedActivityList extends ConsumerWidget {
             style: TextStyle(
               fontSize: 16,
               fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-              color: AppColors.primary(context),
+              color: AppColors.textPrimary(context),
             ),
           ),
           const SizedBox(height: 3),
@@ -171,7 +171,7 @@ class RecommendedActivityList extends ConsumerWidget {
             height: 3,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(999),
-              color: AppColors.primary(context),
+              color: AppColors.textSecondaryDark,
             ),
             width: isActive ? textWidth : 0, // Lebar dinamis sesuai teks
           ),
@@ -200,7 +200,7 @@ class RecommendedActivityList extends ConsumerWidget {
             fit: BoxFit.cover,
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 15),
         // Column info
         Expanded(
           child: Column(

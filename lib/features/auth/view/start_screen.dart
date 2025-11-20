@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../core/themes/app_colors.dart';
+import 'signup_screen.dart';
+import 'login_screen.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -9,27 +11,29 @@ class StartScreen extends StatefulWidget {
 }
 
 class _StartScreenState extends State<StartScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _animation;
+    with TickerProviderStateMixin {
+  late AnimationController _patternAnimationController;
+  late Animation<double> _patternAnimation;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
+
+    // Pattern animation controller
+    _patternAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
-    
-    _animation = CurvedAnimation(
-      parent: _animationController,
+
+    _patternAnimation = CurvedAnimation(
+      parent: _patternAnimationController,
       curve: Curves.easeInOut,
     );
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _patternAnimationController.dispose();
     super.dispose();
   }
 
@@ -42,13 +46,16 @@ class _StartScreenState extends State<StartScreen>
       body: Stack(
         children: [
           // Background dengan warna hijau terang (atas)
-          Container(
-            width: size.width,
-            height: size.height,
-            color: isDark ? AppColors.primaryDark : const Color(0xFF9DC08B),
+          Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              width: size.width,
+              height: size.height,
+              color: isDark ? AppColors.primaryDark : const Color(0xFF9DC08B),
+            ),
           ),
-          
-          // Pattern/Corak dekoratif di area hijau
+
+          // Pattern/Corak dekoratif di area hijau - TETAP ANIMASI
           Positioned(
             top: 0,
             left: 0,
@@ -56,19 +63,54 @@ class _StartScreenState extends State<StartScreen>
             child: SizedBox(
               height: size.height * 0.5,
               child: AnimatedBuilder(
-                animation: _animation,
+                animation: _patternAnimation,
                 builder: (context, child) {
                   return CustomPaint(
                     painter: PatternPainter(
                       isDark: isDark,
-                      animationValue: _animation.value,
+                      animationValue: _patternAnimation.value,
                     ),
                   );
                 },
               ),
             ),
           ),
-          
+
+          // Icon & Judul
+          Align(
+            alignment: Alignment.topCenter,
+            child: Column(
+              children: [
+                SizedBox(height: 110,),
+                SizedBox(
+                  width: 120,
+                  height: 120,
+                  child: Image.asset('assets/img/jawara.png'),
+                ),
+                const SizedBox(height: 15),
+                const Text(
+                  'JAWARA',
+                  style: TextStyle(
+                    fontSize: 36,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'Aplikasi Kependudukan,\nKeuangan, dan Marketplace RT',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.9),
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           // Wave curve - Putih (bawah)
           Positioned(
             bottom: 0,
@@ -77,12 +119,12 @@ class _StartScreenState extends State<StartScreen>
             child: ClipPath(
               clipper: WaveClipper(),
               child: Container(
-                height: size.height * 0.55,
+                height: size.height * 0.5,
                 color: isDark ? AppColors.surfaceDark : Colors.white,
               ),
             ),
           ),
-          
+
           // Content
           SafeArea(
             child: Padding(
@@ -91,56 +133,34 @@ class _StartScreenState extends State<StartScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Spacer(flex: 2),
-                  
-                  // Logo/Icon
-                  Container(
-                    width: 120,
-                    height: 120,
-                    child: Image.asset(
-                      'assets/img/jawara.png'
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 32),
-                  
-                  // App Title
-                  const Text(
-                    'JAWARA',
-                    style: TextStyle(
-                      fontSize: 36,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  // App Subtitle
-                  Text(
-                    'Aplikasi Kependudukan,\nKeuangan, dan Marketplace RT',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
-                      height: 1.5,
-                    ),
-                  ),
-                  
+
                   const Spacer(flex: 2),
-                  
+
                   // Sign In Button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
                       onPressed: () {
-                        // Navigate to Sign In
-                        // Navigator.pushNamed(context, '/signin');
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => const SignUpScreen(),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const begin = Offset(1.0, 0.0);
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                              var offsetAnimation = animation.drive(tween);
+                              return SlideTransition(position: offsetAnimation, child: child);
+                            },
+                            transitionDuration: const Duration(milliseconds: 300),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isDark 
-                            ? AppColors.primaryDark 
+                        backgroundColor: isDark
+                            ? AppColors.primaryDark
                             : AppColors.primaryLight,
                         foregroundColor: Colors.white,
                         elevation: 0,
@@ -157,25 +177,38 @@ class _StartScreenState extends State<StartScreen>
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Login Button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: OutlinedButton(
                       onPressed: () {
-                        // Navigate to Login
-                        // Navigator.pushNamed(context, '/login');
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              const begin = Offset(1.0, 0.0);
+                              const end = Offset.zero;
+                              const curve = Curves.easeInOut;
+                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                              var offsetAnimation = animation.drive(tween);
+                              return SlideTransition(position: offsetAnimation, child: child);
+                            },
+                            transitionDuration: const Duration(milliseconds: 300),
+                          ),
+                        );
                       },
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: isDark 
-                            ? AppColors.textPrimaryDark 
+                        foregroundColor: isDark
+                            ? AppColors.textPrimaryDark
                             : AppColors.primaryLight,
                         side: BorderSide(
-                          color: isDark 
-                              ? AppColors.textPrimaryDark 
+                          color: isDark
+                              ? AppColors.textPrimaryDark
                               : AppColors.primaryLight,
                           width: 2,
                         ),
@@ -192,20 +225,20 @@ class _StartScreenState extends State<StartScreen>
                       ),
                     ),
                   ),
-                  
+
                   const Spacer(flex: 1),
-                  
+
                   // Footer Text
                   Text(
                     'Kelola RT Anda dengan Mudah',
                     style: TextStyle(
                       fontSize: 14,
-                      color: isDark 
-                          ? AppColors.textSecondaryDark 
+                      color: isDark
+                          ? AppColors.textSecondaryDark
                           : AppColors.textSecondaryLight,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
                 ],
               ),
@@ -222,32 +255,28 @@ class WaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = Path();
-    
-    // Mulai dari kiri atas
-    path.lineTo(0, size.height * 0.3);
-    
-    // Curve pertama (naik)
+
+    // Mulai dari kiri atas dengan posisi lebih tinggi
+    path.lineTo(0, size.height * 0.15);
+
+    // Curve yang lebih smooth
     path.quadraticBezierTo(
-      size.width * 0.25, // control point x
-      size.height * 0.15, // control point y (lebih tinggi)
-      size.width * 0.5,   // end point x
-      size.height * 0.25, // end point y
+      size.width * 0.25,
+      size.height * 0.05,
+      size.width * 0.5,
+      size.height * 0.1,
     );
-    
-    // Curve kedua (turun lebih dalam)
+
     path.quadraticBezierTo(
-      size.width * 0.75,  // control point x
-      size.height * 0.35, // control point y (lebih rendah)
-      size.width,         // end point x
-      size.height * 0.2,  // end point y
+      size.width * 0.75,
+      size.height * 0.15,
+      size.width,
+      size.height * 0.08,
     );
-    
-    // Garis ke kanan bawah
+
     path.lineTo(size.width, size.height);
-    
-    // Garis ke kiri bawah
     path.lineTo(0, size.height);
-    
+
     path.close();
     return path;
   }
@@ -267,13 +296,13 @@ class PatternPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // Gunakan animationValue yang sudah smooth dari CurvedAnimation
     final t = animationValue;
-    
+
     // Scale yang lebih terlihat: 0.8 -> 1.2
     final scale = 0.8 + (0.4 * t);
-    
+
     // Opacity yang lebih dinamis: 0.05 -> 0.25
     final baseOpacity = 0.05 + (0.2 * t);
-    
+
     final paint = Paint()
       ..color = Colors.white.withOpacity(baseOpacity)
       ..style = PaintingStyle.fill;
@@ -305,26 +334,14 @@ class PatternPainter extends CustomPainter {
     canvas.drawCircle(offset3, 25 + (15 * t), paint);
 
     // Lingkaran stroke di kiri tengah - pulse lebih besar
-    final offset4 = Offset(
-      size.width * 0.1,
-      size.height * 0.4 + (25 * t),
-    );
+    final offset4 = Offset(size.width * 0.1, size.height * 0.4 + (25 * t));
     canvas.drawCircle(offset4, 30 + (30 * t), strokePaint);
 
     // Tambahan lingkaran kecil tersebar - gerakan lebih besar
     final smallCircles = [
-      Offset(
-        size.width * 0.3 + (35 * t),
-        size.height * 0.05 + (15 * t),
-      ),
-      Offset(
-        size.width * 0.7 - (30 * t),
-        size.height * 0.25 + (25 * t),
-      ),
-      Offset(
-        size.width * 0.25 + (20 * t),
-        size.height * 0.35 - (35 * t),
-      ),
+      Offset(size.width * 0.3 + (35 * t), size.height * 0.05 + (15 * t)),
+      Offset(size.width * 0.7 - (30 * t), size.height * 0.25 + (25 * t)),
+      Offset(size.width * 0.25 + (20 * t), size.height * 0.35 - (35 * t)),
     ];
 
     for (var center in smallCircles) {
@@ -369,12 +386,9 @@ class PatternPainter extends CustomPainter {
         ..color = Colors.white.withOpacity(0.25 * (1 - fadeValue))
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2 - (fadeValue);
-      
+
       canvas.drawCircle(
-        Offset(
-          size.width * (0.4 + i * 0.2), 
-          size.height * (0.2 + i * 0.1)
-        ),
+        Offset(size.width * (0.4 + i * 0.2), size.height * (0.2 + i * 0.1)),
         15 + (60 * fadeValue),
         fadePaint,
       );
@@ -382,6 +396,6 @@ class PatternPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(PatternPainter oldDelegate) => 
+  bool shouldRepaint(PatternPainter oldDelegate) =>
       oldDelegate.animationValue != animationValue;
 }

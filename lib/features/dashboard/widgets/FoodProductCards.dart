@@ -47,7 +47,7 @@ class _RecommendedFoodCardsState
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppColors.primary(context),
+              color: AppColors.textPrimary(context),
             ),
           ),
         ),
@@ -119,7 +119,7 @@ class _RecommendedFoodCardsState
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primary(context),
+                  color: AppColors.textPrimary(context),
                 ),
               ),
             ),

@@ -1,15 +1,13 @@
 import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/features/layout/views/main_layout.dart';
 import 'package:ti3h_k1_jawara/features/dashboard/view/dashboard_view.dart';
-import 'package:ti3h_k1_jawara/features/explore/view/explore_view.dart';
-import 'package:ti3h_k1_jawara/features/profile/view/profile_view.dart';
-import 'package:ti3h_k1_jawara/features/create/view/create_view.dart';
-import 'package:ti3h_k1_jawara/features/favorites/view/favorites_view.dart';
-
+import 'package:ti3h_k1_jawara/features/finance/view/finance_view.dart';
+import 'package:ti3h_k1_jawara/features/resident/view/resident_view.dart';
+import 'package:ti3h_k1_jawara/features/market/view/marketplace_view.dart';
 import 'auth/view/start_screen.dart';
 
 final router = GoRouter(
-  initialLocation: '/start',
+  initialLocation: '/dashboard',
   routes: [
     /// Main Pages
     StatefulShellRoute.indexedStack(
@@ -45,15 +43,7 @@ final router = GoRouter(
           routes: [
             GoRoute(
               path: '/favorites',
-              builder: (context, state) => const FavoritesView(),
-            ),
-          ],
-        ),
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/profile',
-              builder: (context, state) => const ProfileView(),
+              builder: (context, state) => const MarketMainScreen(),
             ),
           ],
         ),

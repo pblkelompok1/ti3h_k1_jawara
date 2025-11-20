@@ -27,7 +27,7 @@ class CustomTopBar extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         decoration: BoxDecoration(
           color: AppColors.bgDashboardAppHeader(context),
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(isDark ? 0 : 20)),
           boxShadow: [
             if (!isDark)
               BoxShadow(
