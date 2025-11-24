@@ -79,8 +79,11 @@ class AppColors {
       adaptive(context, light: textPrimaryDark, dark: textPrimaryLight);
 
   static Color bgDashboardAppHeader(BuildContext context) =>
-      adaptive(context, light: primaryLight, dark: backgroundDark);
+      adaptive(context, light: primaryLight, dark: primaryLight);
 
   static Color bgDashboardCard(BuildContext context) =>
       adaptive(context, light: textPrimaryDark, dark: Color(0xFF161C14));
+
+  static Color bgTransaction(BuildContext context) =>
+      adaptive(context, light: Color(0xFFF3F3F3), dark: primaryLight);
 }
