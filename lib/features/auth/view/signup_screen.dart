@@ -1,16 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/themes/app_colors.dart';
+import '../provider/auth_viewmodel.dart';
 import 'login_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SignUpScreen extends StatefulWidget {
+class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() => _SignUpScreenState();
+  ConsumerState<SignUpScreen> createState() => _SignUpScreenState();
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   bool _agreeToTerms = false;
+  bool _obscurePassword = true; // <- state untuk password
+
+  // Tambahkan controller
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _repeatPasswordController =
+      TextEditingController();
+
+  bool get _isPasswordValid =>
+      _passwordController.text.isNotEmpty &&
+      _passwordController.text == _repeatPasswordController.text;
+
+  @override
+  void initState() {
+    super.initState();
+    _passwordController.addListener(_onPasswordChanged);
+    _repeatPasswordController.addListener(_onPasswordChanged);
+  }
+
+  void _onPasswordChanged() {
+    setState(() {}); // agar tombol update saat password berubah
+  }
+
+  @override
+  void dispose() {
+    // Jangan lupa dispose controller untuk mencegah memory leak
+    _emailController.dispose();
+    _passwordController.dispose();
+    _repeatPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +59,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
           onPressed: () => Navigator.pop(context),
           icon: Icon(
             Icons.arrow_back,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
         ),
       ),
@@ -37,57 +73,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
             children: [
               // Title
               Text(
-                'Create Account',
+                'Buat Akun',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
 
               const SizedBox(height: 8),
 
               Text(
-                'Fill your information below or register\nwith your social account',
+                'Isi informasi anda dibawah atau register\ndengan akun social media',
                 style: TextStyle(
                   fontSize: 14,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                   height: 1.5,
                 ),
               ),
 
               const SizedBox(height: 32),
-
-              // Name TextField
-              Text(
-                'Name',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Ex. John Doe',
-                  hintStyle: TextStyle(
-                    color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade400,
-                  ),
-                  filled: true,
-                  fillColor: isDark ? AppColors.bgPrimaryInputBoxDark : Colors.grey.shade100,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
 
               // Email TextField
               Text(
@@ -95,19 +104,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   hintText: 'example@gmail.com',
                   hintStyle: TextStyle(
-                    color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade400,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : Colors.grey.shade400,
                   ),
                   filled: true,
-                  fillColor: isDark ? AppColors.bgPrimaryInputBoxDark : Colors.grey.shade100,
+                  fillColor: isDark
+                      ? AppColors.bgPrimaryInputBoxDark
+                      : Colors.grey.shade100,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -127,23 +143,94 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
-                obscureText: true,
+                controller: _passwordController,
+                obscureText: _obscurePassword, // <- pakai state
                 decoration: InputDecoration(
                   hintText: '••••••••••••',
                   hintStyle: TextStyle(
-                    color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade400,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : Colors.grey.shade400,
                   ),
-                  suffixIcon: Icon(
-                    Icons.visibility_off_outlined,
-                    color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade400,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined, // ganti icon
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : Colors.grey.shade400,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword; // toggle
+                      });
+                    },
                   ),
                   filled: true,
-                  fillColor: isDark ? AppColors.bgPrimaryInputBoxDark : Colors.grey.shade100,
+                  fillColor: isDark
+                      ? AppColors.bgPrimaryInputBoxDark
+                      : Colors.grey.shade100,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Password TextField
+              Text(
+                'Ulangi Password',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _repeatPasswordController,
+                obscureText: _obscurePassword, // <- pakai state
+                decoration: InputDecoration(
+                  hintText: '••••••••••••',
+                  hintStyle: TextStyle(
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : Colors.grey.shade400,
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined, // ganti icon
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : Colors.grey.shade400,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword; // toggle
+                      });
+                    },
+                  ),
+                  filled: true,
+                  fillColor: isDark
+                      ? AppColors.bgPrimaryInputBoxDark
+                      : Colors.grey.shade100,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -181,14 +268,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     child: Wrap(
                       children: [
                         Text(
-                          'Agree with ',
+                          'Setuju dengan ',
                           style: TextStyle(
                             fontSize: 13,
-                            color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade700,
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : Colors.grey.shade700,
                           ),
                         ),
                         Text(
-                          'Terms & Condition',
+                          'Syarat & Ketentuan',
                           style: TextStyle(
                             fontSize: 13,
                             color: AppColors.primary(context),
@@ -208,9 +297,61 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _agreeToTerms ? () {
-                    // Handle sign up
-                  } : null,
+                  onPressed: (_agreeToTerms && _isPasswordValid)
+                      ? () async {
+                          final stateNotifier = ref.read(
+                            signUpProvider.notifier,
+                          );
+
+                          // Call signUp Function
+                          await stateNotifier.signUp(
+                            _emailController.text.trim(),
+                            _passwordController.text.trim(),
+                          );
+
+                          final state = ref.read(signUpProvider);
+                          if (state == SignUpState.success) {
+                            /// Call login function
+                            ///
+                            try {
+                              await stateNotifier.login(
+                                _emailController.text.trim(),
+                                _passwordController.text.trim(),
+                              );
+                              // jika login sukses, lanjutkan sesuai kebutuhan
+                            } on Exception {
+                              // jika login gagal, redirect ke LoginScreen
+                              if (context.mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                );
+                              }
+                              return;
+                            }
+
+                            if (context.mounted) {
+                              context.go('/form-input-data');
+                            }
+                          } else if (state == SignUpState.error) {
+                            showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: const Text('Gagal'),
+                                content: const Text(
+                                  'Terjadi kesalahan, silakan coba lagi.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('OK'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                        }
+                      : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary(context),
                     foregroundColor: Colors.white,
@@ -221,13 +362,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Sign Up',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: ref.watch(signUpProvider) == SignUpState.loading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Daftar',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
 
@@ -238,23 +388,29 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 children: [
                   Expanded(
                     child: Divider(
-                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                      color: isDark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade300,
                       thickness: 1,
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
-                      'Or sign up with',
+                      'Atau daftar dengan',
                       style: TextStyle(
                         fontSize: 13,
-                        color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade600,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : Colors.grey.shade600,
                       ),
                     ),
                   ),
                   Expanded(
                     child: Divider(
-                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                      color: isDark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade300,
                       thickness: 1,
                     ),
                   ),
@@ -295,10 +451,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Already have an account? ',
+                      'Sudah memiliki akun? ',
                       style: TextStyle(
                         fontSize: 14,
-                        color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade700,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : Colors.grey.shade700,
                       ),
                     ),
                     GestureDetector(
@@ -306,21 +464,37 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         Navigator.pushReplacement(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              const begin = Offset(-1.0, 0.0);
-                              const end = Offset.zero;
-                              const curve = Curves.easeInOut;
-                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                              var offsetAnimation = animation.drive(tween);
-                              return SlideTransition(position: offsetAnimation, child: child);
-                            },
-                            transitionDuration: const Duration(milliseconds: 300),
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const LoginScreen(),
+                            transitionsBuilder:
+                                (
+                                  context,
+                                  animation,
+                                  secondaryAnimation,
+                                  child,
+                                ) {
+                                  const begin = Offset(-1.0, 0.0);
+                                  const end = Offset.zero;
+                                  const curve = Curves.easeInOut;
+                                  var tween = Tween(
+                                    begin: begin,
+                                    end: end,
+                                  ).chain(CurveTween(curve: curve));
+                                  var offsetAnimation = animation.drive(tween);
+                                  return SlideTransition(
+                                    position: offsetAnimation,
+                                    child: child,
+                                  );
+                                },
+                            transitionDuration: const Duration(
+                              milliseconds: 300,
+                            ),
                           ),
                         );
                       },
                       child: Text(
-                        'Sign In',
+                        'Masuk',
                         style: TextStyle(
                           fontSize: 14,
                           color: AppColors.primary(context),

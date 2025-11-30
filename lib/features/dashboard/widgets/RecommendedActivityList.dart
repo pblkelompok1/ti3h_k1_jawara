@@ -46,7 +46,7 @@ class RecommendedActivityList extends ConsumerWidget {
         _buildActivityTile(
           context: context,
           imageUrl:
-              "https://i.pinimg.com/736x/5d/e7/9e/5de79ee675c983703b09a3fc637a01cd.jpg",
+              "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc",
           title: 'Kegiatan Gotong Royong',
           date: 'date',
           viewers: 312,
@@ -54,7 +54,7 @@ class RecommendedActivityList extends ConsumerWidget {
         _buildActivityTile(
           context: context,
           imageUrl:
-              "https://i.pinimg.com/736x/5d/e7/9e/5de79ee675c983703b09a3fc637a01cd.jpg",
+              "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc",
           title: 'Kegiatan Gotong Royong Mayat Jokowi',
           date: 'date',
           viewers: 312,
@@ -62,7 +62,7 @@ class RecommendedActivityList extends ConsumerWidget {
         _buildActivityTile(
           context: context,
           imageUrl:
-              "https://i.pinimg.com/736x/5d/e7/9e/5de79ee675c983703b09a3fc637a01cd.jpg",
+              "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc",
           title: 'Kegiatan Gotong Royong Mayat Jokowi',
           date: 'date',
           viewers: 312,
@@ -70,7 +70,7 @@ class RecommendedActivityList extends ConsumerWidget {
         _buildActivityTile(
           context: context,
           imageUrl:
-              "https://i.pinimg.com/736x/5d/e7/9e/5de79ee675c983703b09a3fc637a01cd.jpg",
+              "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc",
           title: 'Kegiatan Gotong Royong Mayat Jokowi',
           date: 'date',
           viewers: 312,

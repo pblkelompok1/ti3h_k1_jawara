@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 
-class CreateView extends StatelessWidget {
-  const CreateView({super.key});
+class ResidentView extends StatelessWidget {
+  const ResidentView({super.key});
 
   @override
   Widget build(BuildContext context) {

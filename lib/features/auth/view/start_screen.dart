@@ -81,7 +81,7 @@ class _StartScreenState extends State<StartScreen>
             alignment: Alignment.topCenter,
             child: Column(
               children: [
-                SizedBox(height: 110,),
+                SizedBox(height: 160,),
                 SizedBox(
                   width: 120,
                   height: 120,
