@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 
-class ExploreView extends StatelessWidget {
-  const ExploreView({super.key});
+class FinanceView extends StatelessWidget {
+  const FinanceView({super.key});
 
   @override
   Widget build(BuildContext context) {

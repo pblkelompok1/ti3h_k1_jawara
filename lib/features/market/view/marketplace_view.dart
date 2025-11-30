@@ -159,51 +159,48 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
           ),
         ],
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.only(right: 20, left: 20, bottom: 16, top: 45),
-          child: Row(
-            children: [
-              // Store Icon
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.store_mall_directory_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
+      child: Padding(
+        padding: const EdgeInsets.only(right: 20, left: 20, bottom: 16, top: 60),
+        child: Row(
+          children: [
+            // Store Icon
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 12),
-              // Title
-              const Text(
-                'Marketplace',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+              child: const Icon(
+                Icons.store_mall_directory_rounded,
+                color: Colors.white,
+                size: 24,
               ),
-              const Spacer(),
-              // Cart Icon
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.shopping_cart_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
+            ),
+            const SizedBox(width: 12),
+            // Title
+            const Text(
+              'Marketplace',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-            ],
-          ),
+            ),
+            const Spacer(),
+            // Cart Icon
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.shopping_cart_outlined,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ],
         ),
       ),
     );
