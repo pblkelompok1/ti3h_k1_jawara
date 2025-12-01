@@ -9,6 +9,7 @@ import 'package:ti3h_k1_jawara/features/market/view/transaction_view.dart';
 import 'package:ti3h_k1_jawara/features/resident/view/resident_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/marketplace_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/product_view.dart';
+import 'package:ti3h_k1_jawara/features/market/view/account_view.dart';
 import 'package:ti3h_k1_jawara/features/profile/view/profile_view.dart';
 import 'auth/view/auth_flow_view.dart';
 import 'auth/view/form_input_data_screen.dart';
@@ -18,6 +19,7 @@ final navigatorKey = GlobalKey<NavigatorState>();
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: navigatorKey,
+    // initialLocation: '/dashboard',
     initialLocation: '/auth-flow',
     routes: [
       GoRoute(
@@ -56,8 +58,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
-      // Profile / Product / Checkout routes
+      // Profile / Product / Checkout / Account routes
       GoRoute(path: '/profile', builder: (_, __) => const ProfileView()),
+      GoRoute(path: '/account', builder: (_, __) => const AccountView()),
       GoRoute(path: '/product/:id', builder: (context, state) {
         final productId = state.pathParameters['id'] ?? '1';
         return ProductView(productId: productId);

@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import '../../../core/themes/app_colors.dart';
 
-import 'SettingPopUp.dart';
+class ResidentTopBar extends ConsumerWidget {
+  final VoidCallback onSearchPressed;
 
-class CustomTopBar extends ConsumerWidget {
-  final bool isVisible;
-
-  const CustomTopBar({super.key, required this.isVisible});
+  const ResidentTopBar({
+    super.key,
+    required this.onSearchPressed,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 350),
-      curve: Curves.easeInOut,
+    return Positioned(
       left: 0,
       right: 0,
-      top: isVisible ? 0 : -200,
+      top: 0,
       child: Container(
         height: 120,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -35,41 +33,38 @@ class CustomTopBar extends ConsumerWidget {
             ),
           ],
         ),
-        child: _buildHeader(context, ref),
+        child: _buildHeader(context),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref) {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        GestureDetector(
-          onTap: () => GoRouter.of(context).push('/profile'),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 2,
-              ),
-            ),
-            child: const CircleAvatar(
-              radius: 26,
-              backgroundImage: NetworkImage(
-                "https://i.pinimg.com/736x/5d/e7/9e/5de79ee675c983703b09a3fc637a01cd.jpg",
-              ),
-            ),
+        // Icon Container
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            Icons.people_alt,
+            color: AppColors.textPrimaryDark,
+            size: 28,
           ),
         ),
         const SizedBox(width: 16),
+        // Title Column
         const Expanded(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AutoSizeText(
-                "Hallo 👋",
+                "Data Warga",
                 maxLines: 1,
                 style: TextStyle(
                   fontSize: 14,
@@ -81,7 +76,7 @@ class CustomTopBar extends ConsumerWidget {
               ),
               SizedBox(height: 2),
               AutoSizeText(
-                "Nama Pengguna",
+                "Kelola Warga RT",
                 maxLines: 1,
                 style: TextStyle(
                   fontSize: 18,
@@ -94,10 +89,23 @@ class CustomTopBar extends ConsumerWidget {
             ],
           ),
         ),
-        SizedBox(
-          width: 40,
-          height: 40,
-          child: PopupExample(),
+        // Search Button
+        InkWell(
+          onTap: onSearchPressed,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.search_rounded,
+              color: AppColors.textPrimaryDark,
+              size: 22,
+            ),
+          ),
         ),
       ],
     );
