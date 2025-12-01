@@ -6,7 +6,7 @@ import '../../../core/enum/auth_flow_status.dart';
 import '../provider/auth_flow_provider.dart';
 import 'incomplete_data_screen.dart';
 import 'pending_approval_screen.dart';
-
+import 'package:lottie/lottie.dart';
 
 class AuthFlowView extends ConsumerWidget {
   const AuthFlowView({super.key});
@@ -19,21 +19,81 @@ class AuthFlowView extends ConsumerWidget {
       data: (state) {
         switch (state) {
           case AuthFlowStatus.notLoggedIn:
-            return const StartScreen();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/dashboard');
+            });
+            return Scaffold(
+              backgroundColor: Colors.white, // Konsisten dengan loading
+              body: Center(
+                child: SizedBox(
+                  width: 200,
+                  height: 200,
+                  child: Lottie.asset('assets/lottie/Loading.json'),
+                ),
+              ),
+            );
+
+          /// Uncomment if production
+          // return const StartScreen();
           case AuthFlowStatus.incompleteData:
-            return const IncompleteDataScreen();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/dashboard');
+            });
+            return Scaffold(
+              backgroundColor: Colors.white, // Konsisten dengan loading
+              body: Center(
+                child: SizedBox(
+                  width: 200,
+                  height: 200,
+                  child: Lottie.asset('assets/lottie/Loading.json'),
+                ),
+              ),
+            );
+
+          /// Uncomment if production
+          // return const IncompleteDataScreen();
+          case AuthFlowStatus.uninitialized:
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/dashboard');
+            });
+            return Scaffold(
+              backgroundColor: Colors.white, // Konsisten dengan loading
+              body: Center(
+                child: SizedBox(
+                  width: 200,
+                  height: 200,
+                  child: Lottie.asset('assets/lottie/Loading.json'),
+                ),
+              ),
+            );
+
+          /// Uncomment if production
+          // return const PendingApprovalScreen();
           case AuthFlowStatus.ready:
             WidgetsBinding.instance.addPostFrameCallback((_) {
               context.go('/dashboard');
             });
-            return const SizedBox.shrink();
-          case AuthFlowStatus.uninitialized:
-            return const PendingApprovalScreen();
+            return Scaffold(
+              backgroundColor: Colors.white, // Konsisten dengan loading
+              body: Center(
+                child: SizedBox(
+                  width: 200,
+                  height: 200,
+                  child: Lottie.asset('assets/lottie/Loading.json'),
+                ),
+              ),
+            );
         }
       },
-      loading: () => const Scaffold(
+      loading: () => Scaffold(
         backgroundColor: Colors.white,
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: SizedBox(
+            width: 200,
+            height: 200,
+            child: Lottie.asset('assets/lottie/Loading.json'),
+          ),
+        ),
       ),
       error: (err, _) => Center(child: Text("Error: $err")),
     );

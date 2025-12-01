@@ -1,104 +1,181 @@
 import 'package:flutter/material.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 
 class RtContactsCards extends StatelessWidget {
   const RtContactsCards({super.key});
 
+  final List<Map<String, dynamic>> _contacts = const [
+    {
+      'name': 'Ketua RT',
+      'info': 'Bapak Ahmad',
+      'phone': '0812-3456-7890',
+      'icon': Icons.account_circle_rounded,
+      'color': Color(0xFF4285F4),
+    },
+    {
+      'name': 'Sekretaris',
+      'info': 'Ibu Siti',
+      'phone': '0812-3456-7891',
+      'icon': Icons.edit_note_rounded,
+      'color': Color(0xFF9C27B0),
+    },
+    {
+      'name': 'Bendahara',
+      'info': 'Bapak Budi',
+      'phone': '0812-3456-7892',
+      'icon': Icons.account_balance_wallet_rounded,
+      'color': Color(0xFFFF9800),
+    },
+    {
+      'name': 'Seksi Keamanan',
+      'info': 'Bapak Joko',
+      'phone': '0812-3456-7893',
+      'icon': Icons.security_rounded,
+      'color': Color(0xFFF44336),
+    },
+    {
+      'name': 'Seksi Kebersihan',
+      'info': 'Ibu Dewi',
+      'phone': '0812-3456-7894',
+      'icon': Icons.cleaning_services_rounded,
+      'color': Color(0xFF4CAF50),
+    },
+    {
+      'name': 'Seksi Sosial',
+      'info': 'Bapak Rudi',
+      'phone': '0812-3456-7895',
+      'icon': Icons.diversity_3_rounded,
+      'color': Color(0xFF00BCD4),
+    },
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 15),
-          child: Text(
-            'Hubungi Pengurus',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary(context),
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Hubungi Pengurus',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary(context),
+                ),
+              ),
+            ],
           ),
         ),
-
+        const SizedBox(height: 15),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25),
-          child: Container(height: 1.2, color: AppColors.softBorder(context)),
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Container(
+            width: double.infinity,
+            height: 1.2,
+            color: AppColors.softBorder(context), // atau Colors.grey.shade300
+          ),
         ),
-
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 0),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 6,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 140,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            itemCount: _contacts.length,
             itemBuilder: (context, index) {
-              return _buildCard("Card $index", context);
+              return Padding(
+                padding: EdgeInsets.only(right: index < _contacts.length - 1 ? 12 : 0),
+                child: _buildContactCard(
+                  context,
+                  isDark: isDark,
+                  name: _contacts[index]['name']!,
+                  info: _contacts[index]['info']!,
+                  phone: _contacts[index]['phone']!,
+                  icon: _contacts[index]['icon']!,
+                  color: _contacts[index]['color']!,
+                ),
+              );
             },
           ),
         ),
-
-        const SizedBox(height: 50),
       ],
     );
   }
 
-  Widget _buildCard(String label, BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.bgDashboardCard(context),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(width: 1.4, color: AppColors.softBorder(context)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+  Widget _buildContactCard(
+    BuildContext context, {
+    required bool isDark,
+    required String name,
+    required String info,
+    required String phone,
+    required IconData icon,
+    required Color color,
+  }) {
+    return InkWell(
+      onTap: () {},
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 140,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.bgDashboardCard(context) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color.withOpacity(0.2),
+            width: 1.5,
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            AspectRatio(
-              aspectRatio: 16 / 10,
-              child: ClipRRect(
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  "https://images.unsplash.com/photo-1551218808-94e220e084d2",
-                  fit: BoxFit.cover,
-                ),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 24,
               ),
             ),
-
-            const SizedBox(height: 10),
-
-            AutoSizeText(
-              "Nama rsdM ih ii ji jij ij iakanan $label",
-              maxLines: 1,
-              overflow: TextOverflow.clip,
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 17,
-              ),
-            ),
-
-            AutoSizeText(
-              "Rp 25.000",
-              maxLines: 1,
-              overflow: TextOverflow.clip,
+            const SizedBox(height: 8),
+            Text(
+              name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
               style: TextStyle(
+                fontWeight: FontWeight.w600,
                 fontSize: 13,
-                color: Colors.grey.shade600,
+                color: AppColors.textPrimary(context),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              info,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary(context),
               ),
             ),
           ],

@@ -22,6 +22,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   http: ^1.6.0
   file_picker: ^10.3.7
+  lottie: ^3.3.2
 
 dev_dependencies:
   flutter_test:
@@ -39,3 +40,5 @@ flutter:
 
   assets:
     - assets/img/jawara.png
+    - assets/img/
+    - assets/lottie/

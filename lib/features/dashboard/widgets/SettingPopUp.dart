@@ -28,7 +28,7 @@ class _PopupExampleState extends ConsumerState<PopupExample>
     super.initState();
 
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 220),
+      duration: const Duration(milliseconds: 300),
       vsync: this,
     );
 
@@ -194,8 +194,9 @@ class _PopupExampleState extends ConsumerState<PopupExample>
         key: _buttonKey,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
-        icon: Icon(
-          _entry == null ? Icons.arrow_drop_down : Icons.arrow_drop_up,
+        icon: AnimatedIcon(
+          icon: AnimatedIcons.menu_close,
+          progress: _controller,
           color: Colors.white,
           size: 28,
         ),
