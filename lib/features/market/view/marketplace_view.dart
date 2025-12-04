@@ -354,86 +354,91 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
               setState(() => _currentBannerPage = index);
             },
             itemBuilder: (context, index) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  gradient: LinearGradient(
-                    colors: [const Color(0xFF2D3A2E), AppColors.primaryLight],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+              return GestureDetector(
+                onTap: index == 0
+                    ? () => context.push('/camera-detection')
+                    : null,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [const Color(0xFF2D3A2E), AppColors.primaryLight],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                  ],
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: 20,
-                      top: 20,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.redAccentLight,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Text(
-                          'DISKON 75%',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'SALE!',
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        right: 20,
+                        top: 20,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(255, 210, 220, 208),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'AI POWERED',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
+                              color: Color.fromARGB(255, 47, 61, 51),
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'Dari Warga Untuk Warga',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'CHECK THIS OFFER',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 11,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'DETEKSI SAYURMU!',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Cek Jenis Sayur dari Kamera 📷',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'MULAI SCAN',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 11,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
-            },
+            }
           ),
         ),
         const SizedBox(height: 12),
@@ -476,7 +481,11 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
         'label': 'Bahan Masak',
         'color': const Color(0xFFFFF3E0),
       },
-      {'icon': Icons.build, 'label': 'Jasa', 'color': const Color(0xFFFCE4EC)},
+      {
+        'icon': Icons.build, 
+        'label': 'Jasa', 
+        'color': const Color(0xFFFCE4EC)
+      },
     ];
 
     return Padding(
@@ -528,29 +537,33 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
     required IconData icon,
     required String label,
     required Color color,
+    VoidCallback? onTap,
   }) {
-    return Column(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.softBorder(context), width: 1),
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.softBorder(context), width: 1),
+            ),
+            child: Icon(icon, size: 32, color: AppColors.primaryLight),
           ),
-          child: Icon(icon, size: 32, color: AppColors.primaryLight),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary(context),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary(context),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

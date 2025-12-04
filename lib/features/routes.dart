@@ -13,6 +13,7 @@ import 'package:ti3h_k1_jawara/features/market/view/account_view.dart';
 import 'package:ti3h_k1_jawara/features/profile/view/profile_view.dart';
 import 'auth/view/auth_flow_view.dart';
 import 'auth/view/form_input_data_screen.dart';
+import 'market/view/camera_detection_screen.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -74,6 +75,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         final transactionId = state.pathParameters['id'] ?? '1';
         return TransactionView(transactionId: transactionId);
       }),
+      GoRoute(
+        path: '/camera-detection',
+        builder: (_, __) => const CameraDetectionScreen(),
+      ),
     ],
   );
 });
