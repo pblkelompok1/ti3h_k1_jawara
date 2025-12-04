@@ -17,10 +17,8 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
     viewportFraction: 0.92,
   );
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _searchBarKey = GlobalKey(); // Add this
   int _currentBannerPage = 0;
   bool _isSearchBarSticky = false;
-  double _searchBarOffset = 0;
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
 
@@ -42,22 +40,11 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
             curve: Curves.easeInOut,
           ),
         );
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Calculate the actual offset of the search bar
-      final RenderBox? renderBox =
-          _searchBarKey.currentContext?.findRenderObject() as RenderBox?;
-      if (renderBox != null) {
-        final position = renderBox.localToGlobal(Offset.zero);
-        setState(() {
-          _searchBarOffset = position.dy - MediaQuery.of(context).padding.top;
-        });
-      }
-    });
   }
 
   void _onScroll() {
-    final shouldStick = _scrollController.offset > _searchBarOffset;
+    // Trigger sticky search bar after scrolling 120 pixels
+    final shouldStick = _scrollController.offset > 120;
 
     if (shouldStick != _isSearchBarSticky) {
       setState(() => _isSearchBarSticky = shouldStick);
@@ -90,19 +77,9 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
             slivers: [
               SliverToBoxAdapter(child: _buildScrollingAppBar()),
 
-              // Search Bar with key for offset calculation
+              // Search Bar
               SliverToBoxAdapter(
-                child: AnimatedContainer(
-                  key: _searchBarKey, // Add key here
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                  height: _isSearchBarSticky ? 0 : null,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 200),
-                    opacity: _isSearchBarSticky ? 0.0 : 1.0,
-                    child: _buildSearchBar(),
-                  ),
-                ),
+                child: _buildSearchBar(),
               ),
 
               SliverToBoxAdapter(child: _buildBannerSection()),
@@ -160,7 +137,12 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.only(right: 20, left: 20, bottom: 16, top: 60),
+        padding: const EdgeInsets.only(
+          right: 20,
+          left: 20,
+          bottom: 16,
+          top: 60,
+        ),
         child: Row(
           children: [
             // Store Icon
@@ -187,15 +169,11 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
               ),
             ),
             const Spacer(),
-            // Cart Icon
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.shopping_cart_outlined,
+            // Account Icon
+            IconButton(
+              onPressed: () => context.push('/account'),
+              icon: const Icon(
+                Icons.person_outline_rounded,
                 color: Colors.white,
                 size: 24,
               ),
@@ -208,7 +186,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
       child: Row(
         children: [
           // Search Bar
@@ -731,65 +709,65 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
           border: Border.all(color: AppColors.softBorder(context), width: 1.5),
         ),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 3,
-            child: ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-              child: Container(
-                width: double.infinity,
-                color: Colors.grey.shade300,
-                child: Image.network(
-                  imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.grey.shade300,
-                    child: const Icon(Icons.image, size: 50),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
+                child: Container(
+                  width: double.infinity,
+                  color: Colors.grey.shade300,
+                  child: Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.grey.shade300,
+                      child: const Icon(Icons.image, size: 50),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  AutoSizeText(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    minFontSize: 12,
-                    maxFontSize: 14,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(context),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    AutoSizeText(
+                      title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      minFontSize: 12,
+                      maxFontSize: 14,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary(context),
+                      ),
                     ),
-                  ),
-                  AutoSizeText(
-                    price,
-                    maxLines: 1,
-                    minFontSize: 11,
-                    maxFontSize: 13,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary(context),
+                    AutoSizeText(
+                      price,
+                      maxLines: 1,
+                      minFontSize: 11,
+                      maxFontSize: 13,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary(context),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }

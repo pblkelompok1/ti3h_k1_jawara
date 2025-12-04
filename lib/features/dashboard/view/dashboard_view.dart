@@ -5,8 +5,9 @@ import 'package:ti3h_k1_jawara/features/dashboard/widgets/RecommendedActivityLis
 import 'package:ti3h_k1_jawara/features/dashboard/widgets/BannerCarousel.dart';
 import '../../layout/provider/ScrollVisibilityNotifier.dart';
 import '../widgets/RtContactsCards.dart';
-import '../widgets/StatCards.dart';
 import '../widgets/TopBarWidget.dart';
+import '../widgets/QuickActionsWidget.dart';
+import '../../../core/themes/app_colors.dart';
 
 class DashboardView extends ConsumerStatefulWidget {
   const DashboardView({super.key});
@@ -16,58 +17,39 @@ class DashboardView extends ConsumerStatefulWidget {
 }
 
 class _DashboardViewState extends ConsumerState<DashboardView> {
-  final PageController _pageController = PageController(
-    viewportFraction: 0.88, // 88% dari lebar layar
-  );
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    final ref = this.ref;
-    final isVisible = ref
-        .watch(scrollVisibilityProvider)
-        .visible;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isVisible = ref.watch(scrollVisibilityProvider).visible;
 
     return Scaffold(
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       body: Stack(
         children: [
-          CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(
-                child: BannerCarousel(),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.only(top: 5, left: 25, right: 25),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const SizedBox(height: 20),
-                    RecommendedActivityList(),
-                    const SizedBox(height: 40),
-                    const PaymentSummaryCards(),
-                    const SizedBox(height: 60),
-                  ]),
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 130, bottom: 100),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const BannerCarousel(),
+                const SizedBox(height: 24),
+                const QuickActionsWidget(),
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const RecommendedActivityList(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
-              ),
-              SliverToBoxAdapter(
-                child: RecommendedFoodCards(),
-              ),
-              SliverToBoxAdapter(
-                child: RtContactsCards(),
-              ),
-              SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    Text('This is the end'),
-                    SizedBox(height: 50,)
-                  ],
-                ),
-              ),
-            ],
+                const RecommendedFoodCards(),
+                const SizedBox(height: 32),
+                const RtContactsCards(),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
           // TOP APPBAR
           CustomTopBar(
