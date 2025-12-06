@@ -9,7 +9,6 @@ class TransactionHistoryTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final history = ref.watch(transactionHistoryProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (history.isEmpty) {
       return Center(

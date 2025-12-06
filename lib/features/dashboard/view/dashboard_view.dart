@@ -30,24 +30,20 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
             padding: const EdgeInsets.only(top: 130, bottom: 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              spacing: 38,
               children: [
                 const BannerCarousel(),
-                const SizedBox(height: 24),
                 const QuickActionsWidget(),
-                const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Column(
                     children: [
                       const RecommendedActivityList(),
-                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
                 const RecommendedFoodCards(),
-                const SizedBox(height: 32),
                 const RtContactsCards(),
-                const SizedBox(height: 24),
               ],
             ),
           ),

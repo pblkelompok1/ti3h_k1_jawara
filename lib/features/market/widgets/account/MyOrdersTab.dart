@@ -9,7 +9,6 @@ class MyOrdersTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final orders = ref.watch(myOrdersProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (orders.isEmpty) {
       return Center(

@@ -9,7 +9,6 @@ class ActiveTransactionsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final transactions = ref.watch(activeTransactionsProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (transactions.isEmpty) {
       return Center(

@@ -1,9 +1,41 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/themes/app_colors.dart';
+import '../../../core/provider/auth_service_provider.dart';
 
-class PendingApprovalScreen extends StatelessWidget {
+class PendingApprovalScreen extends ConsumerStatefulWidget {
   const PendingApprovalScreen({super.key});
+
+  @override
+  ConsumerState<PendingApprovalScreen> createState() => _PendingApprovalScreenState();
+}
+
+class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
+  StreamSubscription<bool?>? _approvalSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _startListeningToApprovalStatus();
+  }
+
+  void _startListeningToApprovalStatus() {
+    final authService = ref.read(authServiceProvider);
+    _approvalSubscription = authService.checkUserApprovalStream().listen((isApproved) {
+      if (isApproved == true && mounted) {
+        // User sudah diapprove, redirect ke auth flow
+        context.go('/auth-flow');
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _approvalSubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

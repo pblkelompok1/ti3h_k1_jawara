@@ -6,19 +6,35 @@ import 'package:auto_size_text/auto_size_text.dart';
 
 import 'SettingPopUp.dart';
 
-class CustomTopBar extends ConsumerWidget {
+class CustomTopBar extends ConsumerStatefulWidget {
   final bool isVisible;
 
   const CustomTopBar({super.key, required this.isVisible});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CustomTopBar> createState() => _CustomTopBarState();
+}
+
+class _CustomTopBarState extends ConsumerState<CustomTopBar> {
+  final GlobalKey<PopupExampleState> _popupKey = GlobalKey<PopupExampleState>();
+
+  @override
+  void didUpdateWidget(CustomTopBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Close popup when TopBar visibility changes
+    if (oldWidget.isVisible != widget.isVisible && !widget.isVisible) {
+      _popupKey.currentState?.closePopup();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOut,
       left: 0,
       right: 0,
-      top: isVisible ? 0 : -200,
+      top: widget.isVisible ? 0 : -200,
       child: Container(
         height: 120,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -35,12 +51,12 @@ class CustomTopBar extends ConsumerWidget {
             ),
           ],
         ),
-        child: _buildHeader(context, ref),
+        child: _buildHeader(context),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, WidgetRef ref) {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -97,7 +113,7 @@ class CustomTopBar extends ConsumerWidget {
         SizedBox(
           width: 40,
           height: 40,
-          child: PopupExample(),
+          child: PopupExample(key: _popupKey),
         ),
       ],
     );

@@ -86,4 +86,13 @@ class AppColors {
 
   static Color bgTransaction(BuildContext context) =>
       adaptive(context, light: Color(0xFFF3F3F3), dark: primaryLight);
+
+  static Color background(BuildContext context) =>
+      adaptive(context, light: backgroundLight, dark: backgroundDark);
+
+  static Color surface(BuildContext context) =>
+      adaptive(context, light: surfaceLight, dark: surfaceDark);
+
+  static Color border(BuildContext context) =>
+      adaptive(context, light: softBorderLight, dark: softBorderDark);
 }

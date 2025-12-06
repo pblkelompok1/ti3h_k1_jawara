@@ -1,20 +1,39 @@
 import 'package:flutter/material.dart';
 import '../../../core/themes/app_colors.dart';
-import 'signup_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+// import '../view/auth_flow_view.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../provider/auth_viewmodel.dart';
+import '../../../core/provider/auth_service_provider.dart';
+import '../../../features/routes.dart';
+
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _rememberMe = false;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final signUpState = ref.watch(signUpProvider);
+    final signUpNotifier = ref.read(signUpProvider.notifier);
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
@@ -22,10 +41,12 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: isDark ? AppColors.backgroundDark : Colors.white,
         elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.go('/start'),
           icon: Icon(
             Icons.arrow_back,
-            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+            color: isDark
+                ? AppColors.textPrimaryDark
+                : AppColors.textPrimaryLight,
           ),
         ),
       ),
@@ -41,7 +62,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
 
@@ -51,7 +74,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 'Welcome back! Please login to continue',
                 style: TextStyle(
                   fontSize: 14,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                   height: 1.5,
                 ),
               ),
@@ -64,19 +89,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
+                controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   hintText: 'example@gmail.com',
                   hintStyle: TextStyle(
-                    color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade400,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : Colors.grey.shade400,
                   ),
                   filled: true,
-                  fillColor: isDark ? AppColors.bgPrimaryInputBoxDark : Colors.grey.shade100,
+                  fillColor: isDark
+                      ? AppColors.bgPrimaryInputBoxDark
+                      : Colors.grey.shade100,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -96,23 +128,41 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
               const SizedBox(height: 8),
               TextField(
-                obscureText: true,
+                controller: _passwordController,
+                obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   hintText: '••••••••••••',
                   hintStyle: TextStyle(
-                    color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade400,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : Colors.grey.shade400,
                   ),
-                  suffixIcon: Icon(
-                    Icons.visibility_off_outlined,
-                    color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade400,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : Colors.grey.shade400,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
                   ),
                   filled: true,
-                  fillColor: isDark ? AppColors.bgPrimaryInputBoxDark : Colors.grey.shade100,
+                  fillColor: isDark
+                      ? AppColors.bgPrimaryInputBoxDark
+                      : Colors.grey.shade100,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -153,7 +203,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         'Remember Me',
                         style: TextStyle(
                           fontSize: 13,
-                          color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade700,
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : Colors.grey.shade700,
                         ),
                       ),
                     ],
@@ -184,9 +236,44 @@ class _LoginScreenState extends State<LoginScreen> {
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Handle login
-                  },
+                  onPressed: signUpState == SignUpState.loading
+                      ? null
+                      : () async {
+                          final email = _emailController.text.trim();
+                          final password = _passwordController.text.trim();
+                          
+                          print('[LOGIN] Starting login...');
+                          await signUpNotifier.login(email, password);
+                          
+                          if (ref.read(signUpProvider) == SignUpState.success) {
+                            print('[LOGIN] Login success');
+                            final authService = ref.read(authServiceProvider);
+                            final token = await authService.getAccessToken();
+                            print('[LOGIN] Token: ${token?.substring(0, 20)}...');
+                            
+                            // Tunggu token tersimpan
+                            await Future.delayed(const Duration(milliseconds: 300));
+                            
+                            print('[LOGIN] Navigating to /auth-flow');
+                            // Gunakan root navigator context
+                            final router = GoRouter.of(navigatorKey.currentContext!);
+                            router.go('/auth-flow');
+                            
+                            // Pop login screen
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                            }
+                          } else if (ref.read(signUpProvider) == SignUpState.error) {
+                            print('[LOGIN] Login failed');
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Login gagal, cek email dan password!'),
+                                ),
+                              );
+                            }
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryLight,
                     foregroundColor: Colors.white,
@@ -195,24 +282,27 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: signUpState == SignUpState.loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Login',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
 
               const SizedBox(height: 24),
-
               // Divider
               Row(
                 children: [
                   Expanded(
                     child: Divider(
-                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                      color: isDark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade300,
                       thickness: 1,
                     ),
                   ),
@@ -222,13 +312,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       'Or login with',
                       style: TextStyle(
                         fontSize: 13,
-                        color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade600,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : Colors.grey.shade600,
                       ),
                     ),
                   ),
                   Expanded(
                     child: Divider(
-                      color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                      color: isDark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade300,
                       thickness: 1,
                     ),
                   ),
@@ -272,26 +366,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       "Don't have an account? ",
                       style: TextStyle(
                         fontSize: 14,
-                        color: isDark ? AppColors.textSecondaryDark : Colors.grey.shade700,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : Colors.grey.shade700,
                       ),
                     ),
                     GestureDetector(
                       onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => const SignUpScreen(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              const begin = Offset(1.0, 0.0);
-                              const end = Offset.zero;
-                              const curve = Curves.easeInOut;
-                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                              var offsetAnimation = animation.drive(tween);
-                              return SlideTransition(position: offsetAnimation, child: child);
-                            },
-                            transitionDuration: const Duration(milliseconds: 300),
-                          ),
-                        );
+                        context.go('/signup');
                       },
                       child: Text(
                         'Sign Up',
@@ -315,6 +397,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+// ...existing code...
 
 class _SocialButton extends StatelessWidget {
   final IconData icon;

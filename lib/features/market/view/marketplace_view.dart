@@ -482,8 +482,8 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
         'color': const Color(0xFFFFF3E0),
       },
       {
-        'icon': Icons.build, 
-        'label': 'Jasa', 
+        'icon': Icons.build,
+        'label': 'Jasa',
         'color': const Color(0xFFFCE4EC)
       },
     ];
@@ -539,26 +539,46 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
     required Color color,
     VoidCallback? onTap,
   }) {
+    // Determine accent color based on category
+    Color accentColor;
+    if (label == 'Makanan') {
+      accentColor = const Color(0xFF4CAF50); // Green
+    } else if (label == 'Pakaian') {
+      accentColor = const Color(0xFF2196F3); // Blue
+    } else if (label == 'Bahan Masak') {
+      accentColor = const Color(0xFFFF9800); // Orange
+    } else {
+      accentColor = const Color(0xFFE91E63); // Pink for Jasa
+    }
+
     return GestureDetector(
       onTap: onTap,
       child: Column(
         children: [
           Container(
-            width: 64,
-            height: 64,
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.softBorder(context), width: 1),
+              color: AppColors.bgDashboardCard(context),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: accentColor.withOpacity(0.5),
+                width: 1.5,
+              ),
+
             ),
-            child: Icon(icon, size: 32, color: AppColors.primaryLight),
+            child: Icon(
+              icon,
+              size: 24,
+              color: accentColor.withOpacity(0.85),
+            ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
               color: AppColors.textPrimary(context),
             ),
           ),
