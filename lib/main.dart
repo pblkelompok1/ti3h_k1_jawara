@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ti3h_k1_jawara/core/themes/theme_provider.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_theme.dart';
 import 'package:ti3h_k1_jawara/features/routes.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});
@@ -26,6 +27,9 @@ class MyApp extends ConsumerWidget {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize date formatting for Indonesian locale
+  await initializeDateFormatting('id_ID', null);
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

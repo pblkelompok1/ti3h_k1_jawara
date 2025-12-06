@@ -9,7 +9,6 @@ class MyProductsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final products = ref.watch(userProductsProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       children: [

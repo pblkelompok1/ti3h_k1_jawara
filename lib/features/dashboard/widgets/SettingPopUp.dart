@@ -8,15 +8,22 @@ class PopupExample extends ConsumerStatefulWidget {
   const PopupExample({super.key});
 
   @override
-  ConsumerState<PopupExample> createState() => _PopupExampleState();
+  ConsumerState<PopupExample> createState() => PopupExampleState();
 }
 
-class _PopupExampleState extends ConsumerState<PopupExample>
+class PopupExampleState extends ConsumerState<PopupExample>
     with SingleTickerProviderStateMixin {
   OverlayEntry? _entry;
   late AnimationController _controller;
   late Animation<double> _opacity;
   late Animation<Offset> _offset;
+
+  // Public method to close popup from parent
+  void closePopup() {
+    if (_entry != null) {
+      _hidePopup();
+    }
+  }
 
   final GlobalKey _buttonKey = GlobalKey();
 
@@ -75,56 +82,193 @@ class _PopupExampleState extends ConsumerState<PopupExample>
                     position: _offset,
                     child: Container(
                       width: _popupWidth,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 12,
-                      ),
                       decoration: BoxDecoration(
                         color: AppColors.bgDashboardCard(context),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          width: 1.4,
+                          width: 1.5,
                           color: AppColors.softBorder(context),
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                            spreadRadius: 2,
                           ),
                         ],
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const AutoSizeText(
-                                'Dark Mode',
-                                maxLines: 1,
-                                minFontSize: 10,
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
+                          // Profile Section
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(20),
+                                topRight: Radius.circular(20),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2.5,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const CircleAvatar(
+                                    radius: 28,
+                                    backgroundImage: NetworkImage(
+                                      "https://i.pinimg.com/736x/5d/e7/9e/5de79ee675c983703b09a3fc637a01cd.jpg",
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              Switch(
-                                value: isDark,
-                                onChanged: (_) {
-                                  ref
-                                      .read(themeProvider.notifier)
-                                      .toggleTheme();
-                                },
-                              ),
-                            ],
+                                const SizedBox(width: 14),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Nama Pengguna",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        "user@email.com",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white70,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
 
-                          const Divider(height: 20),
+                          // Menu Items
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 8,
+                            ),
+                            child: Column(
+                              children: [
+                                _popupItem(
+                                  "Profile",
+                                  Icons.person_rounded,
+                                  const Color(0xFF4285F4),
+                                ),
+                                _popupItem(
+                                  "Settings",
+                                  Icons.settings_rounded,
+                                  const Color(0xFF9C27B0),
+                                ),
+                                _popupItem(
+                                  "Notification",
+                                  Icons.notifications_rounded,
+                                  const Color(0xFFFF9800),
+                                ),
+                                _popupItem(
+                                  "Help & Support",
+                                  Icons.help_outline_rounded,
+                                  const Color(0xFF00BCD4),
+                                ),
+                                
+                                // Dark Mode Toggle
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isDark
+                                          ? Colors.grey[800]
+                                          : Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFFFC107).withOpacity(0.2),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Icon(
+                                            Icons.dark_mode_rounded,
+                                            size: 20,
+                                            color: Color(0xFFFFC107),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        const Expanded(
+                                          child: Text(
+                                            'Dark Mode',
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        Transform.scale(
+                                          scale: 0.85,
+                                          child: Switch(
+                                            value: isDark,
+                                            onChanged: (_) {
+                                              ref
+                                                  .read(themeProvider.notifier)
+                                                  .toggleTheme();
+                                            },
+                                            activeColor: const Color(0xFFFFC107),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
 
-                          _popupItem("Settings", Icons.settings),
-                          _popupItem("Notification", Icons.notifications),
-                          _popupItem("Help & Support", Icons.help_outline),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Divider(height: 20),
+                                ),
+
+                                // Logout Button
+                                _popupItem(
+                                  "Logout",
+                                  Icons.logout_rounded,
+                                  const Color(0xFFF44336),
+                                  isLogout: true,
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -142,33 +286,59 @@ class _PopupExampleState extends ConsumerState<PopupExample>
     setState(() {});
   }
 
-  Widget _popupItem(String label, IconData icon) {
+  Widget _popupItem(String label, IconData icon, Color color, {bool isLogout = false}) {
     return InkWell(
       onTap: () {
         _hidePopup();
+        // Handle navigation or actions here
+        if (isLogout) {
+          // TODO: Implement logout logic
+        }
       },
+      borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 20, // ukuran seragam
-              color: AppColors.surfaceLight,
-            ),
-            const SizedBox(width: 12), // spasi konsisten
-            Expanded(
-              child: AutoSizeText(
-                label,
-                maxLines: 1,
-                minFontSize: 10,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            color: isLogout 
+                ? color.withOpacity(0.1) 
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: color,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: isLogout ? FontWeight.w600 : FontWeight.w500,
+                    color: isLogout ? color : null,
+                  ),
+                ),
+              ),
+              if (!isLogout)
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: Colors.grey[400],
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:ti3h_k1_jawara/features/auth/view/start_screen.dart';
 import '../../../core/enum/auth_flow_status.dart';
 import '../provider/auth_flow_provider.dart';
-import 'incomplete_data_screen.dart';
-import 'pending_approval_screen.dart';
 import 'package:lottie/lottie.dart';
 
 class AuthFlowView extends ConsumerWidget {
@@ -20,82 +17,50 @@ class AuthFlowView extends ConsumerWidget {
         switch (state) {
           case AuthFlowStatus.notLoggedIn:
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/dashboard');
+              context.go('/start');
             });
-            return Scaffold(
-              backgroundColor: Colors.white, // Konsisten dengan loading
-              body: Center(
-                child: SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: Lottie.asset('assets/lottie/Loading.json'),
-                ),
-              ),
-            );
+            return _loadingLottie();
 
-          /// Uncomment if production
-          // return const StartScreen();
           case AuthFlowStatus.incompleteData:
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/dashboard');
+              context.go('/incomplete-data-screen');
             });
-            return Scaffold(
-              backgroundColor: Colors.white, // Konsisten dengan loading
-              body: Center(
-                child: SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: Lottie.asset('assets/lottie/Loading.json'),
-                ),
-              ),
-            );
+            return _loadingLottie();
 
-          /// Uncomment if production
-          // return const IncompleteDataScreen();
           case AuthFlowStatus.uninitialized:
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/dashboard');
+              context.go('/pending-approval-screen');
             });
-            return Scaffold(
-              backgroundColor: Colors.white, // Konsisten dengan loading
-              body: Center(
-                child: SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: Lottie.asset('assets/lottie/Loading.json'),
-                ),
-              ),
-            );
+            return _loadingLottie();
 
-          /// Uncomment if production
-          // return const PendingApprovalScreen();
           case AuthFlowStatus.ready:
             WidgetsBinding.instance.addPostFrameCallback((_) {
               context.go('/dashboard');
             });
-            return Scaffold(
-              backgroundColor: Colors.white, // Konsisten dengan loading
-              body: Center(
-                child: SizedBox(
-                  width: 200,
-                  height: 200,
-                  child: Lottie.asset('assets/lottie/Loading.json'),
-                ),
-              ),
-            );
+            return _loadingLottie();
+
+          case AuthFlowStatus.admin:
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/admin/dashboard');
+            });
+            return _loadingLottie();
         }
       },
-      loading: () => Scaffold(
-        backgroundColor: Colors.white,
-        body: Center(
-          child: SizedBox(
-            width: 200,
-            height: 200,
-            child: Lottie.asset('assets/lottie/Loading.json'),
-          ),
-        ),
-      ),
+      loading: () => _loadingLottie(),
       error: (err, _) => Center(child: Text("Error: $err")),
     );
   }
+}
+
+Widget _loadingLottie() {
+  return Scaffold(
+    backgroundColor: Colors.white, // Konsisten dengan loading
+    body: Center(
+      child: SizedBox(
+        width: 200,
+        height: 200,
+        child: Lottie.asset('assets/lottie/Loading.json'),
+      ),
+    ),
+  );
 }

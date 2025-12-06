@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/themes/app_colors.dart';
-import 'signup_screen.dart';
-import 'login_screen.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -142,21 +141,7 @@ class _StartScreenState extends State<StartScreen>
                     height: 56,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => const SignUpScreen(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              const begin = Offset(1.0, 0.0);
-                              const end = Offset.zero;
-                              const curve = Curves.easeInOut;
-                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                              var offsetAnimation = animation.drive(tween);
-                              return SlideTransition(position: offsetAnimation, child: child);
-                            },
-                            transitionDuration: const Duration(milliseconds: 300),
-                          ),
-                        );
+                        context.go('/signup');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isDark
@@ -186,21 +171,7 @@ class _StartScreenState extends State<StartScreen>
                     height: 56,
                     child: OutlinedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              const begin = Offset(1.0, 0.0);
-                              const end = Offset.zero;
-                              const curve = Curves.easeInOut;
-                              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                              var offsetAnimation = animation.drive(tween);
-                              return SlideTransition(position: offsetAnimation, child: child);
-                            },
-                            transitionDuration: const Duration(milliseconds: 300),
-                          ),
-                        );
+                        context.go('/login');
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: isDark
@@ -227,6 +198,25 @@ class _StartScreenState extends State<StartScreen>
                   ),
 
                   const Spacer(flex: 1),
+
+                  // Admin Login Link
+                  TextButton(
+                    onPressed: () {
+                      context.push('/admin/login');
+                    },
+                    child: Text(
+                      'Login sebagai Admin',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark
+                            ? AppColors.textSecondaryDark
+                            : AppColors.textSecondaryLight,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
 
                   // Footer Text
                   Text(

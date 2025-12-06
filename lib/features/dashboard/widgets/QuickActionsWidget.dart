@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 
 import 'StatCards.dart';
+import 'FeatureUnavailableDialog.dart';
 
 class QuickActionsWidget extends StatelessWidget {
   const QuickActionsWidget({super.key});
@@ -20,13 +21,13 @@ class QuickActionsWidget extends StatelessWidget {
       'color': Color(0xFFF44336),
     },
     {
-      'title': 'Jadwal Ronda',
-      'subtitle': 'Cek jadwal keamanan',
+      'title': 'Ajukan Surat',
+      'subtitle': 'Minta surat secara online',
       'icon': Icons.schedule_rounded,
       'color': Color(0xFF9C27B0),
     },
     {
-      'title': 'Info Warga',
+      'title': 'Kegiatan RT',
       'subtitle': 'Data kependudukan',
       'icon': Icons.people_alt_rounded,
       'color': Color(0xFF00BCD4),
@@ -72,6 +73,18 @@ class QuickActionsWidget extends StatelessWidget {
                 subtitle: _actions[index]['subtitle']!,
                 icon: _actions[index]['icon']!,
                 color: _actions[index]['color']!,
+                onTap: _actions[index]['title'] == 'Ajukan Surat'
+                    ? () {
+                        FeatureUnavailableDialog.show(
+                          context,
+                          title: 'Ajukan Surat',
+                          message:
+                              'Fitur pengajuan surat secara online sedang dalam tahap pengembangan. Untuk sementara, silakan ajukan surat secara langsung ke pengurus RT.',
+                          icon: Icons.description_rounded,
+                          iconColor: const Color(0xFF9C27B0),
+                        );
+                      }
+                    : null,
               );
             },
           ),
@@ -87,9 +100,10 @@ class QuickActionsWidget extends StatelessWidget {
     required String subtitle,
     required IconData icon,
     required Color color,
+    VoidCallback? onTap,
   }) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap ?? () {},
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(16),
