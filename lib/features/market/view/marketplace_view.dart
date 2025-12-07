@@ -415,7 +415,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                             ),
                             const SizedBox(height: 4),
                             const Text(
-                              'Cek Jenis Sayur dari Kamera 📷',
+                              'Cek Jenis Sayur dari Kamera/Foto📷',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -424,7 +424,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'MULAI SCAN',
+                              'TAP UNTUK MULAI SCAN',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.9),
                                 fontSize: 11,
