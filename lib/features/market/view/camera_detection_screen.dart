@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 import 'result_screen.dart';
@@ -13,23 +14,73 @@ class CameraDetectionScreen extends StatefulWidget {
 class _CameraDetectionScreenState extends State<CameraDetectionScreen> {
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _takePicture() async {
-    final picked = await _picker.pickImage(source: ImageSource.camera);
+  CameraController? _cameraController;
+  Future<void>? _initializeControllerFuture;
 
-    if (picked != null) {
+  @override
+  void initState() {
+    super.initState();
+    _initCamera();
+  }
+
+  Future<void> _initCamera() async {
+    try {
+      final cameras = await availableCameras();
+
+      final backCamera = cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => cameras.first,
+      );
+
+      _cameraController = CameraController(
+        backCamera,
+        ResolutionPreset.medium,
+        enableAudio: false,
+      );
+
+      _initializeControllerFuture = _cameraController!.initialize();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      debugPrint("Gagal inisialisasi kamera: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _takePicture() async {
+    try {
+      if (_cameraController == null ||
+          !_cameraController!.value.isInitialized) {
+        return;
+      }
+
+      await _initializeControllerFuture;
+
+      final file = await _cameraController!.takePicture();
+
+      if (!mounted) return;
+
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => ResultScreen(imagePath: picked.path),
+          builder: (_) => ResultScreen(imagePath: file.path),
         ),
       );
+    } catch (e) {
+      debugPrint("Gagal ambil foto: $e");
     }
   }
 
   Future<void> _pickFromGallery() async {
     final picked = await _picker.pickImage(source: ImageSource.gallery);
 
-    if (picked != null) {
+    if (picked != null && mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -41,78 +92,166 @@ class _CameraDetectionScreenState extends State<CameraDetectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    final primary = AppColors.primary(context);
 
+    return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         title: const Text("Deteksi Sayur"),
-        backgroundColor: AppColors.primary(context),
+        backgroundColor: primary,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
+      body: _initializeControllerFuture == null
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                // area kamera
+                Expanded(
+                  child: FutureBuilder(
+                    future: _initializeControllerFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
 
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.eco,
-              size: 90,
-              color: AppColors.primary(context),
-            ),
-
-            const SizedBox(height: 20),
-
-            Text(
-              "Ambil atau pilih gambar sayur",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary(context),
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: 40),
-
-            // Kamera Button
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary(context),
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                      return Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CameraPreview(_cameraController!),
+                          Center(
+                            child: Container(
+                              width: 260,
+                              height: 260,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.9),
+                                  width: 3,
+                                ),
+                              ),
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: Container(
+                              margin: const EdgeInsets.only(top: 16),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Text(
+                                "Arahkan kamera ke sayur yang ingin dideteksi",
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
-              ),
-              onPressed: _takePicture,
-              icon: const Icon(Icons.camera_alt, size: 28, color: Colors.white),
-              label: const Text(
-                "Ambil Foto",
-                style: TextStyle(fontSize: 18, color: Colors.white),
-              ),
-            ),
 
-            const SizedBox(height: 20),
-
-            // Galeri Button
-            OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                side: BorderSide(color: AppColors.primary(context), width: 2),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                // panel bawah tombol kamera dan galeri
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 12,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Ambil foto langsung atau pilih gambar dari galeri",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade700,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: _takePicture,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primary,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 14),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                icon: const Icon(
+                                  Icons.camera_alt,
+                                  color: Colors.white,
+                                ),
+                                label: const Text(
+                                  "Ambil Foto",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _pickFromGallery,
+                                style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
+                                  side: BorderSide(
+                                    color: primary,
+                                    width: 1.8,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                icon: Icon(
+                                  Icons.photo_library_outlined,
+                                  color: primary,
+                                ),
+                                label: Text(
+                                  "Dari Galeri",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: primary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-              onPressed: _pickFromGallery,
-              icon: Icon(Icons.photo_library,
-                  size: 28, color: AppColors.primary(context)),
-              label: Text(
-                "Pilih dari Galeri",
-                style: TextStyle(fontSize: 18, color: AppColors.primary(context)),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
     );
   }
 }

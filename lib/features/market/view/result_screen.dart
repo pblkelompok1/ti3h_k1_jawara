@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 
 class ResultScreen extends StatelessWidget {
   final String imagePath;
@@ -8,49 +9,40 @@ class ResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = AppColors.primary(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         title: const Text("Hasil Deteksi"),
-        backgroundColor: Colors.white,
+        backgroundColor: primary,
         foregroundColor: Colors.black,
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            // ---- Image Preview ----
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: Image.file(File(imagePath)),
             ),
-
             const SizedBox(height: 20),
-
-            // ---- Detected Name ----
             const Text(
-              "🥦 Brokoli",
+              "Brokoli",
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 6),
-
             Text(
               "Brassica oleracea var. italica",
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey.shade600,
+                color: Colors.grey,
                 fontStyle: FontStyle.italic,
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // ---- Confidence ----
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -68,32 +60,22 @@ class ResultScreen extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 25),
-
-            // ---- Description ----
             const Text(
               "Deskripsi",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 6),
-
             const Text(
               "Brokoli adalah sayuran hijau yang mengandung banyak vitamin C, serat, antioksidan, dan baik untuk kesehatan.",
               style: TextStyle(fontSize: 15, height: 1.4),
             ),
-
             const SizedBox(height: 30),
-
-            // ---- Related Images ----
             const Text(
               "Gambar Serupa",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 12),
-
             SizedBox(
               height: 120,
               child: ListView(
@@ -115,25 +97,24 @@ class ResultScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 30),
-
-            // ---- Button Scan Again ----
             Center(
               child: ElevatedButton.icon(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.camera_alt),
-                label: const Text("Scan Lagi"),
+                icon: const Icon(Icons.camera_alt, color: Colors.white), // Mengubah warna icon menjadi putih
+                label: const Text(
+                  "Scan Lagi", 
+                  style: TextStyle(color: Colors.white), // Mengubah warna teks menjadi putih
+                ),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 30, vertical: 14),
+                  backgroundColor: primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
           ],
         ),
