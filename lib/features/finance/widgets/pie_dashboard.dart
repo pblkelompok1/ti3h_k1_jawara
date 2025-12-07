@@ -22,16 +22,30 @@ class LegendItem extends StatelessWidget {
 
 class FilterTime extends StatefulWidget {
   final bool isDark;
+  final Function(String period) onPeriodChanged;
+  final int initialIndex;
 
-  const FilterTime({super.key, required this.isDark});
+  const FilterTime({
+    super.key, 
+    required this.isDark,
+    required this.onPeriodChanged,
+    this.initialIndex = 3,
+  });
 
   @override
   State<FilterTime> createState() => _FilterTimeState();
 }
 
 class _FilterTimeState extends State<FilterTime> {
-  int selectedIndex = 3;
+  late int selectedIndex;
   final List<String> labels = ["H", "B", "T", "∞"];
+  final List<String> periods = ["day", "month", "year", "all"];
+
+  @override
+  void initState() {
+    super.initState();
+    selectedIndex = widget.initialIndex;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +54,10 @@ class _FilterTimeState extends State<FilterTime> {
         return Row(
           children: [
             InkWell(
-              onTap: () => setState(() => selectedIndex = index),
+              onTap: () {
+                setState(() => selectedIndex = index);
+                widget.onPeriodChanged(periods[index]);
+              },
               borderRadius: BorderRadius.circular(20),
               child: _circle(context, labels[index], index == selectedIndex),
             ),
@@ -72,16 +89,27 @@ class PieDashboard extends StatelessWidget {
   final bool isDark;
   final double income;
   final double expense;
+  final bool isLoading;
 
   const PieDashboard({
     super.key,
     required this.isDark,
     required this.income,
     required this.expense,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const SizedBox(
+        height: 220,
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 220,
       child: PieChart(

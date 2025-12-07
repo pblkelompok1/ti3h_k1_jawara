@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/core/themes/theme_provider.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+
+import '../../../core/provider/auth_service_provider.dart';
 
 class PopupExample extends ConsumerStatefulWidget {
   const PopupExample({super.key});
@@ -288,11 +291,75 @@ class PopupExampleState extends ConsumerState<PopupExample>
 
   Widget _popupItem(String label, IconData icon, Color color, {bool isLogout = false}) {
     return InkWell(
-      onTap: () {
+      onTap: () async {
         _hidePopup();
         // Handle navigation or actions here
         if (isLogout) {
-          // TODO: Implement logout logic
+          // Show confirmation dialog
+          final shouldLogout = await showDialog<bool>(
+            context: context,
+            builder: (BuildContext dialogContext) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                title: const Text(
+                  'Konfirmasi Logout',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
+                ),
+                content: const Text(
+                  'Apakah Anda yakin ingin keluar?',
+                  style: TextStyle(fontSize: 16),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(false),
+                    child: Text(
+                      'Batal',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF44336),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    child: const Text(
+                      'Logout',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+
+          // If user confirms, proceed with logout
+          if (shouldLogout == true && context.mounted) {
+            final authService = ref.read(authServiceProvider);
+            await authService.logout();
+            if (context.mounted) {
+              context.go('/start');
+            }
+          }
         }
       },
       borderRadius: BorderRadius.circular(12),
