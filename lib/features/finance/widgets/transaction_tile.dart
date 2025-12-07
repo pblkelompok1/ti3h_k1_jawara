@@ -8,6 +8,7 @@ class TransactionTile extends StatelessWidget {
   final String amount;
   final bool isIncome;
   final bool compact;
+  final bool isIuran; // New flag to indicate iuran/fee items
   final VoidCallback? onTap;
 
   const TransactionTile({
@@ -18,6 +19,7 @@ class TransactionTile extends StatelessWidget {
     required this.amount,
     required this.isIncome,
     this.compact = false,
+    this.isIuran = false,
     this.onTap,
   });
 
@@ -39,6 +41,9 @@ class TransactionTile extends StatelessWidget {
   }
 
   Widget _buildCompact(BuildContext context, Color colorType) {
+    // Use calendar/payment icon for iuran, auto_mode icon for automation
+    final icon = isIuran ? Icons.calendar_today : Icons.auto_mode;
+    
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -71,32 +76,43 @@ class TransactionTile extends StatelessWidget {
                         color: AppColors.textSecondary(context),
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Icon(
-                      Icons.auto_mode,
-                      size: 12,
-                      color: AppColors.textSecondary(context),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      category,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textSecondary(context),
-                      ),
-                    ),
                   ],
                 ),
               ],
             ),
           ),
-          Text(
-            amount,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textPrimary(context),
-              fontWeight: FontWeight.w600,
-            ),
+          // Category on the right
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                amount,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textPrimary(context),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    icon,
+                    size: 12,
+                    color: AppColors.textSecondary(context),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    category,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

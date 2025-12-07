@@ -1,104 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
+import 'package:ti3h_k1_jawara/core/provider/finance_service_provider.dart';
 
 import '../widgets/tagihan_section.dart';
 import '../widgets/pie_dashboard.dart';
 import '../widgets/search_transaction.dart';
 import '../widgets/finance_topbar.dart';
 import '../widgets/add_action_bottomsheet.dart';
+import '../widgets/balance_text_loading.dart';
 
-class FinanceView extends StatelessWidget {
+class FinanceView extends ConsumerStatefulWidget {
   const FinanceView({super.key});
+
+  @override
+  ConsumerState<FinanceView> createState() => _FinanceViewState();
+}
+
+class _FinanceViewState extends ConsumerState<FinanceView> {
+  final ScrollController _scrollController = ScrollController();
+  
+  double _balance = 0.0;
+  double _incomePercent = 0.0;
+  double _expensePercent = 0.0;
+  double _totalIncome = 0.0;
+  double _totalExpense = 0.0;
+  bool _isLoadingBalance = true;
+  bool _isLoadingChart = true;
+  String _currentPeriod = 'all';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFinanceStats(_currentPeriod);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadFinanceStats(String period) async {
+    setState(() {
+      _isLoadingBalance = true;
+      _isLoadingChart = true;
+      _currentPeriod = period;
+    });
+
+    try {
+      final financeService = ref.read(financeServiceProvider);
+      
+      // Load balance data from new endpoint
+      final balanceData = await financeService.getBalance(period: period);
+
+      final totalIncome = balanceData['total_income'] as double;
+      final totalExpense = balanceData['total_expense'] as double;
+      final total = totalIncome + totalExpense;
+
+      setState(() {
+        _balance = balanceData['total_balance'] as double;
+        _totalIncome = totalIncome;
+        _totalExpense = totalExpense;
+        _incomePercent = total == 0 ? 0 : (totalIncome / total) * 100;
+        _expensePercent = total == 0 ? 0 : (totalExpense / total) * 100;
+        _isLoadingBalance = false;
+        _isLoadingChart = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingBalance = false;
+        _isLoadingChart = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading stats: ${e.toString()}')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final List<Map<String, dynamic>> transaksi = [
-      {
-        "title": "Dana Desa",
-        "time": "2 hari lalu",
-        "category": "Operasional",
-        "type": "keuangan",
-        "amount": 3000000.0,
-        "isIncome": true,
-      },
-      {
-        "title": "Pembelian ATK",
-        "time": "1 hari lalu",
-        "category": "Pengeluaran Umum",
-        "type": "keuangan",
-        "amount": 1500000.0,
-        "isIncome": false,
-      },
-      {
-        "title": "Perayaan 17 Agustus",
-        "time": "5 jam lalu",
-        "category": "Kegiatan Desa",
-        "type": "keuangan",
-        "amount": 200000.0,
-        "isIncome": false,
-      },
-
-      {
-        "title": "Iuran Kebersihan",
-        "time": "1 jam lalu",
-        "category": "Iuran Mingguan",
-        "type": "iuran",
-        "amount": 5000.0,
-        "isIncome": true,
-      },
-      {
-        "title": "Iuran Keamanan",
-        "time": "2 jam lalu",
-        "category": "Iuran Bulanan",
-        "type": "iuran",
-        "amount": 10000.0,
-        "isIncome": true,
-      },
-      {
-        "title": "Kas RT",
-        "time": "3 jam lalu",
-        "category": "Iuran Rutin",
-        "type": "iuran",
-        "amount": 15000.0,
-        "isIncome": true,
-      },
-
-      {
-        "title": "Iuran Kebersihan Otomatis",
-        "time": "1 menit lalu",
-        "category": "Kebersihan",
-        "type": "otomasi",
-        "amount": 5000.0,
-        "isIncome": true,
-        "isAuto": true,
-      },
-      {
-        "title": "Iuran Sampah Otomatis",
-        "time": "10 menit lalu",
-        "category": "Sampah",
-        "type": "otomasi",
-        "amount": 7000.0,
-        "isIncome": true,
-        "isAuto": true,
-      },
-    ];
-
-    double income = transaksi
-        .where((t) => t["isIncome"] == true)
-        .fold(0.0, (sum, t) => sum + t["amount"]);
-
-    double expense = transaksi
-        .where((t) => t["isIncome"] == false)
-        .fold(0.0, (sum, t) => sum + t["amount"]);
-
-    double total = income + expense;
-
-    double incomePercent = total == 0 ? 0 : (income / total) * 100;
-    double expensePercent = total == 0 ? 0 : (expense / total) * 100;
-
-    double balance = income - expense;
+    final financeService = ref.watch(financeServiceProvider);
 
     return Scaffold(
       backgroundColor: isDark
@@ -115,6 +100,7 @@ class FinanceView extends StatelessWidget {
 
           Expanded(
             child: SingleChildScrollView(
+              controller: _scrollController,
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
@@ -132,30 +118,39 @@ class FinanceView extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      FilterTime(isDark: isDark),
+                      FilterTime(
+                        isDark: isDark,
+                        onPeriodChanged: (period) {
+                          _loadFinanceStats(period);
+                        },
+                      ),
                     ],
                   ),
 
                   const SizedBox(height: 12),
 
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Rp ${balance.toStringAsFixed(0)}",
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary(context),
+                  if (_isLoadingBalance)
+                    const BalanceTextLoading()
+                  else
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Rp ${_balance.toStringAsFixed(0)}",
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary(context),
+                        ),
                       ),
                     ),
-                  ),
 
                   const SizedBox(height: 18),
 
                   PieDashboard(
                     isDark: isDark,
-                    income: incomePercent,
-                    expense: expensePercent,
+                    income: _incomePercent,
+                    expense: _expensePercent,
+                    isLoading: _isLoadingChart,
                   ),
 
                   const SizedBox(height: 12),
@@ -177,7 +172,11 @@ class FinanceView extends StatelessWidget {
 
                   const SizedBox(height: 18),
 
-                  SearchTransaction(isDark: isDark, transaksi: transaksi),
+                  SearchTransaction(
+                    isDark: isDark, 
+                    financeService: financeService,
+                    parentScrollController: _scrollController,
+                  ),
 
                   const SizedBox(height: 24),
                 ],
