@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 
 import 'StatCards.dart';
@@ -13,24 +14,28 @@ class QuickActionsWidget extends StatelessWidget {
       'subtitle': 'Bayar iuran bulanan',
       'icon': Icons.payment_rounded,
       'color': Color(0xFF4285F4),
+      'path': '/finance',
     },
     {
       'title': 'Lapor Masalah',
       'subtitle': 'Laporkan keluhan',
       'icon': Icons.report_problem_rounded,
       'color': Color(0xFFF44336),
+      'path': '/lapor-masalah',
     },
     {
       'title': 'Ajukan Surat',
       'subtitle': 'Minta surat secara online',
       'icon': Icons.schedule_rounded,
       'color': Color(0xFF9C27B0),
+      'path': '/resident',
     },
     {
       'title': 'Kegiatan RT',
       'subtitle': 'Data kependudukan',
       'icon': Icons.people_alt_rounded,
       'color': Color(0xFF00BCD4),
+      'path': '/resident',
     },
   ];
 
@@ -73,18 +78,7 @@ class QuickActionsWidget extends StatelessWidget {
                 subtitle: _actions[index]['subtitle']!,
                 icon: _actions[index]['icon']!,
                 color: _actions[index]['color']!,
-                onTap: _actions[index]['title'] == 'Ajukan Surat'
-                    ? () {
-                        FeatureUnavailableDialog.show(
-                          context,
-                          title: 'Ajukan Surat',
-                          message:
-                              'Fitur pengajuan surat secara online sedang dalam tahap pengembangan. Untuk sementara, silakan ajukan surat secara langsung ke pengurus RT.',
-                          icon: Icons.description_rounded,
-                          iconColor: const Color(0xFF9C27B0),
-                        );
-                      }
-                    : null,
+                path: _actions[index]['path']!,
               );
             },
           ),
@@ -100,10 +94,10 @@ class QuickActionsWidget extends StatelessWidget {
     required String subtitle,
     required IconData icon,
     required Color color,
-    VoidCallback? onTap,
+    required String path,
   }) {
     return InkWell(
-      onTap: onTap ?? () {},
+      onTap: () => context.go(path),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(16),
