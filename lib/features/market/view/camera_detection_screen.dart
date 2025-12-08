@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
+import 'package:ti3h_k1_jawara/core/services/predict_service.dart';
 import 'result_screen.dart';
 
 class CameraDetectionScreen extends StatefulWidget {
@@ -11,8 +12,9 @@ class CameraDetectionScreen extends StatefulWidget {
   State<CameraDetectionScreen> createState() => _CameraDetectionScreenState();
 }
 
-class _CameraDetectionScreenState extends State<CameraDetectionScreen> {
+class _CameraDetectionScreenState extends State<CameraDetectionScreen> with WidgetsBindingObserver {
   final ImagePicker _picker = ImagePicker();
+  bool _isProcessing = false;
 
   CameraController? _cameraController;
   Future<void>? _initializeControllerFuture;
@@ -20,7 +22,31 @@ class _CameraDetectionScreenState extends State<CameraDetectionScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initCamera();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _cameraController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final CameraController? cameraController = _cameraController;
+
+    // App state changed before we got the chance to initialize.
+    if (cameraController == null || !cameraController.value.isInitialized) {
+      return;
+    }
+
+    if (state == AppLifecycleState.inactive) {
+      cameraController.dispose();
+    } else if (state == AppLifecycleState.resumed) {
+      _initCamera();
+    }
   }
 
   Future<void> _initCamera() async {
@@ -47,13 +73,9 @@ class _CameraDetectionScreenState extends State<CameraDetectionScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _cameraController?.dispose();
-    super.dispose();
-  }
-
   Future<void> _takePicture() async {
+    if (_isProcessing) return;
+    
     try {
       if (_cameraController == null ||
           !_cameraController!.value.isInitialized) {
@@ -62,31 +84,75 @@ class _CameraDetectionScreenState extends State<CameraDetectionScreen> {
 
       await _initializeControllerFuture;
 
+      setState(() {
+        _isProcessing = true;
+      });
+
       final file = await _cameraController!.takePicture();
 
       if (!mounted) return;
 
-      Navigator.push(
+      // PAUSE camera sebelum navigasi untuk stop buffer
+      await _cameraController?.pausePreview();
+
+      // Navigate to result screen
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ResultScreen(imagePath: file.path),
         ),
       );
+
+      // RESUME camera setelah kembali
+      if (mounted && _cameraController != null && _cameraController!.value.isInitialized) {
+        await _cameraController?.resumePreview();
+      }
     } catch (e) {
       debugPrint("Gagal ambil foto: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal mengambil foto: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     }
   }
 
   Future<void> _pickFromGallery() async {
+    if (_isProcessing) return;
+
+    setState(() {
+      _isProcessing = true;
+    });
+    
     final picked = await _picker.pickImage(source: ImageSource.gallery);
 
     if (picked != null && mounted) {
-      Navigator.push(
+      // PAUSE camera untuk gallery
+      await _cameraController?.pausePreview();
+
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => ResultScreen(imagePath: picked.path),
         ),
       );
+
+      // RESUME camera setelah kembali
+      if (mounted && _cameraController != null && _cameraController!.value.isInitialized) {
+        await _cameraController?.resumePreview();
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isProcessing = false;
+      });
     }
   }
 
@@ -112,9 +178,7 @@ class _CameraDetectionScreenState extends State<CameraDetectionScreen> {
                     future: _initializeControllerFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState != ConnectionState.done) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       }
 
                       return Stack(
@@ -138,8 +202,9 @@ class _CameraDetectionScreenState extends State<CameraDetectionScreen> {
                             alignment: Alignment.topCenter,
                             child: Container(
                               margin: const EdgeInsets.only(top: 16),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
                               child: Text(
                                 "Arahkan kamera ke sayur yang ingin dideteksi",
                                 style: TextStyle(
@@ -160,8 +225,10 @@ class _CameraDetectionScreenState extends State<CameraDetectionScreen> {
                 // panel bawah tombol kamera dan galeri
                 Container(
                   width: double.infinity,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).scaffoldBackgroundColor,
                     borderRadius: const BorderRadius.only(
@@ -194,11 +261,12 @@ class _CameraDetectionScreenState extends State<CameraDetectionScreen> {
                           children: [
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: _takePicture,
+                                onPressed: _isProcessing ? null : _takePicture,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: primary,
                                   padding: const EdgeInsets.symmetric(
-                                      vertical: 14),
+                                    vertical: 14,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14),
                                   ),
@@ -219,14 +287,12 @@ class _CameraDetectionScreenState extends State<CameraDetectionScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: OutlinedButton.icon(
-                                onPressed: _pickFromGallery,
+                                onPressed: _isProcessing ? null : _pickFromGallery,
                                 style: OutlinedButton.styleFrom(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 14),
-                                  side: BorderSide(
-                                    color: primary,
-                                    width: 1.8,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
                                   ),
+                                  side: BorderSide(color: primary, width: 1.8),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(14),
                                   ),
