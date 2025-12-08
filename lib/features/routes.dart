@@ -12,6 +12,8 @@ import 'package:ti3h_k1_jawara/features/market/view/marketplace_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/product_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/account_view.dart';
 import 'package:ti3h_k1_jawara/features/profile/view/profile_view.dart';
+import 'package:ti3h_k1_jawara/features/finance/view/iuran_warga_view.dart';
+import 'package:ti3h_k1_jawara/features/finance/view/dana_pribadi_view.dart';
 import 'auth/view/auth_flow_view.dart';
 import 'auth/view/form_input_data_screen.dart';
 import 'market/view/camera_detection_screen.dart';
@@ -64,6 +66,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile', builder: (_, __) => const ProfileView()),
       GoRoute(path: '/account', builder: (_, __) => const AccountView()),
       GoRoute(path: '/lapor-masalah', builder: (_, __) => const ReportIssueView()),
+      GoRoute(path: '/iuran-warga', builder: (_, __) => const IuranWargaView()),
+      GoRoute(path: '/dana-pribadi', builder: (_, __) => const DanaPribadiView()),
       GoRoute(path: '/product/:id', builder: (context, state) {
         final productId = state.pathParameters['id'] ?? '1';
         return ProductView(productId: productId);

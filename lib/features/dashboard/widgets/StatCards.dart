@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/themes/app_colors.dart';
 
@@ -21,7 +22,7 @@ class PaymentSummaryCards extends StatelessWidget {
           value: "Rp 855.000",
           subtitle: "3 tagihan belum dibayar",
           borderColor: const Color(0xFF4285F4),
-          onTap: () {},
+          onTap: () => context.push('/iuran-warga'),
         ),
         // const SizedBox(height: 16),
 
