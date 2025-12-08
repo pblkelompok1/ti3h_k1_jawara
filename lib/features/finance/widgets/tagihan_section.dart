@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
-import 'detail_tagihan_page.dart';
+import 'detail_tagihan_pribadi_page.dart';
 
 class TagihanSection extends StatefulWidget {
   final bool isDark;
@@ -139,7 +139,7 @@ class _TagihanSectionState extends State<TagihanSection>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => DetailTagihanPage(
+              builder: (_) => DetailTagihanPribadiPage(
                 isDark: widget.isDark,
                 kategori: kategori,
                 judul: judul,

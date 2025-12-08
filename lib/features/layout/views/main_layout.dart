@@ -101,26 +101,26 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
                 // Page 0: Dashboard
                 _PageContainer(
                   key: const ValueKey('page_0'),
-                  child: widget.navigationShell,
                   isVisible: currentIndex == 0,
+                  child: widget.navigationShell,
                 ),
                 // Page 1: Explore
                 _PageContainer(
                   key: const ValueKey('page_1'),
-                  child: widget.navigationShell,
                   isVisible: currentIndex == 1,
+                  child: widget.navigationShell,
                 ),
                 // Page 2: Create
                 _PageContainer(
                   key: const ValueKey('page_2'),
-                  child: widget.navigationShell,
                   isVisible: currentIndex == 2,
+                  child: widget.navigationShell,
                 ),
                 // Page 3: Market
                 _PageContainer(
                   key: const ValueKey('page_3'),
-                  child: widget.navigationShell,
                   isVisible: currentIndex == 3,
+                  child: widget.navigationShell,
                 ),
               ],
             ),
