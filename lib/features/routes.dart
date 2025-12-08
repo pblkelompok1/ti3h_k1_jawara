@@ -7,6 +7,7 @@ import 'package:ti3h_k1_jawara/features/finance/view/finance_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/checkout_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/transaction_view.dart';
 import 'package:ti3h_k1_jawara/features/resident/view/resident_view.dart';
+import 'package:ti3h_k1_jawara/features/resident/view/report_issue_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/marketplace_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/product_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/account_view.dart';
@@ -62,6 +63,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Profile / Product / Checkout / Account routes
       GoRoute(path: '/profile', builder: (_, __) => const ProfileView()),
       GoRoute(path: '/account', builder: (_, __) => const AccountView()),
+      GoRoute(path: '/lapor-masalah', builder: (_, __) => const ReportIssueView()),
       GoRoute(path: '/product/:id', builder: (context, state) {
         final productId = state.pathParameters['id'] ?? '1';
         return ProductView(productId: productId);
