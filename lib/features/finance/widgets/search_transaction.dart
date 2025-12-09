@@ -396,7 +396,7 @@ class _SearchTransactionState extends State<SearchTransaction> {
             );
           }
           return const SizedBox.shrink();
-        }).toList(),
+        }),
         if (_isLoading && _hasMore)
           const Center(
             child: Padding(

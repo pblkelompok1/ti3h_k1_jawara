@@ -18,7 +18,7 @@ class FinanceView extends ConsumerStatefulWidget {
 
 class _FinanceViewState extends ConsumerState<FinanceView> {
   final ScrollController _scrollController = ScrollController();
-  
+
   double _balance = 0.0;
   double _incomePercent = 0.0;
   double _expensePercent = 0.0;
@@ -49,7 +49,7 @@ class _FinanceViewState extends ConsumerState<FinanceView> {
 
     try {
       final financeService = ref.read(financeServiceProvider);
-      
+
       // Load balance data from new endpoint
       final balanceData = await financeService.getBalance(period: period);
 
@@ -89,24 +89,20 @@ class _FinanceViewState extends ConsumerState<FinanceView> {
           ? AppColors.backgroundDark
           : AppColors.backgroundLight,
 
-      body: Column(
-        children: [
-          FinanceTopBar(
+      body: CustomScrollView(
+        slivers: [
+          FinanceTopBarSliver(
             title: "Keuangan",
             rightIcon: Icons.notifications_rounded,
             onRightTap: () {},
           ),
-
-          Expanded(
-            child: SingleChildScrollView(
-              controller: _scrollController,
+          SliverToBoxAdapter(
+            child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   TagihanSection(isDark: isDark),
-
                   const SizedBox(height: 20),
-
                   Row(
                     children: [
                       Text(
@@ -125,9 +121,7 @@ class _FinanceViewState extends ConsumerState<FinanceView> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 12),
-
                   if (_isLoadingBalance)
                     const BalanceTextLoading()
                   else
@@ -142,18 +136,14 @@ class _FinanceViewState extends ConsumerState<FinanceView> {
                         ),
                       ),
                     ),
-
                   const SizedBox(height: 18),
-
                   PieDashboard(
                     isDark: isDark,
                     income: _incomePercent,
                     expense: _expensePercent,
                     isLoading: _isLoadingChart,
                   ),
-
                   const SizedBox(height: 12),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -168,15 +158,12 @@ class _FinanceViewState extends ConsumerState<FinanceView> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 18),
-
                   SearchTransaction(
-                    isDark: isDark, 
+                    isDark: isDark,
                     financeService: financeService,
                     parentScrollController: _scrollController,
                   ),
-
                   const SizedBox(height: 24),
                 ],
               ),
@@ -184,7 +171,6 @@ class _FinanceViewState extends ConsumerState<FinanceView> {
           ),
         ],
       ),
-
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 80),

@@ -254,7 +254,7 @@ class _CheckoutViewState extends ConsumerState<CheckoutView> {
                 isDelivery = value;
               });
             },
-            activeColor: AppColors.primary(context),
+            activeThumbColor: AppColors.primary(context),
           ),
         ],
       ),
