@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:ti3h_k1_jawara/core/models/user_model.dart';
@@ -55,7 +56,7 @@ class AuthService {
   }
 
   Future<bool> register(String email, String password) async {
-    final url = Uri.parse("$baseUrl/auth/register");
+    final url = Uri.parse("$baseUrl/auth/signup");
 
     final res = await http.post(
       url,
@@ -198,6 +199,28 @@ class AuthService {
       return false;
     } catch (e) {
       return false;
+    }
+  }
+
+  /// Get family ID of current user
+  /// Returns family_id string from /auth/family endpoint
+  Future<String?> getFamilyId() async {
+    try {
+      final res = await sendWithAuth((token) {
+        return http.get(
+          Uri.parse("$baseUrl/auth/family"),
+          headers: {"Authorization": "Bearer $token"},
+        );
+      });
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return data['family_id'] as String?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint("Error getting family ID: $e");
+      return null;
     }
   }
 }
