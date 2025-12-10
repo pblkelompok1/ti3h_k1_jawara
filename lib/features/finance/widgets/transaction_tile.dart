@@ -9,6 +9,8 @@ class TransactionTile extends StatelessWidget {
   final bool isIncome;
   final bool compact;
   final bool isIuran; // New flag to indicate iuran/fee items
+  final String? dueDate; // Due date for iuran
+  final String? automationMode; // Automation mode if no due date
   final VoidCallback? onTap;
 
   const TransactionTile({
@@ -20,6 +22,8 @@ class TransactionTile extends StatelessWidget {
     required this.isIncome,
     this.compact = false,
     this.isIuran = false,
+    this.dueDate,
+    this.automationMode,
     this.onTap,
   });
 
@@ -41,8 +45,9 @@ class TransactionTile extends StatelessWidget {
   }
 
   Widget _buildCompact(BuildContext context, Color colorType) {
-    // Use calendar/payment icon for iuran, auto_mode icon for automation
-    final icon = isIuran ? Icons.calendar_today : Icons.auto_mode;
+    // Determine what to show on left: due_date or automation_mode
+    final leftText = dueDate ?? automationMode ?? time;
+    final leftIcon = dueDate != null ? Icons.event : (automationMode != null ? Icons.auto_mode : Icons.access_time);
     
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -64,41 +69,21 @@ class TransactionTile extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      Icons.access_time,
+                      leftIcon,
                       size: 12,
                       color: AppColors.textSecondary(context),
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      time,
+                      leftText,
                       style: TextStyle(
                         fontSize: 11,
                         color: AppColors.textSecondary(context),
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Category on the right
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                amount,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textPrimary(context),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    icon,
+                    SizedBox(width: 8),
+                    Icon(
+                    Icons.category_outlined,
                     size: 12,
                     color: AppColors.textSecondary(context),
                   ),
@@ -110,7 +95,23 @@ class TransactionTile extends StatelessWidget {
                       color: AppColors.textSecondary(context),
                     ),
                   ),
-                ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Category and amount on the right
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                amount,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textPrimary(context),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),

@@ -19,12 +19,17 @@ import 'package:ti3h_k1_jawara/features/market/view/account_view.dart';
 import 'package:ti3h_k1_jawara/features/profile/view/profile_view.dart';
 import 'package:ti3h_k1_jawara/features/finance/view/iuran_warga_view.dart';
 import 'package:ti3h_k1_jawara/features/finance/view/dana_pribadi_view.dart';
+import 'package:ti3h_k1_jawara/features/resident/view/ajukan_surat_view.dart';
+import 'package:ti3h_k1_jawara/features/resident/view/detail_kegiatan_view.dart';
 import 'auth/view/auth_flow_view.dart';
 import 'auth/view/form_input_data_screen.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/admin_dashboard_view.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/registration_approval_view.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/finance_view.dart' as admin_finance;
+import 'finance/widgets/detail_iuran_page.dart';
 import 'market/view/camera_detection_screen.dart';
+import 'finance/widgets/add_finance_page.dart';
+import 'finance/widgets/tagih_iuran_page.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -127,6 +132,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/profile', builder: (_, __) => const ProfileView()),
       GoRoute(path: '/account', builder: (_, __) => const AccountView()),
       GoRoute(path: '/lapor-masalah', builder: (_, __) => const ReportIssueView()),
+      GoRoute(path: '/ajukan-surat', builder: (_, __) => const AjukanSuratView()),
       GoRoute(path: '/iuran-warga', builder: (_, __) => const IuranWargaView()),
       GoRoute(path: '/dana-pribadi', builder: (_, __) => const DanaPribadiView()),
       GoRoute(path: '/product/:id', builder: (context, state) {
@@ -184,6 +190,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/camera-detection',
         builder: (_, __) => const CameraDetectionScreen(),
+      ),
+      GoRoute(
+        path: '/detail-kegiatan',
+        builder: (_, __) => const DetailKegiatanView(),
+      ),
+      GoRoute(
+        path: '/add-finance',
+        builder: (_, __) => const AddFinancePage(),
+      ),
+      GoRoute(
+        path: '/tagih-iuran',
+        builder: (_, __) => const TagihIuranPage(),
       ),
     ],
   );

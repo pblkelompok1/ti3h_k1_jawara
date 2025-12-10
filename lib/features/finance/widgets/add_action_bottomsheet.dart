@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
-import 'add_finance_page.dart';
-import 'tagih_iuran_page.dart';
 
 class AddActionBottomSheet {
   static void show(BuildContext context) {
@@ -71,12 +70,7 @@ class AddActionBottomSheet {
                           color: AppColors.primary(context),
                           onTap: () {
                             Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const AddFinancePage(),
-                              ),
-                            );
+                            context.push('/add-finance');
                           },
                         ),
 
@@ -89,12 +83,7 @@ class AddActionBottomSheet {
                           color: AppColors.redAccent(context),
                           onTap: () {
                             Navigator.pop(context);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const TagihIuranPage(),
-                              ),
-                            );
+                            context.push('/tagih-iuran');
                           },
                         ),
                       ],

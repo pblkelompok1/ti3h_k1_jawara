@@ -7,19 +7,30 @@ import 'package:ti3h_k1_jawara/core/services/finance_service.dart';
 import 'transaction_tile.dart';
 
 import 'finance_detail_page.dart';
-import 'iuran_detail_page.dart';
-import 'otomasi_detail_page.dart';
+import 'detail_iuran_page.dart';
 
 class SearchTransaction extends StatefulWidget {
   final bool isDark;
   final FinanceService financeService;
   final ScrollController? parentScrollController;
+  final Function(VoidCallback)? onRefreshCallback;
+  final TextEditingController? searchController;
+  final String? initialFilter;
+  final Function(Function(String))? onSearchCallback;
+  final Function(Function(String))? onFilterCallback;
+  final Function(String)? onFilterChanged;
 
   const SearchTransaction({
     super.key,
     required this.isDark,
     required this.financeService,
     this.parentScrollController,
+    this.onRefreshCallback,
+    this.searchController,
+    this.initialFilter,
+    this.onSearchCallback,
+    this.onFilterCallback,
+    this.onFilterChanged,
   });
 
   @override
@@ -27,11 +38,11 @@ class SearchTransaction extends StatefulWidget {
 }
 
 class _SearchTransactionState extends State<SearchTransaction> {
-  final TextEditingController controller = TextEditingController();
-  
+  late TextEditingController controller;
+
   String searchQuery = "";
   String selectedFilter = "Keuangan";
-  
+
   List<TransactionModel> _transactions = [];
   List<FeeModel> _fees = [];
   bool _isLoading = false;
@@ -42,15 +53,42 @@ class _SearchTransactionState extends State<SearchTransaction> {
   @override
   void initState() {
     super.initState();
+
+    // Use provided controller or create new one
+    controller = widget.searchController ?? TextEditingController();
+
+    // Set initial filter if provided
+    if (widget.initialFilter != null) {
+      selectedFilter = widget.initialFilter!;
+    }
+
+    // Listen to controller changes
+    controller.addListener(() {
+      filterSearch(controller.text);
+    });
+
     if (widget.parentScrollController != null) {
       widget.parentScrollController!.addListener(_onScroll);
     }
-    _loadData();
+    // Register refresh callback
+    widget.onRefreshCallback?.call(_loadData);
+
+    // Register search and filter callbacks
+    widget.onSearchCallback?.call(filterSearch);
+    widget.onFilterCallback?.call(changeFilter);
+
+    // Defer heavy operations to avoid blocking UI
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
   @override
   void dispose() {
-    controller.dispose();
+    // Only dispose if we created the controller
+    if (widget.searchController == null) {
+      controller.dispose();
+    }
     if (widget.parentScrollController != null) {
       widget.parentScrollController!.removeListener(_onScroll);
     }
@@ -59,11 +97,11 @@ class _SearchTransactionState extends State<SearchTransaction> {
 
   void _onScroll() {
     if (widget.parentScrollController == null) return;
-    
+
     final scrollController = widget.parentScrollController!;
-    if (scrollController.position.pixels >= 
-        scrollController.position.maxScrollExtent - 200 && 
-        !_isLoading && 
+    if (scrollController.position.pixels >=
+            scrollController.position.maxScrollExtent - 200 &&
+        !_isLoading &&
         _hasMore) {
       _loadMoreData();
     }
@@ -93,25 +131,15 @@ class _SearchTransactionState extends State<SearchTransaction> {
         });
       } else if (selectedFilter == "Iuran") {
         final response = await widget.financeService.getFees(
+          name: searchQuery,
           offset: _currentOffset,
           limit: _limit,
         );
         setState(() {
-          _fees = response.data; // Tampilkan semua iuran
-          _hasMore = response.hasMore;
-          _currentOffset += _limit;
-          _isLoading = false;
-        });
-      } else {
-        // Otomasi - filter yang automation_mode != 'off'
-        final response = await widget.financeService.getFees(
-          offset: _currentOffset,
-          limit: _limit,
-        );
-        setState(() {
-          _fees = response.data.where((fee) => 
-            fee.automationMode.toLowerCase() != 'off'
-          ).toList();
+          // Filter hanya iuran dengan automation_mode == 'off'
+          _fees = response.data
+              .where((fee) => fee.automationMode.toLowerCase() == 'off')
+              .toList();
           _hasMore = response.hasMore;
           _currentOffset += _limit;
           _isLoading = false;
@@ -122,9 +150,9 @@ class _SearchTransactionState extends State<SearchTransaction> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
   }
@@ -150,25 +178,17 @@ class _SearchTransactionState extends State<SearchTransaction> {
         });
       } else if (selectedFilter == "Iuran") {
         final response = await widget.financeService.getFees(
+          name: searchQuery,
           offset: _currentOffset,
           limit: _limit,
         );
         setState(() {
-          _fees.addAll(response.data); // Tampilkan semua iuran
-          _hasMore = response.hasMore;
-          _currentOffset += _limit;
-          _isLoading = false;
-        });
-      } else {
-        // Otomasi - filter yang automation_mode != 'off'
-        final response = await widget.financeService.getFees(
-          offset: _currentOffset,
-          limit: _limit,
-        );
-        setState(() {
-          _fees.addAll(response.data.where((fee) => 
-            fee.automationMode.toLowerCase() != 'off'
-          ));
+          // Filter hanya iuran dengan automation_mode == 'off'
+          _fees.addAll(
+            response.data.where(
+              (fee) => fee.automationMode.toLowerCase() == 'off',
+            ),
+          );
           _hasMore = response.hasMore;
           _currentOffset += _limit;
           _isLoading = false;
@@ -179,27 +199,34 @@ class _SearchTransactionState extends State<SearchTransaction> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
       }
     }
   }
 
   void filterSearch(String value) {
-    setState(() => searchQuery = value.toLowerCase());
+    setState(() {
+      searchQuery = value.toLowerCase();
+    });
+    // Reload data when search changes
+    if (selectedFilter == "Iuran") {
+      _loadData();
+    }
   }
 
   void changeFilter(String filter) {
     setState(() {
       selectedFilter = filter;
     });
+    widget.onFilterChanged?.call(filter);
     _loadData(); // Reload data when filter changes
   }
 
   void _openDetail(dynamic item) {
     Map<String, dynamic> data;
-    
+
     if (item is TransactionModel) {
       data = {
         'title': item.name,
@@ -215,12 +242,13 @@ class _SearchTransactionState extends State<SearchTransaction> {
         'title': item.feeName,
         'time': item.chargeDate,
         'category': item.feeCategory,
-        'type': item.isAutomated ? 'otomasi' : 'iuran',
+        'type': 'iuran',
         'amount': item.amount,
         'isIncome': item.isIncome,
         'description': item.description,
         'fee_id': item.feeId,
         'automation_mode': item.automationMode,
+        'due_date': item.dueDate,
       };
     } else {
       return;
@@ -231,14 +259,17 @@ class _SearchTransactionState extends State<SearchTransaction> {
       case "iuran":
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => IuranDetailPage(data: data)),
-        );
-        break;
-
-      case "otomasi":
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => IuranOtomatisDetailPage(data: data)),
+          MaterialPageRoute(
+            builder: (_) => DetailTagihanPage(
+              feeId: data['fee_id'],
+              kategori: data['category'] ?? '-',
+              judul: data['title'] ?? '-',
+              amount: 'Rp ${data['amount']}',
+              chargeDate: data['time'],
+              dueDate: data['due_date'],
+              description: data['description'],
+            ),
+          ),
         );
         break;
 
@@ -254,7 +285,7 @@ class _SearchTransactionState extends State<SearchTransaction> {
   Widget build(BuildContext context) {
     // Determine which data to show based on selected filter
     final List<dynamic> displayItems;
-    
+
     if (selectedFilter == "Keuangan") {
       // Filter transactions based on search
       displayItems = _transactions.where((t) {
@@ -337,7 +368,7 @@ class _SearchTransactionState extends State<SearchTransaction> {
         ),
       );
     }
-    
+
     if (displayItems.isEmpty) {
       // Empty state with min height
       return Center(
@@ -361,7 +392,7 @@ class _SearchTransactionState extends State<SearchTransaction> {
         ),
       );
     }
-    
+
     // Display items with loading indicator at bottom
     return Column(
       children: [
@@ -391,6 +422,9 @@ class _SearchTransactionState extends State<SearchTransaction> {
                 isIncome: item.isIncome,
                 compact: true, // Use compact mode for iuran
                 isIuran: true, // Flag to use calendar icon instead of auto_mode
+                dueDate: item.dueDate, // Pass due_date
+                automationMode:
+                    item.displayAutomationMode, // Pass automation_mode
                 onTap: () => _openDetail(item),
               ),
             );
@@ -409,7 +443,7 @@ class _SearchTransactionState extends State<SearchTransaction> {
   }
 
   Widget _buildFilterTabs(BuildContext context) {
-    final tabs = ['Keuangan', 'Iuran', 'Otomasi'];
+    final tabs = ['Keuangan', 'Iuran'];
 
     return SizedBox(
       height: 44,

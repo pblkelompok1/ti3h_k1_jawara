@@ -1,97 +1,274 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
+import 'package:ti3h_k1_jawara/core/provider/finance_service_provider.dart';
+import 'package:ti3h_k1_jawara/core/provider/auth_service_provider.dart';
 
-class TagihIuranPage extends StatefulWidget {
+class TagihIuranPage extends ConsumerStatefulWidget {
   const TagihIuranPage({super.key});
 
   @override
-  State<TagihIuranPage> createState() => _TagihIuranPageState();
+  ConsumerState<TagihIuranPage> createState() => _TagihIuranPageState();
 }
 
-class _TagihIuranPageState extends State<TagihIuranPage> {
+class _TagihIuranPageState extends ConsumerState<TagihIuranPage> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _nominalCtrl = TextEditingController();
   final TextEditingController _descCtrl = TextEditingController();
-
+  
+  DateTime? _selectedDueDate;
   String? _selectedKategori;
-  String? _selectedHari;
-  int? _selectedMinggu;
-
-  bool isAuto = false;
+  bool isSubmitting = false;
 
   final List<String> _kategoriList = [
-    "Iuran Rutin",
-    "Mingguan",
-    "Sumbangan",
-    "Darurat",
+    "Iuran Rutin Bulanan",
+    "Iuran Kebersihan",
+    "Iuran Keamanan",
+    "Iuran Kas Warga",
+    "Iuran Kegiatan",
+    "Iuran Sosial",
+    "Dana Darurat",
+    "Iuran Pembangunan",
+    "Iuran Perbaikan Fasilitas",
   ];
 
-  final List<String> _hariList = [
-    "Senin",
-    "Selasa",
-    "Rabu",
-    "Kamis",
-    "Jumat",
-    "Sabtu",
-    "Minggu",
-  ];
-
-  int _getWeekNumber(DateTime date) {
-    int weekIndex = ((date.day - 1) / 7).floor() + 1;
-    return weekIndex.clamp(1, 4);
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _nominalCtrl.dispose();
+    _descCtrl.dispose();
+    super.dispose();
   }
 
-  void _autoFill() {
+  Future<void> _pickDueDate() async {
     final now = DateTime.now();
-    final hari = _hariList[now.weekday - 1];
-    final minggu = _getWeekNumber(now);
-
-    setState(() {
-      _selectedHari = hari;
-      _selectedMinggu = minggu;
-    });
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDueDate ?? now.add(const Duration(days: 7)),
+      firstDate: now,
+      lastDate: DateTime(now.year + 2),
+      helpText: 'Pilih Tenggat Waktu',
+      cancelText: 'Batal',
+      confirmText: 'Pilih',
+    );
+    if (picked != null) {
+      setState(() => _selectedDueDate = picked);
+    }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedKategori == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kategori harus dipilih')),
+      );
+      return;
+    }
+
+    if (_selectedDueDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tenggat waktu harus dipilih')),
+      );
+      return;
+    }
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Konfirmasi"),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle_outline, color: AppColors.primary(context)),
+            const SizedBox(width: 12),
+            const Text(
+              "Konfirmasi Tagihan",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Nama: ${_nameCtrl.text}"),
-            Text("Nominal: ${_nominalCtrl.text}"),
-            Text("Kategori: ${_selectedKategori ?? '-'}"),
-            Text("Hari: ${_selectedHari ?? '-'}"),
-            Text("Minggu ke: ${_selectedMinggu ?? '-'}"),
-            Text("Deskripsi: ${_descCtrl.text.isEmpty ? '-' : _descCtrl.text}"),
+            _buildConfirmRow("Nama Iuran", _nameCtrl.text),
+            _buildConfirmRow("Nominal", "Rp ${_nominalCtrl.text}"),
+            _buildConfirmRow("Kategori", _selectedKategori!),
+            _buildConfirmRow(
+              "Tenggat Waktu",
+              "${_selectedDueDate!.day}/${_selectedDueDate!.month}/${_selectedDueDate!.year}",
+            ),
+            if (_descCtrl.text.isNotEmpty)
+              _buildConfirmRow("Deskripsi", _descCtrl.text),
           ],
         ),
         actions: [
           TextButton(
-            onPressed: () => context.pop(),
-            child: const Text("Kembali"),
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              "Batal",
+              style: TextStyle(color: AppColors.textSecondary(context)),
+            ),
           ),
-          TextButton(
-            onPressed: () {
-              context.pop();
-              context.pop();
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              setState(() => isSubmitting = true);
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Iuran berhasil ditagih (simulasi)"),
-                ),
-              );
+              try {
+                // Check if user is logged in
+                final authService = ref.read(authServiceProvider);
+                final isLoggedIn = await authService.isLoggedIn();
+                
+                if (!isLoggedIn) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Sesi anda telah berakhir. Silakan login kembali.'),
+                        backgroundColor: Colors.orange,
+                      ),
+                    );
+                    context.go('/start');
+                  }
+                  return;
+                }
+
+                final nominal = double.tryParse(
+                      _nominalCtrl.text.replaceAll(',', '').replaceAll('.', ''),
+                    ) ?? 0;
+
+                final now = DateTime.now();
+                final chargeDate = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+                final dueDate = '${_selectedDueDate!.year}-${_selectedDueDate!.month.toString().padLeft(2, '0')}-${_selectedDueDate!.day.toString().padLeft(2, '0')}';
+
+                final financeService = ref.read(financeServiceProvider);
+
+                final result = await financeService.createFee(
+                  feeName: _nameCtrl.text.trim(),
+                  amount: nominal,
+                  chargeDate: chargeDate,
+                  dueDate: dueDate,
+                  description: _descCtrl.text.trim().isEmpty ? '-' : _descCtrl.text.trim(),
+                  feeCategory: _selectedKategori!,
+                );
+
+                if (mounted) {
+                  final transactionsCreated = result['transactions_created'] ?? 0;
+                  
+                  context.pop(); // Back to previous screen
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.white),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              "Iuran berhasil ditagih ke $transactionsCreated keluarga",
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Gagal membuat tagihan: ${e.toString()}'),
+                      backgroundColor: Colors.red,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  );
+                }
+              } finally {
+                if (mounted) {
+                  setState(() => isSubmitting = false);
+                }
+              }
             },
-            child: const Text("Tagih"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary(context),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              "Tagih",
+              style: TextStyle(color: AppColors.textPrimaryReverse(context)),
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConfirmRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: AppColors.textSecondary(context),
+                fontSize: 13,
+              ),
+            ),
+          ),
+          const Text(": "),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: AppColors.textPrimary(context),
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFieldLabel(String label, {bool isRequired = true}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, top: 16),
+      child: Row(
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: AppColors.textPrimary(context),
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          if (isRequired)
+            Text(
+              " *",
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
         ],
       ),
     );
@@ -102,6 +279,8 @@ class _TagihIuranPageState extends State<TagihIuranPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        elevation: 0,
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back,
@@ -113,202 +292,265 @@ class _TagihIuranPageState extends State<TagihIuranPage> {
           "Tagih Iuran",
           style: TextStyle(
             color: AppColors.textPrimary(context),
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
           ),
         ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(20),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Nama Iuran"),
-              const SizedBox(height: 6),
+              // Info Card
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary(context).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.primary(context).withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: AppColors.primary(context),
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        "Tagihan akan dikirim ke semua warga yang terdaftar",
+                        style: TextStyle(
+                          color: AppColors.textPrimary(context),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              _buildFieldLabel("Nama Iuran"),
               TextFormField(
                 controller: _nameCtrl,
                 validator: (v) =>
-                    v == null || v.trim().isEmpty ? "Wajib diisi" : null,
+                    v == null || v.trim().isEmpty ? "Nama iuran wajib diisi" : null,
                 decoration: InputDecoration(
-                  hintText: "Masukkan nama pemasukan",
+                  hintText: "Contoh: Iuran Kebersihan Januari",
                   filled: true,
                   fillColor: AppColors.bgPrimaryInputBox(context),
+                  prefixIcon: Icon(
+                    Icons.receipt_long,
+                    color: AppColors.textSecondary(context),
+                  ),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.softBorder(context),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.primary(context),
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 18),
-              const Text("Nominal"),
-              const SizedBox(height: 6),
+              _buildFieldLabel("Nominal per KK"),
               TextFormField(
                 controller: _nominalCtrl,
                 keyboardType: TextInputType.number,
                 validator: (v) =>
-                    v == null || v.trim().isEmpty ? "Wajib diisi" : null,
+                    v == null || v.trim().isEmpty ? "Nominal wajib diisi" : null,
                 decoration: InputDecoration(
-                  hintText: "Masukkan nominal",
+                  hintText: "Masukkan jumlah nominal",
                   filled: true,
                   fillColor: AppColors.bgPrimaryInputBox(context),
+                  prefixIcon: Icon(
+                    Icons.payments,
+                    color: AppColors.textSecondary(context),
+                  ),
+                  prefixText: "Rp ",
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.softBorder(context),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.primary(context),
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 18),
-              const Text("Kategori"),
-              const SizedBox(height: 6),
+              _buildFieldLabel("Kategori"),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: AppColors.bgPrimaryInputBox(context),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.softBorder(context)),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _selectedKategori,
                     isExpanded: true,
-                    hint: const Text("Pilih kategori"),
+                    icon: Icon(
+                      Icons.arrow_drop_down,
+                      color: AppColors.textSecondary(context),
+                    ),
+                    hint: Text(
+                      "Pilih kategori iuran",
+                      style: TextStyle(color: AppColors.textSecondary(context)),
+                    ),
                     items: _kategoriList
-                        .map((k) => DropdownMenuItem(value: k, child: Text(k)))
+                        .map((k) => DropdownMenuItem(
+                              value: k,
+                              child: Text(k),
+                            ))
                         .toList(),
                     onChanged: (v) => setState(() => _selectedKategori = v),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Checkbox(
-                    value: isAuto,
-                    onChanged: (v) {
-                      setState(() => isAuto = v ?? false);
-                      if (isAuto) _autoFill();
-                    },
+              _buildFieldLabel("Tenggat Waktu Pembayaran"),
+              GestureDetector(
+                onTap: _pickDueDate,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.bgPrimaryInputBox(context),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.softBorder(context)),
                   ),
-                  const Text("Tagih Otomatis"),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("Hari"),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: AppColors.bgPrimaryInputBox(context),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: AppColors.softBorder(context),
-                            ),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedHari,
-                              hint: const Text("Pilih hari"),
-                              isExpanded: true,
-                              items: _hariList
-                                  .map(
-                                    (h) => DropdownMenuItem(
-                                      value: h,
-                                      child: Text(h),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (v) =>
-                                  setState(() => _selectedHari = v),
-                            ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.event,
+                        color: AppColors.textSecondary(context),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _selectedDueDate == null
+                              ? "Pilih tanggal jatuh tempo"
+                              : "${_selectedDueDate!.day}/${_selectedDueDate!.month}/${_selectedDueDate!.year}",
+                          style: TextStyle(
+                            color: _selectedDueDate == null
+                                ? AppColors.textSecondary(context)
+                                : AppColors.textPrimary(context),
+                            fontWeight: _selectedDueDate == null
+                                ? FontWeight.normal
+                                : FontWeight.w600,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text("Minggu ke"),
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          decoration: BoxDecoration(
-                            color: AppColors.bgPrimaryInputBox(context),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: AppColors.softBorder(context),
-                            ),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<int>(
-                              value: _selectedMinggu,
-                              hint: const Text("Pilih minggu"),
-                              isExpanded: true,
-                              items: List.generate(
-                                4,
-                                (i) => DropdownMenuItem(
-                                  value: i + 1,
-                                  child: Text("Minggu ${i + 1}"),
-                                ),
-                              ),
-                              onChanged: (v) =>
-                                  setState(() => _selectedMinggu = v),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 18),
-              const Text("Deskripsi"),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _descCtrl,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: "Masukkan deskripsi",
-                  filled: true,
-                  fillColor: AppColors.bgPrimaryInputBox(context),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        size: 16,
+                        color: AppColors.textSecondary(context),
+                      ),
+                    ],
                   ),
                 ),
               ),
 
-              const SizedBox(height: 30),
+              _buildFieldLabel("Deskripsi", isRequired: false),
+              TextFormField(
+                controller: _descCtrl,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  hintText: "Tambahkan keterangan tambahan (opsional)",
+                  filled: true,
+                  fillColor: AppColors.bgPrimaryInputBox(context),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.softBorder(context),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: AppColors.primary(context),
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _submit,
+                  onPressed: isSubmitting ? null : _submit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary(context),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 2,
+                    disabledBackgroundColor:
+                        AppColors.primary(context).withOpacity(0.6),
                   ),
-                  child: Text(
-                    "Tagih",
-                    style: TextStyle(
-                      color: AppColors.textPrimaryReverse(context),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  child: isSubmitting
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.textPrimaryReverse(context),
+                            ),
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.send,
+                              color: AppColors.textPrimaryReverse(context),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Tagih Iuran",
+                              style: TextStyle(
+                                color: AppColors.textPrimaryReverse(context),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
               ),
             ],

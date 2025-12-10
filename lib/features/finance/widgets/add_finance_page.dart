@@ -1,23 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
+import 'package:ti3h_k1_jawara/core/provider/finance_service_provider.dart';
+import 'package:ti3h_k1_jawara/core/provider/auth_service_provider.dart';
 
-class AddFinancePage extends StatefulWidget {
+class AddFinancePage extends ConsumerStatefulWidget {
   const AddFinancePage({super.key});
 
   @override
-  State<AddFinancePage> createState() => _AddFinancePageState();
+  ConsumerState<AddFinancePage> createState() => _AddFinancePageState();
 }
 
-class _AddFinancePageState extends State<AddFinancePage> {
+class _AddFinancePageState extends ConsumerState<AddFinancePage> {
   final _formKey = GlobalKey<FormState>();
 
   bool isIncome = true;
+  bool isSubmitting = false;
   final TextEditingController _nameCtrl = TextEditingController();
   final TextEditingController _nominalCtrl = TextEditingController();
   DateTime? _selectedDate;
   String? _selectedCategory;
   final TextEditingController _descCtrl = TextEditingController();
-  String? _imageUrl;
+  String? _filePath;
+  String? _fileName;
 
   final List<String> _categories = [
     'Iuran',
@@ -45,94 +52,110 @@ class _AddFinancePageState extends State<AddFinancePage> {
     if (picked != null) setState(() => _selectedDate = picked);
   }
 
-  Future<void> _showImageUrlDialog() async {
-    final ctrl = TextEditingController(text: _imageUrl ?? '');
+  Future<void> _pickFile() async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+      );
 
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Upload bukti (URL)'),
-        content: TextField(
-          controller: ctrl,
-          decoration: const InputDecoration(hintText: 'Masukkan URL gambar'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Batal'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                final url = ctrl.text.trim();
-                _imageUrl = url.isEmpty ? null : url;
-              });
-
-              Navigator.pop(dialogContext);
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
-    );
+      if (result != null && result.files.single.path != null) {
+        setState(() {
+          _filePath = result.files.single.path;
+          _fileName = result.files.single.name;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking file: $e')),
+        );
+      }
+    }
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final name = _nameCtrl.text.trim();
-    final nominal =
-        double.tryParse(
-          _nominalCtrl.text.replaceAll(',', '').replaceAll('.', ''),
-        ) ??
-        0;
+    // Validate required fields
+    if (_selectedDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tanggal harus diisi')),
+      );
+      return;
+    }
 
-    final date = _selectedDate;
-    final category = _selectedCategory ?? _categories.first;
-    final desc = _descCtrl.text.trim();
-    final type = isIncome ? 'Pemasukan' : 'Pengeluaran';
+    if (_selectedCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kategori harus dipilih')),
+      );
+      return;
+    }
 
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Konfirmasi'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Tipe: $type'),
-            Text('Nama: $name'),
-            Text('Nominal: Rp ${nominal.toStringAsFixed(0)}'),
-            Text(
-              'Tanggal: ${date != null ? "${date.day}/${date.month}/${date.year}" : "-"}',
+    setState(() => isSubmitting = true);
+
+    try {
+      // Check if user is logged in
+      final authService = ref.read(authServiceProvider);
+      final isLoggedIn = await authService.isLoggedIn();
+      
+      if (!isLoggedIn) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sesi anda telah berakhir. Silakan login kembali.'),
+              backgroundColor: Colors.orange,
             ),
-            Text('Kategori: $category'),
-            Text('Deskripsi: ${desc.isEmpty ? "-" : desc}'),
-            Text('Bukti: ${_imageUrl ?? "-"}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Kembali'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
+          );
+          context.go('/start'); // Redirect to login
+        }
+        return;
+      }
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Data iuran/keuangan berhasil disimpan'),
-                ),
-              );
+      final name = _nameCtrl.text.trim();
+      final nominal = double.tryParse(
+            _nominalCtrl.text.replaceAll(',', '').replaceAll('.', ''),
+          ) ??
+          0;
 
-              Navigator.of(context).maybePop();
-            },
-            child: const Text('Simpan'),
+      final dateStr = 
+          '${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}';
+
+      final financeService = ref.read(financeServiceProvider);
+
+      await financeService.createTransaction(
+        name: name,
+        amount: nominal,
+        category: _selectedCategory!,
+        transactionDate: dateStr,
+        evidenceFilePath: _filePath,
+        isExpense: !isIncome,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${isIncome ? "Pemasukan" : "Pengeluaran"} berhasil ditambahkan'),
+            backgroundColor: Colors.green,
           ),
-        ],
-      ),
-    );
+        );
+
+        context.pop(); // Use GoRouter to pop
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal menambahkan data: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isSubmitting = false);
+      }
+    }
   }
 
   Widget _buildToggle() {
@@ -222,7 +245,7 @@ class _AddFinancePageState extends State<AddFinancePage> {
             Icons.arrow_back,
             color: AppColors.textPrimary(context),
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text(
           isIncome ? 'Tambah Pemasukan' : 'Tambah Pengeluaran',
@@ -370,39 +393,42 @@ class _AddFinancePageState extends State<AddFinancePage> {
 
                 _buildFieldLabel('Bukti'),
                 GestureDetector(
-                  onTap: _showImageUrlDialog,
+                  onTap: _pickFile,
                   child: Container(
-                    height: 120,
+                    padding: const EdgeInsets.all(16),
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: AppColors.bgPrimaryInputBox(context),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppColors.softBorder(context)),
                     ),
-                    child: _imageUrl == null
-                        ? Center(
-                            child: Text(
-                              'Upload bukti ${isIncome ? 'pemasukan' : 'pengeluaran'}',
-                              style: TextStyle(
-                                color: AppColors.textSecondary(context),
-                              ),
-                            ),
-                          )
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              _imageUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Center(
-                                child: Text(
-                                  'Gagal memuat gambar',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary(context),
-                                  ),
-                                ),
-                              ),
-                            ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _filePath == null ? Icons.upload_file : Icons.check_circle,
+                          size: 48,
+                          color: _filePath == null
+                              ? AppColors.textSecondary(context)
+                              : Colors.green,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _filePath == null
+                              ? 'Tap untuk upload bukti (jpg, png, pdf)'
+                              : 'File terpilih: $_fileName',
+                          style: TextStyle(
+                            color: _filePath == null
+                                ? AppColors.textSecondary(context)
+                                : AppColors.textPrimary(context),
+                            fontWeight: _filePath == null
+                                ? FontWeight.normal
+                                : FontWeight.w600,
                           ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 
@@ -411,21 +437,33 @@ class _AddFinancePageState extends State<AddFinancePage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _submit,
+                    onPressed: isSubmitting ? null : _submit,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary(context),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
+                      disabledBackgroundColor: AppColors.primary(context).withOpacity(0.6),
                     ),
-                    child: Text(
-                      'Simpan',
-                      style: TextStyle(
-                        color: AppColors.textPrimaryReverse(context),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    child: isSubmitting
+                        ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.textPrimaryReverse(context),
+                              ),
+                            ),
+                          )
+                        : Text(
+                            'Simpan',
+                            style: TextStyle(
+                              color: AppColors.textPrimaryReverse(context),
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                   ),
                 ),
 
