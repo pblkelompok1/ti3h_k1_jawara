@@ -20,6 +20,7 @@ import 'package:ti3h_k1_jawara/features/profile/view/profile_view.dart';
 import 'package:ti3h_k1_jawara/features/finance/view/iuran_warga_view.dart';
 import 'package:ti3h_k1_jawara/features/finance/view/dana_pribadi_view.dart';
 import 'package:ti3h_k1_jawara/features/resident/view/ajukan_surat_view.dart';
+import 'package:ti3h_k1_jawara/features/resident/view/detail_kegiatan_view.dart';
 import 'auth/view/auth_flow_view.dart';
 import 'auth/view/form_input_data_screen.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/admin_dashboard_view.dart';
@@ -186,6 +187,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/camera-detection',
         builder: (_, __) => const CameraDetectionScreen(),
+      ),
+      GoRoute(
+        path: '/detail-kegiatan',
+        builder: (_, __) => const DetailKegiatanView(),
       ),
     ],
   );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
@@ -33,7 +34,23 @@ class RecommendedActivityList extends ConsumerWidget {
                 color: AppColors.textPrimary(context),
               ),
             ),
-            _buildSubTitleSelector(context, ref, selectedType),
+            Row(
+              children: [
+                _buildSubTitleSelector(context, ref, selectedType),
+                const SizedBox(width: 16),
+                GestureDetector(
+                  onTap: () => context.push('/detail-kegiatan'),
+                  child: Text(
+                    'Lihat Semua',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
         // Garis full width
