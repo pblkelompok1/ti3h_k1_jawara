@@ -2,21 +2,28 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
+import 'package:ti3h_k1_jawara/core/services/finance_service.dart';
 import 'qr_transaksi_page.dart';
 import 'package:flutter/services.dart';
 
 class DetailTagihanPribadiPage extends StatefulWidget {
   final bool isDark;
+  final int feeTransactionId;
   final String kategori;
   final String judul;
   final String amount;
+  final String dueDate;
+  final FinanceService financeService;
 
   const DetailTagihanPribadiPage({
     super.key,
     required this.isDark,
+    required this.feeTransactionId,
     required this.kategori,
     required this.judul,
     required this.amount,
+    required this.dueDate,
+    required this.financeService,
   });
 
   @override
@@ -28,6 +35,7 @@ class _DetailTagihanPribadiPageState extends State<DetailTagihanPribadiPage> {
   String? _selectedMethod;
   File? _bukti;
   final ImagePicker _picker = ImagePicker();
+  bool isSubmitting = false;
 
   Future<void> _pickImage() async {
     try {
@@ -92,6 +100,9 @@ class _DetailTagihanPribadiPageState extends State<DetailTagihanPribadiPage> {
             ),
 
             const SizedBox(height: 20),
+
+            if (_selectedMethod == "Cash")
+              _buildCashSection(context),
 
             if (_selectedMethod == "Transfer Bank")
               _buildTransferSection(context),
@@ -304,26 +315,28 @@ class _DetailTagihanPribadiPageState extends State<DetailTagihanPribadiPage> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _bukti == null
+            onPressed: (_bukti == null || isSubmitting)
                 ? null
-                : () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Bukti pembayaran terkirim ✓"),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
+                : _submitPayment,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _bukti == null
+              backgroundColor: (_bukti == null || isSubmitting)
                   ? Colors.grey
                   : AppColors.primary(context),
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
-            child: const Text(
-              "Kirim Bukti Pembayaran",
-              style: TextStyle(color: Colors.white),
-            ),
+            child: isSubmitting
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text(
+                    "Kirim Bukti Pembayaran",
+                    style: TextStyle(color: Colors.white),
+                  ),
           ),
         ),
       ],
@@ -420,6 +433,25 @@ class _DetailTagihanPribadiPageState extends State<DetailTagihanPribadiPage> {
                   ),
 
                   const SizedBox(height: 20),
+
+                  _buildPaymentOption(
+                    context,
+                    icon: Icons.money,
+                    title: "Cash",
+                    subtitle: "Bayar tunai (wajib upload bukti)",
+                    onTap: () {
+                      setState(() {
+                        _selectedMethod = "Cash";
+                        _bukti = null;
+                      });
+
+                      Future.microtask(() {
+                        if (Navigator.canPop(context)) Navigator.pop(context);
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 12),
 
                   _buildPaymentOption(
                     context,
@@ -542,7 +574,7 @@ class _DetailTagihanPribadiPageState extends State<DetailTagihanPribadiPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 20),
-        _sectionTitle(context, "Upload Bukti Pembayaran QRIS"),
+        _sectionTitle(context, "Upload Bukti Pembayaran QRIS (Wajib)"),
         const SizedBox(height: 10),
 
         GestureDetector(
@@ -583,26 +615,201 @@ class _DetailTagihanPribadiPageState extends State<DetailTagihanPribadiPage> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _bukti == null
+            onPressed: (_bukti == null || isSubmitting)
                 ? null
-                : () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Bukti QRIS terkirim ✓"),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  },
+                : _submitPayment,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _bukti == null
+              backgroundColor: (_bukti == null || isSubmitting)
                   ? Colors.grey
                   : AppColors.primary(context),
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
-            child: const Text(
-              "Kirim Bukti Pembayaran QRIS",
-              style: TextStyle(color: Colors.white),
+            child: isSubmitting
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text(
+                    "Kirim Bukti Pembayaran QRIS",
+                    style: TextStyle(color: Colors.white),
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Submit payment to backend
+  Future<void> _submitPayment() async {
+    if (_bukti == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Bukti pembayaran wajib diupload!"),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      isSubmitting = true;
+    });
+
+    try {
+      String transactionMethod;
+      if (_selectedMethod == "Cash") {
+        transactionMethod = "cash";
+      } else if (_selectedMethod == "Transfer Bank") {
+        transactionMethod = "transfer";
+      } else if (_selectedMethod == "QRIS") {
+        transactionMethod = "qris";
+      } else {
+        throw Exception("Metode pembayaran tidak valid");
+      }
+
+      await widget.financeService.updateFeeTransaction(
+        feeTransactionId: widget.feeTransactionId,
+        transactionMethod: transactionMethod,
+        evidenceFilePath: _bukti!.path,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Bukti pembayaran berhasil dikirim! Menunggu konfirmasi admin."),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        // Navigate back and refresh
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Gagal mengirim bukti pembayaran: $e"),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          isSubmitting = false;
+        });
+      }
+    }
+  }
+
+  // Build Cash section with evidence upload
+  Widget _buildCashSection(BuildContext context) {
+    final isDark = widget.isDark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.softBorder(context)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.info_outline, color: AppColors.primary(context), size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      "Pastikan Anda telah membayar secara tunai kepada pengurus",
+                      style: TextStyle(
+                        color: AppColors.textPrimary(context),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 12),
+        _sectionTitle(context, "Upload Bukti Pembayaran (Wajib)"),
+        const SizedBox(height: 10),
+
+        GestureDetector(
+          onTap: _pickImage,
+          child: Container(
+            height: 200,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.surfaceDark.withOpacity(0.4)
+                  : AppColors.surfaceLight,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.softBorder(context)),
             ),
+            child: _bukti == null
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.upload, size: 40, color: Colors.grey),
+                      const SizedBox(height: 10),
+                      Text(
+                        "Klik untuk upload bukti pembayaran cash",
+                        style: TextStyle(
+                          color: AppColors.textSecondary(context),
+                        ),
+                      ),
+                    ],
+                  )
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(_bukti!, fit: BoxFit.cover),
+                  ),
+          ),
+        ),
+
+        const SizedBox(height: 15),
+
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: (_bukti == null || isSubmitting)
+                ? null
+                : _submitPayment,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: (_bukti == null || isSubmitting)
+                  ? Colors.grey
+                  : AppColors.primary(context),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: isSubmitting
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : const Text(
+                    "Kirim Bukti Pembayaran",
+                    style: TextStyle(color: Colors.white),
+                  ),
           ),
         ),
       ],

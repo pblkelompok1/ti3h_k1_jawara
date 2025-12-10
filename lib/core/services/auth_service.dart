@@ -103,13 +103,45 @@ class AuthService {
     return user?.isAdmin ?? false;
   }
 
+  Future<bool> isLoggedIn() async {
+    final token = await getAccessToken();
+    return token != null;
+  }
+
+  /// Get family_id from current user's resident data
+  /// Returns null if user doesn't have resident data
+  Future<String?> getFamilyId() async {
+    try {
+      final res = await sendWithAuth((token) {
+        return http.get(
+          Uri.parse("$baseUrl/auth/family"),
+          headers: {"Authorization": "Bearer $token"},
+        );
+      });
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        return data['family_id'] as String?;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<http.Response> sendWithAuth(
     Future<http.Response> Function(String accessToken) requestFn,
   ) async {
     final accessToken = await getAccessToken();
+    
+    // Check if token exists
+    if (accessToken == null) {
+      await logout();
+      throw Exception("No authentication token");
+    }
 
     // request pertama
-    var res = await requestFn(accessToken!);
+    var res = await requestFn(accessToken);
 
     if (res.statusCode != 401) {
       return res;
@@ -139,17 +171,29 @@ class AuthService {
   /// ===================================================
   Future<String?> refreshAccessToken() async {
     final refreshToken = await getRefreshToken();
+    
+    if (refreshToken == null) {
+      await logout();
+      onTokenExpired?.call();
+      return null;
+    }
 
     final res = await http.post(
       Uri.parse("$baseUrl/auth/refresh"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"refresh_token": refreshToken}),
+      headers: {
+        "Content-Type": "application/json",
+        "X-Refresh-Token": refreshToken,
+      },
     );
 
     if (res.statusCode == 200) {
       final data = jsonDecode(res.body);
-      await storage.write(key: "access_token", value: data["access_token"]);
-      return data["access_token"];
+      final newAccessToken = data["access_token"];
+      
+      if (newAccessToken != null) {
+        await storage.write(key: "access_token", value: newAccessToken);
+        return newAccessToken;
+      }
     }
 
     await logout();
@@ -167,7 +211,7 @@ class AuthService {
           Uri.parse("$baseUrl/auth/check_resident_data"),
           headers: {"Authorization": "Bearer $token"},
         );
-      });
+      }).timeout(const Duration(seconds: 10));
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -188,7 +232,7 @@ class AuthService {
           Uri.parse("$baseUrl/auth/check_user_status"),
           headers: {"Authorization": "Bearer $token"},
         );
-      });
+      }).timeout(const Duration(seconds: 10));
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);

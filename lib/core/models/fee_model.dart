@@ -6,6 +6,7 @@ class FeeModel {
   final String description;
   final String feeCategory;
   final String automationMode;
+  final String? dueDate;
 
   FeeModel({
     required this.feeId,
@@ -15,6 +16,7 @@ class FeeModel {
     required this.description,
     required this.feeCategory,
     required this.automationMode,
+    this.dueDate,
   });
 
   factory FeeModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class FeeModel {
       description: json['description'] as String? ?? '',
       feeCategory: json['fee_category'] as String,
       automationMode: json['automation_mode'] as String,
+      dueDate: json['due_date'] as String?,
     );
   }
 
@@ -38,6 +41,7 @@ class FeeModel {
       'description': description,
       'fee_category': feeCategory,
       'automation_mode': automationMode,
+      'due_date': dueDate,
     };
   }
 
@@ -80,6 +84,7 @@ class FeeModel {
     String? description,
     String? feeCategory,
     String? automationMode,
+    String? dueDate,
   }) {
     return FeeModel(
       feeId: feeId ?? this.feeId,
@@ -89,6 +94,7 @@ class FeeModel {
       description: description ?? this.description,
       feeCategory: feeCategory ?? this.feeCategory,
       automationMode: automationMode ?? this.automationMode,
+      dueDate: dueDate ?? this.dueDate,
     );
   }
 }

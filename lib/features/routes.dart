@@ -26,7 +26,10 @@ import 'auth/view/form_input_data_screen.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/admin_dashboard_view.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/registration_approval_view.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/finance_view.dart' as admin_finance;
+import 'finance/widgets/detail_iuran_page.dart';
 import 'market/view/camera_detection_screen.dart';
+import 'finance/widgets/add_finance_page.dart';
+import 'finance/widgets/tagih_iuran_page.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -191,6 +194,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/detail-kegiatan',
         builder: (_, __) => const DetailKegiatanView(),
+      ),
+      GoRoute(
+        path: '/add-finance',
+        builder: (_, __) => const AddFinancePage(),
+      ),
+      GoRoute(
+        path: '/tagih-iuran',
+        builder: (_, __) => const TagihIuranPage(),
       ),
     ],
   );

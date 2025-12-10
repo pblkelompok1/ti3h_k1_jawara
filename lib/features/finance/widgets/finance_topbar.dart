@@ -1,87 +1,83 @@
 import 'package:flutter/material.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 
-class FinanceTopBarSliver extends StatelessWidget {
-  final String title;
-  final IconData rightIcon;
-  final VoidCallback? onRightTap;
+class FinanceTopBar extends StatelessWidget {
+  final bool isVisible;
 
-  const FinanceTopBarSliver({
-    super.key,
-    required this.title,
-    this.rightIcon = Icons.person_outline_rounded,
-    this.onRightTap,
-  });
+  const FinanceTopBar({super.key, required this.isVisible});
 
   @override
   Widget build(BuildContext context) {
-    return SliverAppBar(
-      backgroundColor: AppColors.bgDashboardAppHeader(context),
-      automaticallyImplyLeading: false,
-      elevation: 0,
-      pinned: false,
-      floating: true, // <-- muncul saat scroll ke atas
-      snap: true,     // <-- langsung muncul cepat
-      expandedHeight: 110,
-
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            color: AppColors.bgDashboardAppHeader(context),
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(20),
-              bottomRight: Radius.circular(20),
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 350),
+      curve: Curves.easeInOut,
+      left: 0,
+      right: 0,
+      top: isVisible ? 0 : -200,
+      child: Container(
+        height: 120,
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        decoration: BoxDecoration(
+          color: AppColors.bgDashboardAppHeader(context),
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(24),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.10),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
+          ],
+        ),
+        child: _buildHeader(context),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.20),
+            borderRadius: BorderRadius.circular(12),
           ),
-          padding: const EdgeInsets.only(
-            right: 20,
-            left: 20,
-            bottom: 16,
-            top: 60,
+          child: const Icon(
+            Icons.payments_rounded,
+            color: Colors.white,
+            size: 28,
           ),
-          child: Row(
+        ),
+        const SizedBox(width: 16),
+        const Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.20),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.payments_rounded,
+              Text(
+                "Data Keuangan",
+                style: TextStyle(
+                  fontSize: 14,
                   color: Colors.white,
-                  size: 24,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-
-              const SizedBox(width: 12),
-
+              SizedBox(height: 2),
               Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 24,
+                "Kelola Keuangan Warga",
+                style: TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-
-              const Spacer(),
-
-              IconButton(
-                onPressed: onRightTap,
-                icon: Icon(rightIcon, color: Colors.white, size: 24),
-              ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }

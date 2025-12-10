@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
+import 'package:ti3h_k1_jawara/core/services/finance_service.dart';
+import 'package:ti3h_k1_jawara/core/models/fee_transaction_model.dart';
 import 'detail_tagihan_pribadi_page.dart';
 
 class TagihanSection extends StatefulWidget {
   final bool isDark;
-  const TagihanSection({super.key, required this.isDark});
+  final FinanceService financeService;
+  final Function(VoidCallback)? onRefreshCallback;
+  
+  const TagihanSection({
+    super.key, 
+    required this.isDark,
+    required this.financeService,
+    this.onRefreshCallback,
+  });
 
   @override
   State<TagihanSection> createState() => _TagihanSectionState();
@@ -13,6 +23,40 @@ class TagihanSection extends StatefulWidget {
 class _TagihanSectionState extends State<TagihanSection>
     with SingleTickerProviderStateMixin {
   bool expanded = true;
+  bool isLoading = true;
+  String? errorMessage;
+  List<FeeTransactionModel> feeTransactions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Register refresh callback
+    widget.onRefreshCallback?.call(_loadFeeTransactions);
+    // Defer heavy operations to avoid blocking UI
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadFeeTransactions();
+    });
+  }
+
+  Future<void> _loadFeeTransactions() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final response = await widget.financeService.getFeeTransactions();
+      setState(() {
+        feeTransactions = response.data;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = e.toString();
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,28 +128,7 @@ class _TagihanSectionState extends State<TagihanSection>
                       horizontal: 8,
                       vertical: 12,
                     ),
-                    child: Column(
-                      children: [
-                        _tagihanItem(
-                          context: context,
-                          kategori: "Kerja Bakti",
-                          judul: "Membuat bang sampah",
-                          amount: "Rp. 100.000",
-                        ),
-                        _tagihanItem(
-                          context: context,
-                          kategori: "Mingguan",
-                          judul: "Kas Mingguan",
-                          amount: "Rp. 100.000",
-                        ),
-                        _tagihanItem(
-                          context: context,
-                          kategori: "Belasungkawan",
-                          judul: "Meninggoynya Pak Bazukii",
-                          amount: "Rp. 100.000",
-                        ),
-                      ],
-                    ),
+                    child: _buildContent(),
                   )
                 : const SizedBox.shrink(),
           ),
@@ -114,11 +137,76 @@ class _TagihanSectionState extends State<TagihanSection>
     );
   }
 
+  Widget _buildContent() {
+    if (isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              Text(
+                "Error loading data",
+                style: TextStyle(
+                  color: AppColors.textPrimary(context),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                errorMessage!,
+                style: TextStyle(
+                  color: AppColors.textSecondary(context),
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _loadFeeTransactions,
+                child: const Text("Retry"),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (feeTransactions.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text(
+            "Tidak ada tagihan",
+            style: TextStyle(
+              color: AppColors.textSecondary(context),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: feeTransactions.map((transaction) {
+        return _tagihanItem(
+          context: context,
+          transaction: transaction,
+        );
+      }).toList(),
+    );
+  }
+
   Widget _tagihanItem({
     required BuildContext context,
-    required String kategori,
-    required String judul,
-    required String amount,
+    required FeeTransactionModel transaction,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -135,18 +223,25 @@ class _TagihanSectionState extends State<TagihanSection>
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
-        onTap: () {
-          Navigator.push(
-            context,
+        onTap: () async {
+          final result = await Navigator.of(context, rootNavigator: true).push(
             MaterialPageRoute(
               builder: (_) => DetailTagihanPribadiPage(
                 isDark: widget.isDark,
-                kategori: kategori,
-                judul: judul,
-                amount: amount,
+                feeTransactionId: transaction.feeTransactionId,
+                kategori: transaction.feeName,
+                judul: transaction.feeCategory,
+                amount: transaction.formattedAmount,
+                dueDate: transaction.transactionDate ?? '-',
+                financeService: widget.financeService,
               ),
             ),
           );
+
+          // Refresh list if payment was submitted
+          if (result == true) {
+            _loadFeeTransactions();
+          }
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -174,7 +269,7 @@ class _TagihanSectionState extends State<TagihanSection>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      kategori,
+                      transaction.feeName,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -183,7 +278,7 @@ class _TagihanSectionState extends State<TagihanSection>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      judul,
+                      transaction.feeCategory,
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.textSecondary(context),
@@ -197,7 +292,7 @@ class _TagihanSectionState extends State<TagihanSection>
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    amount,
+                    transaction.formattedAmount,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
