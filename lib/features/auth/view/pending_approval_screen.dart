@@ -9,7 +9,8 @@ class PendingApprovalScreen extends ConsumerStatefulWidget {
   const PendingApprovalScreen({super.key});
 
   @override
-  ConsumerState<PendingApprovalScreen> createState() => _PendingApprovalScreenState();
+  ConsumerState<PendingApprovalScreen> createState() =>
+      _PendingApprovalScreenState();
 }
 
 class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
@@ -23,7 +24,9 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
 
   void _startListeningToApprovalStatus() {
     final authService = ref.read(authServiceProvider);
-    _approvalSubscription = authService.checkUserApprovalStream().listen((isApproved) {
+    _approvalSubscription = authService.checkUserApprovalStream().listen((
+      isApproved,
+    ) {
       if (isApproved == true && mounted) {
         // User sudah diapprove, redirect ke auth flow
         context.go('/auth-flow');
@@ -37,25 +40,67 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
     super.dispose();
   }
 
+  Future<void> _handleLogout(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Keluar'),
+        content: const Text('Apakah Anda yakin ingin keluar dari akun ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Keluar'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true && context.mounted) {
+      try {
+        // Cancel subscription before logout
+        await _approvalSubscription?.cancel();
+
+        final authService = ref.read(authServiceProvider);
+        await authService.logout();
+
+        if (context.mounted) {
+          context.go('/auth-flow');
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal logout: ${e.toString()}')),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = AppColors.primaryLight;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      backgroundColor: isDark
+          ? AppColors.backgroundDark
+          : AppColors.backgroundLight,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
           child: Column(
             children: [
               const Spacer(),
-              
+
               // Illustration dengan animasi implisit
               _buildIllustration(primaryColor, isDark),
-              
+
               const SizedBox(height: 48),
-              
+
               // Title
               Text(
                 'Menunggu Persetujuan',
@@ -64,12 +109,14 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                   height: 1.2,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  color: isDark
+                      ? AppColors.textPrimaryDark
+                      : AppColors.textPrimaryLight,
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Description
               Text(
                 'Akun Anda sedang dalam proses verifikasi oleh admin. Anda akan mendapatkan notifikasi setelah akun Anda disetujui.',
@@ -77,12 +124,14 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
                 style: TextStyle(
                   fontSize: 16,
                   height: 1.6,
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Info card
               Container(
                 padding: const EdgeInsets.all(20),
@@ -115,8 +164,8 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
                         style: TextStyle(
                           fontSize: 14,
                           height: 1.4,
-                          color: isDark 
-                              ? AppColors.textPrimaryDark 
+                          color: isDark
+                              ? AppColors.textPrimaryDark
                               : AppColors.textPrimaryLight,
                         ),
                       ),
@@ -124,9 +173,9 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
                   ],
                 ),
               ),
-              
+
               const Spacer(),
-              
+
               // Refresh Button
               SizedBox(
                 width: double.infinity,
@@ -148,10 +197,7 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.refresh_rounded,
-                        size: 20,
-                      ),
+                      const Icon(Icons.refresh_rounded, size: 20),
                       const SizedBox(width: 8),
                       const Text(
                         'Periksa Status',
@@ -164,28 +210,22 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Secondary button (Logout)
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: OutlinedButton(
-                  onPressed: () {
-                    // TODO: Implement logout
-                    // context.go('/auth-flow');
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      context.go('/dashboard');
-                    });
-                  },
+                  onPressed: () => _handleLogout(context),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: isDark 
-                        ? AppColors.textSecondaryDark 
+                    foregroundColor: isDark
+                        ? AppColors.textSecondaryDark
                         : AppColors.textSecondaryLight,
                     side: BorderSide(
-                      color: isDark 
-                          ? Colors.grey.shade700 
+                      color: isDark
+                          ? Colors.grey.shade700
                           : Colors.grey.shade300,
                       width: 1.5,
                     ),
@@ -195,10 +235,7 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
                   ),
                   child: const Text(
                     'Keluar',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
@@ -229,7 +266,7 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
             ),
           ),
         ),
-        
+
         // Middle circle
         Container(
           width: 220,
@@ -239,7 +276,7 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
             color: primary.withOpacity(0.08),
           ),
         ),
-        
+
         // Inner circle
         Container(
           width: 160,
@@ -249,7 +286,7 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
             color: primary.withOpacity(0.15),
           ),
         ),
-        
+
         // Icon container with shadow
         Container(
           width: 100,
@@ -271,23 +308,15 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
             color: Colors.white,
           ),
         ),
-        
+
         // Decorative dots with animation suggestion
-        Positioned(
-          top: 30,
-          right: 40,
-          child: _buildDecorativeDot(primary, 12),
-        ),
+        Positioned(top: 30, right: 40, child: _buildDecorativeDot(primary, 12)),
         Positioned(
           bottom: 50,
           left: 30,
           child: _buildDecorativeDot(primary, 16),
         ),
-        Positioned(
-          top: 80,
-          left: 20,
-          child: _buildDecorativeDot(primary, 8),
-        ),
+        Positioned(top: 80, left: 20, child: _buildDecorativeDot(primary, 8)),
         Positioned(
           bottom: 30,
           right: 60,
