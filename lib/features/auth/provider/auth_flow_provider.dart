@@ -27,16 +27,18 @@ class AuthFlowNotifier extends AutoDisposeAsyncNotifier<AuthFlowStatus> {
         return AuthFlowStatus.notLoggedIn;
       }
 
-      // Check if user is admin
+      // Check if user is admin - admin langsung ke dashboard admin
       final isAdmin = await _authService.isAdmin()
           .timeout(const Duration(seconds: 10));
+      
       if (isAdmin) {
         return AuthFlowStatus.admin;
       }
 
-      // Check if user resident data is not null
+      // Only check resident data for non-admin users
       final profileComplete = await _authService.checkUserResidentData()
           .timeout(const Duration(seconds: 10));
+      
       if (!profileComplete) {
         return AuthFlowStatus.incompleteData;
       }     
@@ -44,8 +46,8 @@ class AuthFlowNotifier extends AutoDisposeAsyncNotifier<AuthFlowStatus> {
       // Check if user is approved (checkUserApprovalStatus returns true if approved)
       final isApproved = await _authService.checkUserApprovalStatus()
           .timeout(const Duration(seconds: 10));
+      
       if (!isApproved) {
-        // User is still pending approval
         return AuthFlowStatus.uninitialized;
       }
 

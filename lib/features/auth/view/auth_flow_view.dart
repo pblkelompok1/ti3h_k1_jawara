@@ -21,6 +21,12 @@ class AuthFlowView extends ConsumerWidget {
             });
             return _loadingLottie();
 
+          case AuthFlowStatus.admin:
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/admin/dashboard');
+            });
+            return _loadingLottie();
+
           case AuthFlowStatus.incompleteData:
             WidgetsBinding.instance.addPostFrameCallback((_) {
               context.go('/incomplete-data-screen');
@@ -36,12 +42,6 @@ class AuthFlowView extends ConsumerWidget {
           case AuthFlowStatus.ready:
             WidgetsBinding.instance.addPostFrameCallback((_) {
               context.go('/dashboard');
-            });
-            return _loadingLottie();
-
-          case AuthFlowStatus.admin:
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/admin/dashboard');
             });
             return _loadingLottie();
         }

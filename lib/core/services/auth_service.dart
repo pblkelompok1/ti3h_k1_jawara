@@ -20,7 +20,6 @@ class AuthService {
       try {
         final isApproved = await checkUserApprovalStatus();
         yield isApproved;
-        print('[DEBUG]: is approved: $isApproved');
       } catch (e) {
         yield null;
       }
@@ -46,6 +45,33 @@ class AuthService {
       // Store user info including role
       if (data["user"] != null) {
         await storage.write(key: "user_data", value: jsonEncode(data["user"]));
+      } else {
+        // If user data not included in login response, fetch it from /auth/me
+        try {
+          final token = data["access_token"];
+          final meRes = await http.post(
+            Uri.parse("$baseUrl/auth/me"),
+            headers: {
+              "Authorization": "Bearer $token",
+              "Content-Type": "application/json",
+            },
+          );
+          
+          if (meRes.statusCode == 200) {
+            final userData = jsonDecode(meRes.body);
+            
+            // Backend returns user_id and role, we need to construct user object
+            final userObject = {
+              'id': userData['user_id'],
+              'email': email,  // Use email from login form
+              'role': userData['role'],
+            };
+            
+            await storage.write(key: "user_data", value: jsonEncode(userObject));
+          }
+        } catch (e) {
+          // Silently handle error, user can still proceed with basic auth
+        }
       }
 
       return true;
