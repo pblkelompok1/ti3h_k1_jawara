@@ -34,23 +34,7 @@ class RecommendedActivityList extends ConsumerWidget {
                 color: AppColors.textPrimary(context),
               ),
             ),
-            Row(
-              children: [
-                _buildSubTitleSelector(context, ref, selectedType),
-                const SizedBox(width: 16),
-                GestureDetector(
-                  onTap: () => context.push('/detail-kegiatan'),
-                  child: Text(
-                    'Lihat Semua',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primary(context),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            _buildSubTitleSelector(context, ref, selectedType),
           ],
         ),
         // Garis full width

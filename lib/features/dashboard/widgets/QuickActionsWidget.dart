@@ -35,7 +35,7 @@ class QuickActionsWidget extends StatelessWidget {
       'subtitle': 'Data kependudukan',
       'icon': Icons.people_alt_rounded,
       'color': Color(0xFF00BCD4),
-      'path': '/resident',
+      'path': '/detail-kegiatan',
     },
   ];
 

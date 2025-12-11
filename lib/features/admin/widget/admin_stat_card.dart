@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 
 class AdminStatCard extends StatelessWidget {
@@ -6,6 +7,7 @@ class AdminStatCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color? iconColor;
+  final List<Color>? gradientColors;
   final String? subtitle;
   final VoidCallback? onTap;
   final Widget? trend; // For showing increase/decrease
@@ -16,6 +18,7 @@ class AdminStatCard extends StatelessWidget {
     required this.value,
     required this.icon,
     this.iconColor,
+    this.gradientColors,
     this.subtitle,
     this.onTap,
     this.trend,
@@ -23,75 +26,110 @@ class AdminStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveIconColor =
-        iconColor ?? AppColors.primary(context);
+    final effectiveIconColor = iconColor ?? AppColors.primary(context);
+    final hasGradient = gradientColors != null && gradientColors!.length >= 2;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.bgDashboardCard(context),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: effectiveIconColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: effectiveIconColor,
-                    size: 24,
-                  ),
-                ),
-                if (trend != null) trend!,
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              value,
-              style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary(context),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary(context),
-              ),
-            ),
-            if (subtitle != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                subtitle!,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary(context),
-                ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: hasGradient
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: gradientColors!,
+                  )
+                : null,
+            color: hasGradient ? null : AppColors.surface(context),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: hasGradient
+                    ? gradientColors![0].withOpacity(0.3)
+                    : Colors.black.withOpacity(0.05),
+                blurRadius: hasGradient ? 12 : 8,
+                offset: Offset(0, hasGradient ? 6 : 2),
               ),
             ],
-          ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AutoSizeText(
+                          value,
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: hasGradient ? Colors.white : AppColors.textPrimary(context),
+                            height: 1,
+                          ),
+                          maxLines: 1,
+                          minFontSize: 24,
+                        ),
+                        const SizedBox(height: 6),
+                        AutoSizeText(
+                          title,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: hasGradient 
+                                ? Colors.white.withOpacity(0.9)
+                                : AppColors.textSecondary(context),
+                            fontWeight: FontWeight.w500,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          minFontSize: 10,
+                        ),
+                        if (subtitle != null) ...[
+                          const SizedBox(height: 4),
+                          AutoSizeText(
+                            subtitle!,
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: hasGradient 
+                                  ? Colors.white.withOpacity(0.8)
+                                  : AppColors.textSecondary(context),
+                              height: 1.2,
+                            ),
+                            maxLines: 1,
+                            minFontSize: 8,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: hasGradient
+                          ? Colors.white.withOpacity(0.2)
+                          : effectiveIconColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: hasGradient ? Colors.white : effectiveIconColor,
+                      size: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
