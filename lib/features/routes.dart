@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/features/auth/view/incomplete_data_screen.dart';
 import 'package:ti3h_k1_jawara/features/auth/view/login_screen.dart';
+import 'package:ti3h_k1_jawara/features/auth/view/onboarding_screen.dart';
 import 'package:ti3h_k1_jawara/features/auth/view/pending_approval_screen.dart';
 import 'package:ti3h_k1_jawara/features/auth/view/signup_screen.dart';
 import 'package:ti3h_k1_jawara/features/auth/view/start_screen.dart';
@@ -38,6 +39,16 @@ final routerProvider = Provider<GoRouter>((ref) {
     navigatorKey: navigatorKey,
     initialLocation: '/auth-flow',
     routes: [
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const OnboardingScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      ),
       GoRoute(
         path: '/start',
         pageBuilder: (context, state) => CustomTransitionPage(

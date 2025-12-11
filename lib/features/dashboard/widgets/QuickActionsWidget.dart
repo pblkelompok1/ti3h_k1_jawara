@@ -9,11 +9,11 @@ class QuickActionsWidget extends StatelessWidget {
 
   final List<Map<String, dynamic>> _actions = const [
     {
-      'title': 'Iuran Warga',
-      'subtitle': 'Bayar iuran bulanan',
-      'icon': Icons.payment_rounded,
-      'color': Color(0xFF4285F4),
-      'path': '/finance',
+      'title': 'Toko Online',
+      'subtitle': 'Manajemen tokomu',
+      'icon': Icons.store_mall_directory_rounded,
+      'color': Color(0xFFFFA000),
+      'path': '/account',
     },
     {
       'title': 'Lapor Masalah',
