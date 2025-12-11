@@ -18,8 +18,7 @@ class ProductView extends ConsumerWidget {
 
     if (product == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Produk Tidak Ditemukan')
-        ),
+        appBar: AppBar(title: const Text('Produk Tidak Ditemukan')),
         body: const Center(child: Text('Produk tidak ditemukan')),
       );
     }
@@ -36,7 +35,14 @@ class ProductView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Pakaian'),
+        title: Text(
+          product.kategori.first,
+          style: TextStyle(
+            color: AppColors.textPrimary(context),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+
         backgroundColor: AppColors.bgDashboardCard(context),
         foregroundColor: AppColors.textPrimary(context),
         actions: [
@@ -416,9 +422,9 @@ class ProductView extends ConsumerWidget {
                               ElevatedButton.icon(
                                 onPressed: () {
                                   // Handle buy action
-                                  GoRouter.of(context).push(
-                                    '/checkout/${product.id}/{$quantity}',
-                                  );
+                                  GoRouter.of(
+                                    context,
+                                  ).push('/checkout/${product.id}/{$quantity}');
                                 },
                                 icon: const Icon(
                                   Icons.shopping_bag,
