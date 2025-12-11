@@ -88,9 +88,7 @@ class AdminFinanceView extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(
-                          isIncome
-                              ? Icons.arrow_downward
-                              : Icons.arrow_upward,
+                          isIncome ? Icons.arrow_downward : Icons.arrow_upward,
                           color: isIncome ? Colors.green : Colors.red,
                           size: 20,
                         ),
@@ -144,11 +142,7 @@ class AdminFinanceView extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '${isIncome ? '+' : '-'} ${NumberFormat.currency(
-                              locale: 'id_ID',
-                              symbol: 'Rp ',
-                              decimalDigits: 0,
-                            ).format(transaction.amount)}',
+                            '${isIncome ? '+' : '-'} ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(transaction.amount)}',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -164,9 +158,7 @@ class AdminFinanceView extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -189,8 +181,8 @@ class AdminFinanceView extends ConsumerWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () {
-          // TODO: Add transaction dialog
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Fitur tambah transaksi akan segera hadir'),
