@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
-
 import 'StatCards.dart';
 import 'FeatureUnavailableDialog.dart';
 
@@ -97,7 +96,7 @@ class QuickActionsWidget extends StatelessWidget {
     required String path,
   }) {
     return InkWell(
-      onTap: () => context.go(path),
+      onTap: () => context.push(path),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(16),

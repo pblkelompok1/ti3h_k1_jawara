@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
+import 'package:ti3h_k1_jawara/core/provider/auth_service_provider.dart';
 import 'package:ti3h_k1_jawara/features/admin/provider/mock_admin_providers.dart';
 import 'package:ti3h_k1_jawara/features/admin/widget/admin_stat_card.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -9,6 +10,50 @@ import 'package:intl/intl.dart';
 
 class AdminDashboardView extends ConsumerWidget {
   const AdminDashboardView({super.key});
+
+  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Konfirmasi Keluar'),
+        content: const Text('Apakah Anda yakin ingin keluar dari akun admin?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Keluar'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true && context.mounted) {
+      try {
+        final authService = ref.read(authServiceProvider);
+        await authService.logout();
+
+        if (context.mounted) {
+          context.go('/auth-flow');
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal logout: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
@@ -65,63 +110,57 @@ class AdminDashboardView extends ConsumerWidget {
                 child: SafeArea(
                   bottom: false,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AutoSizeText(
-                                    '${_getGreeting()} 👋',
-                                    style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                    maxLines: 1,
-                                    minFontSize: 18,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  AutoSizeText(
-                                    'Admin Dashboard',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white.withOpacity(0.9),
-                                    ),
-                                    maxLines: 1,
-                                    minFontSize: 12,
-                                  ),
-                                ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AutoSizeText(
+                                '${_getGreeting()} 👋',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                                maxLines: 1,
+                                minFontSize: 16,
                               ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(12),
+                              const SizedBox(height: 2),
+                              AutoSizeText(
+                                _getFormattedDate(),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.white.withOpacity(0.8),
+                                ),
+                                maxLines: 1,
+                                minFontSize: 9,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _handleLogout(context, ref),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.red.withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
-                                Icons.admin_panel_settings,
+                                Icons.logout_rounded,
                                 color: Colors.white,
-                                size: 28,
+                                size: 22,
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        AutoSizeText(
-                          _getFormattedDate(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white.withOpacity(0.8),
                           ),
-                          maxLines: 1,
-                          minFontSize: 10,
                         ),
                       ],
                     ),
