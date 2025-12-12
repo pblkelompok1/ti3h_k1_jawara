@@ -34,6 +34,7 @@ import 'finance/widgets/detail_iuran_page.dart';
 import 'market/view/camera_detection_screen.dart';
 import 'finance/widgets/add_finance_page.dart';
 import 'finance/widgets/tagih_iuran_page.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_banner_view.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -221,6 +222,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/finance',
         builder: (_, __) => const admin_finance.AdminFinanceView(),
+      ),
+      GoRoute(
+        path: '/admin/banners',
+        builder: (_, __) => const AdminBannerView(),
       ),
       GoRoute(
         path: '/admin/banners',
