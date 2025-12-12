@@ -15,6 +15,8 @@ class RegistrationApprovalView extends ConsumerStatefulWidget {
 
 class _RegistrationApprovalViewState extends ConsumerState<RegistrationApprovalView> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  String _statusFilter = 'all'; // all|pending|approved|rejected
 
   @override
   void initState() {
@@ -26,6 +28,7 @@ class _RegistrationApprovalViewState extends ConsumerState<RegistrationApprovalV
   void dispose() {
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -81,40 +84,51 @@ class _RegistrationApprovalViewState extends ConsumerState<RegistrationApprovalV
                   return _buildEmptyState();
                 }
 
-                return ListView.builder(
+                // apply search + status filter
+                final q = _searchController.text.trim().toLowerCase();
+                bool matches(ResidentRegistrationModel r) {
+                  final hit = r.displayName.toLowerCase().contains(q) ||
+                      r.email.toLowerCase().contains(q) ||
+                      (r.nik ?? '').toLowerCase().contains(q) ||
+                      (r.phone ?? '').toLowerCase().contains(q);
+                  if (_statusFilter == 'all') return hit;
+                  if (_statusFilter == 'pending') return hit && r.isPending;
+                  if (_statusFilter == 'approved') return hit && r.isApproved;
+                  if (_statusFilter == 'rejected') return hit && r.isRejected;
+                  return hit;
+                }
+
+                final filteredPending = pendingList.where(matches).toList();
+                final filteredOther = otherList.where(matches).toList();
+
+                return ListView(
                   controller: _scrollController,
                   padding: const EdgeInsets.all(16),
-                  itemCount: pendingList.length + otherList.length + 1, // +1 for loading indicator
-                  itemBuilder: (context, index) {
-                    // Pending users first
-                    if (index < pendingList.length) {
-                      return _buildRegistrationCard(
-                        context,
-                        pendingList[index],
-                        isPending: true,
-                      );
-                    }
-                    
-                    // Other users
-                    final otherIndex = index - pendingList.length;
-                    if (otherIndex < otherList.length) {
-                      return _buildRegistrationCard(
-                        context,
-                        otherList[otherIndex],
-                        isPending: false,
-                      );
-                    }
-
-                    // Loading indicator at bottom
-                    if (ref.read(otherRegistrationsProvider.notifier).hasMore) {
-                      return const Padding(
+                  children: [
+                    _buildFilterBar(context),
+                    if (filteredPending.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _buildSectionHeader(context, 'Menunggu Persetujuan'),
+                      const SizedBox(height: 8),
+                      ...filteredPending
+                          .map((r) => _buildRegistrationCard(context, r, isPending: true))
+                          .toList(),
+                    ],
+                    if (filteredOther.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _buildSectionHeader(context, 'Lainnya'),
+                      const SizedBox(height: 8),
+                      ...filteredOther
+                          .map((r) => _buildRegistrationCard(context, r, isPending: false))
+                          .toList(),
+                    ],
+                    if (ref.read(otherRegistrationsProvider.notifier).hasMore)
+                      const Padding(
                         padding: EdgeInsets.all(16.0),
                         child: Center(child: CircularProgressIndicator()),
-                      );
-                    }
-                    
-                    return const SizedBox(height: 16);
-                  },
+                      ),
+                    const SizedBox(height: 16),
+                  ],
                 );
               },
               loading: () => _buildLoadingWithPending(pendingList),
@@ -125,6 +139,67 @@ class _RegistrationApprovalViewState extends ConsumerState<RegistrationApprovalV
           error: (error, stack) => _buildErrorState(error),
         ),
       ),
+    );
+  }
+
+  Widget _buildFilterBar(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _searchController,
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            hintText: 'Cari nama, email, NIK, telepon',
+            prefixIcon: const Icon(Icons.search),
+            isDense: true,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: [
+            _buildFilterChip('Semua', 'all'),
+            _buildFilterChip('Pending', 'pending'),
+            _buildFilterChip('Disetujui', 'approved'),
+            _buildFilterChip('Ditolak', 'rejected'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterChip(String label, String value) {
+    final selected = _statusFilter == value;
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => setState(() => _statusFilter = value),
+      selectedColor: AppColors.primary(context).withOpacity(0.15),
+      checkmarkColor: AppColors.primary(context),
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary(context),
+            ),
+          ),
+        ),
+        Container(
+          height: 1,
+          margin: const EdgeInsets.only(left: 12),
+          color: AppColors.border(context),
+        ),
+      ],
     );
   }
 
