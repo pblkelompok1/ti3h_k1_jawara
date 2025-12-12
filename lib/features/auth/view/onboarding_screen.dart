@@ -52,7 +52,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _navigateToHome() {
     // Navigasi ke auth-flow menggunakan GoRouter
-    context.go('/auth-flow');
+    context.go('/start');
   }
 
   @override
@@ -97,39 +97,41 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Illustration Area
-                        _buildLottieIllustration(
-                          _contents[index]['lottie'],
-                        ),
-                        const SizedBox(height: 48),
-                        
-                        // Title
-                        Text(
-                          _contents[index]['title'],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Illustration Area
+                          _buildLottieIllustration(
+                            _contents[index]['lottie'],
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        // Description
-                        Text(
-                          _contents[index]['desc'],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            height: 1.5,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          const SizedBox(height: 48),
+                      
+                          // Title
+                          Text(
+                            _contents[index]['title'],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                      
+                          // Description
+                          Text(
+                            _contents[index]['desc'],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              height: 1.5,
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },

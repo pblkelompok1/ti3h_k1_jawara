@@ -1047,8 +1047,8 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.7,
-        crossAxisSpacing: 12,
+        childAspectRatio: 0.6,
+        crossAxisSpacing: 6,
         mainAxisSpacing: 12,
       ),
       delegate: SliverChildBuilderDelegate((context, index) {

@@ -288,7 +288,7 @@ class RecommendedActivityList extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 8),
                     Row(
                       children: [
                         Icon(

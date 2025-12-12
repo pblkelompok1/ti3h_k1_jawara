@@ -55,29 +55,35 @@ class QuickActionsWidget extends StatelessWidget {
               color: AppColors.textPrimary(context),
             ),
           ),
-          SizedBox(height: 16,),
+          SizedBox(height: 16),
           const PaymentSummaryCards(),
-          SizedBox(height: 12,),
-          GridView.builder(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _actions.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.5,
-            ),
-            itemBuilder: (context, index) {
-              return _buildActionCard(
-                context,
-                isDark: isDark,
-                title: _actions[index]['title']!,
-                subtitle: _actions[index]['subtitle']!,
-                icon: _actions[index]['icon']!,
-                color: _actions[index]['color']!,
-                path: _actions[index]['path']!,
+          SizedBox(height: 12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+              
+              return GridView.builder(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _actions.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.5,
+                ),
+                itemBuilder: (context, index) {
+                  return _buildActionCard(
+                    context,
+                    isDark: isDark,
+                    title: _actions[index]['title']!,
+                    subtitle: _actions[index]['subtitle']!,
+                    icon: _actions[index]['icon']!,
+                    color: _actions[index]['color']!,
+                    path: _actions[index]['path']!,
+                  );
+                },
               );
             },
           ),
@@ -99,31 +105,24 @@ class QuickActionsWidget extends StatelessWidget {
       onTap: () => context.push(path),
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: color.withOpacity(0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: color.withOpacity(0.2),
-            width: 1.5,
-          ),
+          border: Border.all(color: color.withOpacity(0.2), width: 1.5),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 color: color.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 24,
-              ),
+              child: Icon(icon, color: color, size: 20),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,17 +133,17 @@ class QuickActionsWidget extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontSize: 14,
                     color: AppColors.textPrimary(context),
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1),
                 Text(
                   subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: AppColors.textSecondary(context),
                   ),
                 ),
