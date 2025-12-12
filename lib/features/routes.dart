@@ -28,6 +28,7 @@ import 'auth/view/form_input_data_screen.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/admin_dashboard_view.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/registration_approval_view.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/admin_laporan_view.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_request_surat_view.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/finance_view.dart'
     as admin_finance;
 import 'finance/widgets/detail_iuran_page.dart';
@@ -241,9 +242,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/admin/letters',
-        builder: (_, __) => const Scaffold(
-          body: Center(child: Text('Letter Requests View - Coming Soon')),
-        ),
+        builder: (_, __) => const AdminRequestSuratView(),
       ),
       GoRoute(
         path: '/camera-detection',
