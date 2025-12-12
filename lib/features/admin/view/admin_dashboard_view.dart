@@ -208,14 +208,14 @@ class AdminDashboardView extends ConsumerWidget {
                           ),
                           AdminStatCard(
                             icon: Icons.report_problem_rounded,
-                            title: 'Laporan Baru',
+                            title: 'Laporan Warga',
                             value: stats.newReportsToday.toString(),
                             subtitle: 'Hari ini',
                             gradientColors: const [
                               Color(0xFFF44336),
                               Color(0xFFE57373),
                             ],
-                            onTap: () => context.push('/admin/reports'),
+                            onTap: () => context.push('/admin/laporan'),
                           ),
                           AdminStatCard(
                             icon: Icons.mail_rounded,
