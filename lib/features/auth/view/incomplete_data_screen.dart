@@ -83,7 +83,7 @@ class IncompleteDataScreen extends ConsumerWidget {
 
               // Description
               Text(
-                'Anda belum mengisi data kependudukan Anda. Lengkapi data terlebih dahulu untuk dapat mengakses semua fitur aplikasi.',
+                'Lengkapi data kependudukan Anda untuk membuka semua fitur.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
@@ -138,12 +138,12 @@ class IncompleteDataScreen extends ConsumerWidget {
                 ),
               ),
 
-              const Spacer(),
+              const SizedBox(width: 16),
 
               // Action Button
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 47,
                 child: ElevatedButton(
                   onPressed: () {
                     context.go('/form-input-data');
@@ -179,7 +179,7 @@ class IncompleteDataScreen extends ConsumerWidget {
               // Secondary button (Logout)
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 47,
                 child: OutlinedButton(
                   onPressed: () => _handleLogout(context, ref),
                   style: OutlinedButton.styleFrom(

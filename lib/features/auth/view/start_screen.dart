@@ -199,24 +199,7 @@ class _StartScreenState extends State<StartScreen>
 
                   const Spacer(flex: 1),
 
-                  // Admin Login Link
-                  TextButton(
-                    onPressed: () {
-                      context.push('/admin/login');
-                    },
-                    child: Text(
-                      'Login sebagai Admin',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark
-                            ? AppColors.textSecondaryDark
-                            : AppColors.textSecondaryLight,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 30),
 
                   // Footer Text
                   Text(

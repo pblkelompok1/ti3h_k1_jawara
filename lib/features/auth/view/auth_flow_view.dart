@@ -17,7 +17,7 @@ class AuthFlowView extends ConsumerWidget {
         switch (state) {
           case AuthFlowStatus.notLoggedIn:
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.go('/start');
+              context.go('/onboarding');
             });
             return _loadingLottie();
 

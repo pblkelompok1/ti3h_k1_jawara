@@ -99,8 +99,6 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
               // Illustration dengan animasi implisit
               _buildIllustration(primaryColor, isDark),
 
-              const SizedBox(height: 48),
-
               // Title
               Text(
                 'Menunggu Persetujuan',
@@ -119,7 +117,7 @@ class _PendingApprovalScreenState extends ConsumerState<PendingApprovalScreen> {
 
               // Description
               Text(
-                'Akun Anda sedang dalam proses verifikasi oleh admin. Anda akan mendapatkan notifikasi setelah akun Anda disetujui.',
+                'Akun Anda sedang dalam proses verifikasi oleh admin.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,

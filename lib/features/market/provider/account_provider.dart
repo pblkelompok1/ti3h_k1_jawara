@@ -1,5 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+final accountModeProvider = StateProvider<String>((ref) => "toko");
+
+final accountSelectedTabProvider = StateProvider<int>((ref) => 0);
+
 // ==================== USER PRODUCTS PROVIDER ====================
 class UserProductsNotifier extends StateNotifier<List<Map<String, dynamic>>> {
   UserProductsNotifier() : super(_dummyProducts);
@@ -61,7 +65,7 @@ class UserProductsNotifier extends StateNotifier<List<Map<String, dynamic>>> {
         if (product['id'] == id)
           {
             ...product,
-            'status': product['status'] == 'active' ? 'inactive' : 'active'
+            'status': product['status'] == 'active' ? 'inactive' : 'active',
           }
         else
           product,
@@ -71,11 +75,13 @@ class UserProductsNotifier extends StateNotifier<List<Map<String, dynamic>>> {
 
 final userProductsProvider =
     StateNotifierProvider<UserProductsNotifier, List<Map<String, dynamic>>>(
-        (ref) => UserProductsNotifier());
+      (ref) => UserProductsNotifier(),
+    );
 
 // ==================== ACTIVE TRANSACTIONS PROVIDER ====================
-final activeTransactionsProvider =
-    StateProvider<List<Map<String, dynamic>>>((ref) {
+final activeTransactionsProvider = StateProvider<List<Map<String, dynamic>>>((
+  ref,
+) {
   return [
     {
       'id': 'TRX001',
@@ -114,8 +120,9 @@ final activeTransactionsProvider =
 });
 
 // ==================== TRANSACTION HISTORY PROVIDER ====================
-final transactionHistoryProvider =
-    StateProvider<List<Map<String, dynamic>>>((ref) {
+final transactionHistoryProvider = StateProvider<List<Map<String, dynamic>>>((
+  ref,
+) {
   return [
     {
       'id': 'TRX099',
@@ -191,6 +198,3 @@ final myOrdersProvider = StateProvider<List<Map<String, dynamic>>>((ref) {
     },
   ];
 });
-
-// ==================== SELECTED TAB PROVIDER ====================
-final accountSelectedTabProvider = StateProvider<int>((ref) => 0);
