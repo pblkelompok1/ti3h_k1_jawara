@@ -56,7 +56,7 @@ class _DetailKegiatanViewState extends State<DetailKegiatanView>
       jumlahPeserta: 120,
       kategori: 'olahraga',
     ),
-    
+
     // Ongoing
     KegiatanModel(
       id: '4',
@@ -84,7 +84,7 @@ class _DetailKegiatanViewState extends State<DetailKegiatanView>
       jumlahPeserta: 25,
       kategori: 'lainnya',
     ),
-    
+
     // Selesai
     KegiatanModel(
       id: '6',
@@ -92,7 +92,9 @@ class _DetailKegiatanViewState extends State<DetailKegiatanView>
       deskripsi:
           'Serangkaian lomba memeriahkan HUT RI: balap karung, tarik tambang, makan kerupuk, dll. Doorprize menarik untuk peserta.',
       tanggalMulai: DateTime.now().subtract(const Duration(days: 117)),
-      tanggalSelesai: DateTime.now().subtract(const Duration(days: 117, hours: -6)),
+      tanggalSelesai: DateTime.now().subtract(
+        const Duration(days: 117, hours: -6),
+      ),
       lokasi: 'Lapangan RT 01-03',
       penyelenggara: 'Panitia HUT RI',
       status: 'selesai',
@@ -105,7 +107,9 @@ class _DetailKegiatanViewState extends State<DetailKegiatanView>
       deskripsi:
           'Buka puasa bersama seluruh warga RT 01-05 di bulan Ramadan. Menu: nasi kotak, kolak, dan es teh manis.',
       tanggalMulai: DateTime.now().subtract(const Duration(days: 245)),
-      tanggalSelesai: DateTime.now().subtract(const Duration(days: 245, hours: -3)),
+      tanggalSelesai: DateTime.now().subtract(
+        const Duration(days: 245, hours: -3),
+      ),
       lokasi: 'Masjid Jami Al-Barokah',
       penyelenggara: 'DKM Masjid',
       status: 'selesai',
@@ -131,7 +135,9 @@ class _DetailKegiatanViewState extends State<DetailKegiatanView>
       deskripsi:
           'Kegiatan donor darah bekerjasama dengan PMI. Peserta mendapat snack, sertifikat, dan cek kesehatan gratis.',
       tanggalMulai: DateTime.now().subtract(const Duration(days: 14)),
-      tanggalSelesai: DateTime.now().subtract(const Duration(days: 14, hours: -5)),
+      tanggalSelesai: DateTime.now().subtract(
+        const Duration(days: 14, hours: -5),
+      ),
       lokasi: 'Aula RW 05',
       penyelenggara: 'PMI & Pengurus RW',
       status: 'selesai',
@@ -144,7 +150,9 @@ class _DetailKegiatanViewState extends State<DetailKegiatanView>
       deskripsi:
           'Senam aerobik bersama instruktur profesional. Kegiatan rutin setiap minggu untuk meningkatkan kesehatan warga.',
       tanggalMulai: DateTime.now().subtract(const Duration(days: 7)),
-      tanggalSelesai: DateTime.now().subtract(const Duration(days: 7, hours: -2)),
+      tanggalSelesai: DateTime.now().subtract(
+        const Duration(days: 7, hours: -2),
+      ),
       lokasi: 'Lapangan RT 03',
       penyelenggara: 'PKK RW 05',
       status: 'selesai',
@@ -314,9 +322,7 @@ class _DetailKegiatanViewState extends State<DetailKegiatanView>
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface(context),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             _getCategoryIcon(kegiatan.kategori),
@@ -356,8 +362,9 @@ class _DetailKegiatanViewState extends State<DetailKegiatanView>
                 _buildDetailRow(
                   Icons.event_available,
                   'Tanggal Selesai',
-                  DateFormat('dd MMMM yyyy, HH:mm')
-                      .format(kegiatan.tanggalSelesai!),
+                  DateFormat(
+                    'dd MMMM yyyy, HH:mm',
+                  ).format(kegiatan.tanggalSelesai!),
                   isDarkMode,
                 ),
               ],
@@ -422,7 +429,11 @@ class _DetailKegiatanViewState extends State<DetailKegiatanView>
   }
 
   Widget _buildDetailRow(
-      IconData icon, String label, String value, bool isDarkMode) {
+    IconData icon,
+    String label,
+    String value,
+    bool isDarkMode,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -517,10 +528,7 @@ class _KegiatanCard extends StatelessWidget {
   final KegiatanModel kegiatan;
   final VoidCallback onTap;
 
-  const _KegiatanCard({
-    required this.kegiatan,
-    required this.onTap,
-  });
+  const _KegiatanCard({required this.kegiatan, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -530,9 +538,7 @@ class _KegiatanCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       color: AppColors.surface(context),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -575,7 +581,9 @@ class _KegiatanCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      DateFormat('dd MMM yyyy, HH:mm').format(kegiatan.tanggalMulai),
+                      DateFormat(
+                        'dd MMM yyyy, HH:mm',
+                      ).format(kegiatan.tanggalMulai),
                       style: TextStyle(
                         fontSize: 13,
                         color: isDarkMode ? Colors.grey[300] : Colors.grey[700],

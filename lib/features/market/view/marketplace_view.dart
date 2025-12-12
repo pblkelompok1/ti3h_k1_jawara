@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:go_router/go_router.dart';
+import '../provider/product_provider.dart';
 
 class MarketMainScreen extends ConsumerStatefulWidget {
   const MarketMainScreen({super.key});
@@ -78,9 +79,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
               SliverToBoxAdapter(child: _buildScrollingAppBar()),
 
               // Search Bar
-              SliverToBoxAdapter(
-                child: _buildSearchBar(),
-              ),
+              SliverToBoxAdapter(child: _buildSearchBar()),
 
               SliverToBoxAdapter(child: _buildBannerSection()),
               SliverToBoxAdapter(child: _buildCategoriesSection()),
@@ -173,7 +172,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
             IconButton(
               onPressed: () => context.push('/account'),
               icon: const Icon(
-                Icons.person_outline_rounded,
+                Icons.dashboard_customize_rounded,
                 color: Colors.white,
                 size: 24,
               ),
@@ -438,7 +437,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                   ),
                 ),
               );
-            }
+            },
           ),
         ),
         const SizedBox(height: 12),
@@ -481,15 +480,16 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
         'label': 'Bahan Masak',
         'color': const Color(0xFFFFF3E0),
       },
+      {'icon': Icons.build, 'label': 'Jasa', 'color': const Color(0xFFFCE4EC)},
       {
-        'icon': Icons.build,
-        'label': 'Jasa',
-        'color': const Color(0xFFFCE4EC)
+        'icon': Icons.electrical_services,
+        'label': 'Elektronik',
+        'color': const Color(0xFFF3E5F5),
       },
     ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 30, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 30, 0, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -506,106 +506,130 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
               ),
               GestureDetector(
                 onTap: () {},
-                child: Text(
-                  'Lihat Semua',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary(context),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: Text(
+                    'Lihat Semua',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary(context),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
+
           const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: categories.map((cat) {
-              return _buildCategoryItem(
-                icon: cat['icon'] as IconData,
-                label: cat['label'] as String,
-                color: cat['color'] as Color,
-              );
-            }).toList(),
+
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: categories.map((cat) {
+                return Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: _buildCategoryItem(
+                    icon: cat['icon'] as IconData,
+                    label: cat['label'] as String,
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryItem({
-    required IconData icon,
-    required String label,
-    required Color color,
-    VoidCallback? onTap,
-  }) {
-    // Determine accent color based on category
+  Widget _buildCategoryItem({required IconData icon, required String label}) {
     Color accentColor;
-    if (label == 'Makanan') {
-      accentColor = const Color(0xFF4CAF50); // Green
-    } else if (label == 'Pakaian') {
-      accentColor = const Color(0xFF2196F3); // Blue
-    } else if (label == 'Bahan Masak') {
-      accentColor = const Color(0xFFFF9800); // Orange
-    } else {
-      accentColor = const Color(0xFFE91E63); // Pink for Jasa
+
+    switch (label) {
+      case 'Makanan':
+        accentColor = const Color(0xFF4CAF50);
+        break;
+      case 'Pakaian':
+        accentColor = const Color(0xFF2196F3);
+        break;
+      case 'Bahan Masak':
+        accentColor = const Color(0xFFFF9800);
+        break;
+      case 'Jasa':
+        accentColor = const Color(0xFFE91E63);
+        break;
+      default:
+        accentColor = const Color(0xFF9C27B0); // Elektronik
     }
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: AppColors.bgDashboardCard(context),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: accentColor.withOpacity(0.5),
-                width: 1.5,
-              ),
-
-            ),
-            child: Icon(
-              icon,
-              size: 24,
-              color: accentColor.withOpacity(0.85),
-            ),
+    return Column(
+      children: [
+        Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: AppColors.bgDashboardCard(context),
+            shape: BoxShape.circle,
+            border: Border.all(color: accentColor.withOpacity(0.5), width: 1.5),
           ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary(context),
-            ),
+          child: Icon(icon, size: 24, color: accentColor.withOpacity(0.9)),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary(context),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
   Widget _buildRecommendationSection() {
+    final products = ref.watch(productRepositoryProvider).getAllProducts();
+
     return Padding(
       padding: const EdgeInsets.only(top: 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header Section
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  'Rekomendasi Untukmu',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary(context),
-                  ),
+                // Title with Icon
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary(context).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.local_fire_department_rounded,
+                        size: 18,
+                        color: AppColors.primary(context),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Rekomendasi Untukmu',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary(context),
+                      ),
+                    ),
+                  ],
                 ),
+
+                // View All Button
                 GestureDetector(
                   onTap: () {},
                   child: Text(
@@ -620,25 +644,52 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
               ],
             ),
           ),
+
           const SizedBox(height: 16),
+
+          // Products List
           SizedBox(
-            height: 280,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: 5,
-              itemBuilder: (context, index) {
-                final productId = index == 0 ? '2' : '1';
-                return _buildProductCard(
-                  productId: productId,
-                  title: index == 0 ? 'Tahu Telor Warjo' : 'Sepatu Tidak Skena',
-                  price: index == 0 ? 'Rp. 20.000' : 'Rp. 90.000',
-                  imageUrl: index == 0
-                      ? 'https://images.unsplash.com/photo-1551218808-94e220e084d2'
-                      : 'https://images.unsplash.com/photo-1549298916-b41d501d3772',
-                );
-              },
-            ),
+            height: 260,
+            child: products.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.inventory_2_outlined,
+                          size: 48,
+                          color: AppColors.textSecondary(context),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Belum ada produk',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textSecondary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      final p = products[index];
+
+                      return _buildProductCard(
+                        productId: p.id,
+                        title: p.name,
+                        price: "Rp ${p.price}",
+                        imageUrl: p.images.first,
+                        rating: p.rating,
+                        reviews: p.reviewCount,
+                        stock: p.stock,
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -680,20 +731,16 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 130,
+            height: 120,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: 4,
               itemBuilder: (context, index) {
                 final items = [
-                  {'title': 'Pecel Buk Lintang', 'price': 'Rp. 15.000'},
-                  {
-                    'title':
-                        'Sate Kecap Pak Bambang Super Pedes Makmur Nan jaya',
-                    'price': 'Rp. 25.000',
-                  },
-                  {'title': 'Soto Enak Ala Madura', 'price': 'Rp. 30.000'},
+                  {'title': 'Pecel Buk Lintang', 'price': 'Rp 15.000'},
+                  {'title': 'Sate Kecap Pak Bambang', 'price': 'Rp 25.000'},
+                  {'title': 'Soto Enak Ala Madura', 'price': 'Rp 30.000'},
                 ];
                 final item = items[index % items.length];
                 return _buildFoodListItem(
@@ -712,74 +759,276 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
     );
   }
 
+  Widget _buildFoodListItem({
+    required String title,
+    required String price,
+    required double rating,
+    required int reviews,
+    required String imageUrl,
+  }) {
+    return Container(
+      width: 260,
+      margin: const EdgeInsets.only(right: 12),
+      decoration: BoxDecoration(
+        color: AppColors.bgDashboardCard(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.softBorder(context), width: 1.3),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(16),
+              bottomLeft: Radius.circular(16),
+            ),
+            child: SizedBox(
+              width: 100,
+              height: 120,
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const Icon(Icons.fastfood),
+              ),
+            ),
+          ),
+
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AutoSizeText(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary(context),
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Row(
+                    children: [
+                      Icon(Icons.star, size: 14, color: Colors.orange.shade600),
+                      const SizedBox(width: 4),
+                      Text(
+                        rating.toStringAsFixed(1),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textPrimary(context),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "($reviews)",
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    price,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildProductCard({
     required String productId,
     required String title,
     required String price,
     required String imageUrl,
+    required double rating,
+    required int reviews,
+    required int stock,
   }) {
     return GestureDetector(
       onTap: () => context.push('/product/$productId'),
       child: Container(
-        width: 160,
+        width: 165,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           color: AppColors.bgDashboardCard(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.softBorder(context), width: 1.5),
+          border: Border.all(color: AppColors.softBorder(context), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              flex: 3,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
-                child: Container(
-                  width: double.infinity,
-                  color: Colors.grey.shade300,
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.grey.shade300,
-                      child: const Icon(Icons.image, size: 50),
+            // IMAGE SECTION
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(15),
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1.25,
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: Colors.grey.shade200,
+                        child: const Icon(Icons.image, size: 40),
+                      ),
                     ),
                   ),
                 ),
-              ),
+
+                // RATING BADGE
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgDashboardCard(
+                        context,
+                      ).withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppColors.softBorder(context),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.black.withOpacity(0.4)
+                              : Colors.black.withOpacity(0.08),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.star_rounded,
+                          color: Colors.amber.shade600,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          rating.toStringAsFixed(1),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
+
             Expanded(
-              flex: 2,
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    AutoSizeText(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      minFontSize: 12,
-                      maxFontSize: 14,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary(context),
+                    Expanded(
+                      child: AutoSizeText(
+                        title,
+                        maxLines: 2,
+                        minFontSize: 14,
+                        maxFontSize: 18,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary(context),
+                          height: 1.25,
+                        ),
                       ),
                     ),
-                    AutoSizeText(
+
+                    const SizedBox(height: 6),
+
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.reviews_outlined,
+                          size: 12,
+                          color: AppColors.textSecondary(context),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          "$reviews ulasan",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    Text(
                       price,
-                      maxLines: 1,
-                      minFontSize: 11,
-                      maxFontSize: 13,
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary(context),
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary(context),
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: stock > 0
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: stock > 0 ? Colors.green : Colors.red,
+                        ),
+                      ),
+                      child: Text(
+                        stock > 0 ? "Stok: $stock" : "Stok Habis",
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: stock > 0 ? Colors.green : Colors.red,
+                        ),
                       ),
                     ),
                   ],
@@ -792,126 +1041,29 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
     );
   }
 
-  Widget _buildFoodListItem({
-    required String title,
-    required String price,
-    required double rating,
-    required int reviews,
-    required String imageUrl,
-  }) {
-    return Container(
-      width: 280,
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: AppColors.bgDashboardCard(context),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.softBorder(context), width: 1.5),
-      ),
-      child: Row(
-        children: [
-          Flexible(
-            flex: 2,
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(10),
-                bottomLeft: Radius.circular(10),
-              ),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                  color: Colors.grey.shade300,
-                  child: Image.network(
-                    imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.grey.shade300,
-                      child: const Icon(Icons.fastfood, size: 40),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Flexible(
-            flex: 3,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AutoSizeText(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    minFontSize: 16,
-                    maxFontSize: 17,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(context),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      Icon(Icons.star, size: 14, color: Colors.amber.shade700),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: AutoSizeText(
-                          '$rating ($reviews Review)',
-                          maxLines: 1,
-                          minFontSize: 9,
-                          maxFontSize: 11,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AppColors.textSecondary(context),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  AutoSizeText(
-                    price,
-                    maxLines: 1,
-                    minFontSize: 11,
-                    maxFontSize: 13,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(context),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   SliverGrid _buildLocalProductsGrid() {
+    final products = ref.watch(productRepositoryProvider).getAllProducts();
+
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.7,
-        crossAxisSpacing: 12,
+        childAspectRatio: 0.6,
+        crossAxisSpacing: 6,
         mainAxisSpacing: 12,
       ),
       delegate: SliverChildBuilderDelegate((context, index) {
-        final productId = index % 2 == 0 ? '2' : '1';
+        final p = products[index];
+
         return _buildProductCard(
-          productId: productId,
-          title: index % 2 == 0 ? 'Tahu Telor Warjo' : 'Sepatu Tidak Skena',
-          price: index % 2 == 0 ? 'Rp. 20.000' : 'Rp. 90.000',
-          imageUrl: index % 2 == 0
-              ? 'https://images.unsplash.com/photo-1551218808-94e220e084d2'
-              : 'https://images.unsplash.com/photo-1549298916-b41d501d3772',
+          productId: p.id,
+          title: p.name,
+          price: "Rp ${p.price}",
+          imageUrl: p.images.first,
+          rating: p.rating,
+          reviews: p.reviewCount,
+          stock: p.stock,
         );
-      }, childCount: 8),
+      }, childCount: products.length),
     );
   }
 }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_resident_view.dart';
 import 'package:ti3h_k1_jawara/features/auth/view/incomplete_data_screen.dart';
 import 'package:ti3h_k1_jawara/features/auth/view/login_screen.dart';
+import 'package:ti3h_k1_jawara/features/auth/view/onboarding_screen.dart';
 import 'package:ti3h_k1_jawara/features/auth/view/pending_approval_screen.dart';
 import 'package:ti3h_k1_jawara/features/auth/view/signup_screen.dart';
 import 'package:ti3h_k1_jawara/features/auth/view/start_screen.dart';
@@ -25,7 +27,8 @@ import 'auth/view/auth_flow_view.dart';
 import 'auth/view/form_input_data_screen.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/admin_dashboard_view.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/registration_approval_view.dart';
-import 'package:ti3h_k1_jawara/features/admin/view/finance_view.dart' as admin_finance;
+import 'package:ti3h_k1_jawara/features/admin/view/finance_view.dart'
+    as admin_finance;
 import 'finance/widgets/detail_iuran_page.dart';
 import 'market/view/camera_detection_screen.dart';
 import 'finance/widgets/add_finance_page.dart';
@@ -36,8 +39,18 @@ final navigatorKey = GlobalKey<NavigatorState>();
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: '/auth-flow',
+    initialLocation: '/onboarding',
     routes: [
+      GoRoute(
+        path: '/onboarding',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const OnboardingScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+        ),
+      ),
       GoRoute(
         path: '/start',
         pageBuilder: (context, state) => CustomTransitionPage(
@@ -65,7 +78,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
             const curve = Curves.easeInOut;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
             return SlideTransition(
               position: animation.drive(tween),
               child: child,
@@ -83,7 +99,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
             const curve = Curves.easeInOut;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
             return SlideTransition(
               position: animation.drive(tween),
               child: child,
@@ -108,22 +127,34 @@ final routerProvider = Provider<GoRouter>((ref) {
         branches: [
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/dashboard', builder: (_, __) => const DashboardView()),
+              GoRoute(
+                path: '/dashboard',
+                builder: (_, __) => const DashboardView(),
+              ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/finance', builder: (_, __) => const FinanceView()),
+              GoRoute(
+                path: '/finance',
+                builder: (_, __) => const FinanceView(),
+              ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/resident', builder: (_, __) => const ResidentView()),
+              GoRoute(
+                path: '/resident',
+                builder: (_, __) => const ResidentView(),
+              ),
             ],
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(path: '/marketplace', builder: (_, __) => const MarketMainScreen()),
+              GoRoute(
+                path: '/marketplace',
+                builder: (_, __) => const MarketMainScreen(),
+              ),
             ],
           ),
         ],
@@ -131,23 +162,42 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Profile / Product / Checkout / Account routes
       GoRoute(path: '/profile', builder: (_, __) => const ProfileView()),
       GoRoute(path: '/account', builder: (_, __) => const AccountView()),
-      GoRoute(path: '/lapor-masalah', builder: (_, __) => const ReportIssueView()),
-      GoRoute(path: '/ajukan-surat', builder: (_, __) => const AjukanSuratView()),
+      GoRoute(
+        path: '/lapor-masalah',
+        builder: (_, __) => const ReportIssueView(),
+      ),
+      GoRoute(
+        path: '/ajukan-surat',
+        builder: (_, __) => const AjukanSuratView(),
+      ),
       GoRoute(path: '/iuran-warga', builder: (_, __) => const IuranWargaView()),
-      GoRoute(path: '/dana-pribadi', builder: (_, __) => const DanaPribadiView()),
-      GoRoute(path: '/product/:id', builder: (context, state) {
-        final productId = state.pathParameters['id'] ?? '1';
-        return ProductView(productId: productId);
-      }),
-      GoRoute(path: '/checkout/:id/:quantity', builder: (context, state) {
-        final productId = state.pathParameters['id'] ?? '1';
-        final quantity = int.tryParse(state.pathParameters['quantity'] ?? '1') ?? 1;
-        return CheckoutView(productId: productId, quantity: quantity);
-      }),
-      GoRoute(path: '/transaction/:id', builder: (context, state) {
-        final transactionId = state.pathParameters['id'] ?? '1';
-        return TransactionView(transactionId: transactionId);
-      }),
+      GoRoute(
+        path: '/dana-pribadi',
+        builder: (_, __) => const DanaPribadiView(),
+      ),
+      GoRoute(
+        path: '/product/:id',
+        builder: (context, state) {
+          final productId = state.pathParameters['id'] ?? '1';
+          return ProductView(productId: productId);
+        },
+      ),
+      GoRoute(
+        path: '/checkout/:id/:quantity',
+        builder: (context, state) {
+          final productId = state.pathParameters['id'] ?? '1';
+          final quantity =
+              int.tryParse(state.pathParameters['quantity'] ?? '1') ?? 1;
+          return CheckoutView(productId: productId, quantity: quantity);
+        },
+      ),
+      GoRoute(
+        path: '/transaction/:id',
+        builder: (context, state) {
+          final transactionId = state.pathParameters['id'] ?? '1';
+          return TransactionView(transactionId: transactionId);
+        },
+      ),
 
       // Admin routes
       GoRoute(
@@ -161,9 +211,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Placeholder routes untuk fitur admin lainnya
       GoRoute(
         path: '/admin/residents',
-        builder: (_, __) => const Scaffold(
-          body: Center(child: Text('Residents View - Coming Soon')),
-        ),
+        builder: (_, __) => const AdminResidentView(),
       ),
       GoRoute(
         path: '/admin/finance',
@@ -195,14 +243,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/detail-kegiatan',
         builder: (_, __) => const DetailKegiatanView(),
       ),
-      GoRoute(
-        path: '/add-finance',
-        builder: (_, __) => const AddFinancePage(),
-      ),
-      GoRoute(
-        path: '/tagih-iuran',
-        builder: (_, __) => const TagihIuranPage(),
-      ),
+      GoRoute(path: '/add-finance', builder: (_, __) => const AddFinancePage()),
+      GoRoute(path: '/tagih-iuran', builder: (_, __) => const TagihIuranPage()),
     ],
   );
 });

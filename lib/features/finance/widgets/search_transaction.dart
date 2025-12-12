@@ -19,6 +19,7 @@ class SearchTransaction extends StatefulWidget {
   final Function(Function(String))? onSearchCallback;
   final Function(Function(String))? onFilterCallback;
   final Function(String)? onFilterChanged;
+  final bool showSearchField;
 
   const SearchTransaction({
     super.key,
@@ -31,6 +32,7 @@ class SearchTransaction extends StatefulWidget {
     this.onSearchCallback,
     this.onFilterCallback,
     this.onFilterChanged,
+    this.showSearchField = true,
   });
 
   @override
@@ -307,27 +309,28 @@ class _SearchTransactionState extends State<SearchTransaction> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextField(
-          controller: controller,
-          onChanged: filterSearch,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.bgPrimaryInputBox(context),
-            hintText: 'Cari transaksi...',
-            prefixIcon: Icon(
-              Icons.search,
-              color: widget.isDark
-                  ? AppColors.textSecondaryDark
-                  : AppColors.textSecondaryLight,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+        if (widget.showSearchField) ...[
+          TextField(
+            controller: controller,
+            onChanged: filterSearch,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: AppColors.bgPrimaryInputBox(context),
+              hintText: 'Cari transaksi...',
+              prefixIcon: Icon(
+                Icons.search,
+                color: widget.isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
             ),
           ),
-        ),
-
-        const SizedBox(height: 12),
+          const SizedBox(height: 12),
+        ],
 
         _buildFilterTabs(context),
         const SizedBox(height: 12),

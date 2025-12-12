@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/themes/app_colors.dart'; // Sesuaikan path import ini
-import 'form_input_data_screen.dart'; // Import halaman form Anda
+import 'package:lottie/lottie.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/themes/app_colors.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -16,19 +17,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   // Data konten onboarding
   final List<Map<String, dynamic>> _contents = [
     {
-      'title': 'Pendataan Penduduk\nLebih Mudah',
-      'desc': 'Input data kependudukan, keluarga, dan pekerjaan dalam satu aplikasi yang terintegrasi.',
-      'icon': Icons.app_registration_rounded,
+      'title': 'Kelola\nKependudukan',
+      'desc': 'Semua data warga dalam satu sistem. Cepat, rapi, tanpa ribet.',
+      'lottie': 'assets/lottie/citizen.json',
     },
     {
-      'title': 'Arsip Digital\nTerpusat',
-      'desc': 'Simpan dokumen penting seperti KTP, KK, dan Akte Kelahiran secara digital dan aman.',
-      'icon': Icons.folder_shared_rounded,
+      'title': 'Keuangan RT\nTransparan',
+      'desc': 'Catat iuran dan transaksi secara otomatis. Jelas, aman, dan mudah dipantau.',
+      'lottie': 'assets/lottie/finance.json',
     },
     {
-      'title': 'Verifikasi Data\nCepat & Akurat',
-      'desc': 'Sistem pencarian cerdas untuk memvalidasi data keluarga dan pekerjaan secara real-time.',
-      'icon': Icons.verified_user_rounded,
+      'title': 'Marketplace\nWarga',
+      'desc': 'Belanja dan jual produk antar warga. Praktis dan mendukung ekonomi lokal.',
+      'lottie': 'assets/lottie/marketplace.json',
     },
   ];
 
@@ -50,18 +51,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _navigateToHome() {
-    // Navigasi ke halaman FormInputDataScreen dan hapus history onboarding
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const FormInputDataScreen()),
-    );
+    // Navigasi ke auth-flow menggunakan GoRouter
+    context.go('/start');
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = AppColors.primaryLight;
-    final secondaryColor = AppColors.secondaryLight;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
@@ -100,42 +97,41 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.all(32.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Illustration Area
-                        _buildIllustration(
-                          _contents[index]['icon'],
-                          primaryColor,
-                          secondaryColor,
-                          isDark,
-                        ),
-                        const SizedBox(height: 48),
-                        
-                        // Title
-                        Text(
-                          _contents[index]['title'],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            height: 1.2,
-                            color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Illustration Area
+                          _buildLottieIllustration(
+                            _contents[index]['lottie'],
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        
-                        // Description
-                        Text(
-                          _contents[index]['desc'],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            height: 1.5,
-                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                          const SizedBox(height: 48),
+                      
+                          // Title
+                          Text(
+                            _contents[index]['title'],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                              color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                      
+                          // Description
+                          Text(
+                            _contents[index]['desc'],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              height: 1.5,
+                              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -192,40 +188,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  // Widget untuk Ilustrasi Ikon dengan Background Lingkaran
-  Widget _buildIllustration(IconData icon, Color primary, Color secondary, bool isDark) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Lingkaran Luar (Secondary Color / Pucat)
-        Container(
-          width: 200,
-          height: 200,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDark 
-                ? secondary.withOpacity(0.1) 
-                : primary.withOpacity(0.1),
-          ),
-        ),
-        // Lingkaran Dalam (Agak lebih gelap)
-        Container(
-          width: 150,
-          height: 150,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isDark 
-                ? secondary.withOpacity(0.2) 
-                : primary.withOpacity(0.2),
-          ),
-        ),
-        // Ikon Utama
-        Icon(
-          icon,
-          size: 80,
-          color: primary,
-        ),
-      ],
+  // Widget untuk Ilustrasi Lottie Animation
+  Widget _buildLottieIllustration(String lottiePath) {
+    return SizedBox(
+      width: 280,
+      height: 280,
+      child: Lottie.asset(
+        lottiePath,
+        fit: BoxFit.contain,
+        repeat: true,
+        animate: true,
+      ),
     );
   }
 

@@ -48,14 +48,8 @@ class ProductRepository {
           'title': 'Bahan',
           'description': 'Canvas Premium dengan sol karet anti slip',
         },
-        {
-          'title': 'Ukuran',
-          'description': 'Tersedia ukuran 38-44',
-        },
-        {
-          'title': 'Warna',
-          'description': 'Abu-abu, Putih, Biru Muda',
-        },
+        {'title': 'Ukuran', 'description': 'Tersedia ukuran 38-44'},  
+        {'title': 'Warna', 'description': 'Abu-abu, Putih, Biru Muda'},
         {
           'title': 'Perawatan',
           'description': 'Bersihkan dengan sikat lembut dan air',
@@ -84,10 +78,7 @@ class ProductRepository {
           'title': 'Komposisi',
           'description': 'Tahu putih, telur ayam, kol, tauge, bumbu kacang',
         },
-        {
-          'title': 'Porsi',
-          'description': '1 porsi untuk 1-2 orang',
-        },
+        {'title': 'Porsi', 'description': '1 porsi untuk 1-2 orang'},
         {
           'title': 'Penyajian',
           'description': 'Disajikan hangat dengan kerupuk',
@@ -115,21 +106,13 @@ class ProductRepository {
       description:
           'Batik tulis asli buatan pengrajin lokal dengan motif khas Jawa Timur. Cocok untuk acara formal dan semi formal. Bahan katun premium yang nyaman dan adem.',
       moreDetail: [
-        {
-          'title': 'Bahan',
-          'description': 'Katun Premium 100%',
-        },
-        {
-          'title': 'Ukuran',
-          'description': 'S, M, L, XL, XXL',
-        },
-        {
-          'title': 'Motif',
-          'description': 'Batik Tulis Tradisional Jawa Timur',
-        },
+        {'title': 'Bahan', 'description': 'Katun Premium 100%'},
+        {'title': 'Ukuran', 'description': 'S, M, L, XL, XXL'},
+        {'title': 'Motif', 'description': 'Batik Tulis Tradisional Jawa Timur'},
         {
           'title': 'Perawatan',
-          'description': 'Cuci dengan tangan, jangan kena sinar matahari langsung',
+          'description':
+              'Cuci dengan tangan, jangan kena sinar matahari langsung',
         },
         {
           'title': 'Origin',
@@ -143,6 +126,181 @@ class ProductRepository {
       rating: 4.9,
       reviewCount: 67,
       seller: 'Batik Nusantara Collection',
+    ),
+    Product(
+      id: '4',
+      name: 'Minyak Goreng Sawit Premium 1L',
+      price: 18000,
+      kategori: ['Bahan Masak', 'Sembako'],
+      stock: 120,
+      viewCount: 432,
+      description:
+          'Minyak goreng sawit premium dengan kualitas tinggi. Cocok untuk menggoreng, menumis, dan berbagai kebutuhan dapur lainnya.',
+      moreDetail: [
+        {'title': 'Jenis Minyak', 'description': 'Minyak sawit olahan premium'},
+        {'title': 'Berat Bersih', 'description': '1 Liter'},
+        {'title': 'Expired', 'description': '18 bulan sejak produksi'},
+      ],
+      images: ['https://images.unsplash.com/photo-1601050690597-df4b8b1fa09c'],
+      rating: 4.7,
+      reviewCount: 112,
+      seller: 'UD. Bahan Masak Sejahtera',
+    ),
+    Product(
+      id: '5',
+      name: 'Tepung Terigu Segitiga Biru 1kg',
+      price: 13000,
+      kategori: ['Bahan Masak', 'Baking'],
+      stock: 80,
+      viewCount: 301,
+      description:
+          'Tepung terigu serbaguna yang cocok untuk membuat kue, roti, gorengan, dan berbagai masakan lainnya.',
+      moreDetail: [
+        {'title': 'Tekstur', 'description': 'Halus dan putih bersih'},
+        {'title': 'Cocok Untuk', 'description': 'Kue, roti, gorengan, pancake'},
+      ],
+      images: ['https://images.unsplash.com/photo-1582650673208-985d31a43ec7'],
+      rating: 4.6,
+      reviewCount: 78,
+      seller: 'Toko Sembako Makmur',
+    ),
+
+    Product(
+      id: '6',
+      name: 'Headphone Wireless BassBoost',
+      price: 150000,
+      kategori: ['Elektronik', 'Audio'],
+      stock: 35,
+      viewCount: 690,
+      description:
+          'Headphone wireless dengan kualitas suara mendalam dan bass kuat. Nyaman digunakan untuk aktivitas harian.',
+      moreDetail: [
+        {'title': 'Koneksi', 'description': 'Bluetooth 5.0'},
+        {
+          'title': 'Daya Tahan Baterai',
+          'description': 'Hingga 10 jam pemakaian',
+        },
+        {'title': 'Jarak Koneksi', 'description': '10 meter'},
+      ],
+      images: ['https://images.unsplash.com/photo-1518444026104-7f91c1f2fe5b'],
+      rating: 4.4,
+      reviewCount: 210,
+      seller: 'Elektronik Jaya Abadi',
+    ),
+    Product(
+      id: '7',
+      name: 'Blender Serbaguna 3-in-1',
+      price: 220000,
+      kategori: ['Elektronik', 'Peralatan Dapur'],
+      stock: 22,
+      viewCount: 421,
+      description:
+          'Blender serbaguna dengan tiga mode: jus, penghalus bumbu, dan penghancur es. Kuat dan hemat daya.',
+      moreDetail: [
+        {'title': 'Daya', 'description': '300 Watt'},
+        {'title': 'Material', 'description': 'Kaca & stainless steel'},
+        {'title': 'Fitur', 'description': 'Anti slip base, 3 mode kecepatan'},
+      ],
+      images: ['https://images.unsplash.com/photo-1616628182505-d70119e4c876'],
+      rating: 4.8,
+      reviewCount: 154,
+      seller: 'Dapur Elektronik Official',
+    ),
+    Product(
+      id: '8',
+      name: 'Lampu LED Hemat Energi 12W',
+      price: 18000,
+      kategori: ['Elektronik', 'Pencahayaan'],
+      stock: 200,
+      viewCount: 812,
+      description:
+          'Lampu LED terang dengan konsumsi daya rendah. Tahan lama hingga 2 tahun pemakaian normal.',
+      moreDetail: [
+        {'title': 'Watt', 'description': '12W'},
+        {'title': 'Color Temperature', 'description': 'Warm White 3000K'},
+        {'title': 'Durability', 'description': '20.000 jam penggunaan'},
+      ],
+      images: ['https://images.unsplash.com/photo-1582719478291-c6f9f4dff92e'],
+      rating: 4.3,
+      reviewCount: 87,
+      seller: 'Lampu Maju Jaya',
+    ),
+    Product(
+      id: '9',
+      name: 'Jasa Cuci Sepatu Premium',
+      price: 25000,
+      kategori: ['Jasa', 'Perawatan Sepatu'],
+      stock: 9999,
+      viewCount: 382,
+      description:
+          'Layanan cuci sepatu premium untuk semua jenis bahan: canvas, leather, suede. Menggunakan chemical aman dan wangi.',
+      moreDetail: [
+        {
+          'title': 'Jenis Layanan',
+          'description': 'Deep Clean, Fast Clean, Whitening Midsole',
+        },
+        {'title': 'Durasi Pengerjaan', 'description': '1–2 hari kerja'},
+        {
+          'title': 'Catatan',
+          'description':
+              'Sepatu dijamin bersih dan wangi kembali seperti baru.',
+        },
+      ],
+      images: ['https://images.unsplash.com/photo-1528701800489-20be3c6b3a31'],
+      rating: 4.9,
+      reviewCount: 129,
+      seller: 'SneakerCare Specialist',
+    ),
+    Product(
+      id: '10',
+      name: 'Jasa Perbaikan & Cuci AC',
+      price: 75000,
+      kategori: ['Jasa', 'Servis Rumah'],
+      stock: 10,
+      viewCount: 412,
+      description:
+          'Layanan cuci AC, tambah freon, dan perbaikan unit AC di rumah Anda. Ditangani oleh teknisi profesional.',
+      moreDetail: [
+        {
+          'title': 'Layanan Utama',
+          'description': 'Cuci AC, tambah freon, perbaikan ringan dan berat',
+        },
+        {'title': 'Waktu Pengerjaan', 'description': '30–60 menit per unit'},
+        {
+          'title': 'Garansi',
+          'description': 'Garansi 7 hari untuk layanan perbaikan',
+        },
+      ],
+      images: ['https://images.unsplash.com/photo-1616628182505-d70119e4c876'],
+      rating: 4.8,
+      reviewCount: 201,
+      seller: 'Teknisi AC Pak Budi',
+    ),
+    Product(
+      id: '12',
+      name: 'Jasa Teknisi Listrik',
+      price: 70000,
+      kategori: ['Jasa', 'Servis Rumah'],
+      stock: 15,
+      viewCount: 502,
+      description:
+          'Menangani masalah listrik seperti konslet, pemasangan saklar, lampu, ataupun perbaikan instalasi sederhana.',
+      moreDetail: [
+        {
+          'title': 'Layanan Meliputi',
+          'description':
+              'Perbaikan MCB, stop kontak, fitting lampu, instalasi dasar',
+        },
+        {'title': 'Durasi', 'description': '30–90 menit tergantung kerusakan'},
+        {
+          'title': 'Garansi',
+          'description': 'Garansi 3 hari setelah pengerjaan',
+        },
+      ],
+      images: ['https://images.unsplash.com/photo-1609010697446-11f9e0fabbde'],
+      rating: 4.6,
+      reviewCount: 132,
+      seller: 'Teknisi Listrik Pak Joko',
     ),
   ];
 
@@ -171,4 +329,6 @@ final productByIdProvider = Provider.family<Product?, String>((ref, id) {
 });
 
 // Provider for quantity state
-final quantityProvider = StateProvider.family<int, String>((ref, productId) => 1);
+final quantityProvider = StateProvider.family<int, String>(
+  (ref, productId) => 1,
+);

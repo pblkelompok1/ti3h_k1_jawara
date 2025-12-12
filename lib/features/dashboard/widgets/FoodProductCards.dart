@@ -65,7 +65,7 @@ class _RecommendedFoodCardsState
         const SizedBox(height: 20),
         // Cards PageView
           SizedBox(
-            height: 240,
+            height: 260,
             child: PageView.builder(
               controller: _pageController,
               itemCount: 3,
