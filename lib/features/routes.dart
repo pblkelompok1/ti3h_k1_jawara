@@ -27,12 +27,15 @@ import 'auth/view/auth_flow_view.dart';
 import 'auth/view/form_input_data_screen.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/admin_dashboard_view.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/registration_approval_view.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_laporan_view.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_request_surat_view.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/finance_view.dart'
     as admin_finance;
 import 'finance/widgets/detail_iuran_page.dart';
 import 'market/view/camera_detection_screen.dart';
 import 'finance/widgets/add_finance_page.dart';
 import 'finance/widgets/tagih_iuran_page.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_banner_view.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
@@ -208,6 +211,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/registrations',
         builder: (_, __) => const RegistrationApprovalView(),
       ),
+      GoRoute(
+        path: '/admin/laporan',
+        builder: (_, __) => const AdminLaporanView(),
+      ),
       // Placeholder routes untuk fitur admin lainnya
       GoRoute(
         path: '/admin/residents',
@@ -216,6 +223,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/finance',
         builder: (_, __) => const admin_finance.AdminFinanceView(),
+      ),
+      GoRoute(
+        path: '/admin/banners',
+        builder: (_, __) => const AdminBannerView(),
       ),
       GoRoute(
         path: '/admin/banners',
@@ -231,9 +242,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/admin/letters',
-        builder: (_, __) => const Scaffold(
-          body: Center(child: Text('Letter Requests View - Coming Soon')),
-        ),
+        builder: (_, __) => const AdminRequestSuratView(),
       ),
       GoRoute(
         path: '/camera-detection',
