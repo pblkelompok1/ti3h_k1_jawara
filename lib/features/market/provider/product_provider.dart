@@ -48,7 +48,7 @@ class ProductRepository {
           'title': 'Bahan',
           'description': 'Canvas Premium dengan sol karet anti slip',
         },
-        {'title': 'Ukuran', 'description': 'Tersedia ukuran 38-44'},  
+        {'title': 'Ukuran', 'description': 'Tersedia ukuran 38-44'},
         {'title': 'Warna', 'description': 'Abu-abu, Putih, Biru Muda'},
         {
           'title': 'Perawatan',
@@ -301,6 +301,88 @@ class ProductRepository {
       rating: 4.6,
       reviewCount: 132,
       seller: 'Teknisi Listrik Pak Joko',
+    ),
+    Product(
+      id: '13',
+      name: 'Nasi Goreng Spesial',
+      price: 25000,
+      kategori: ['Makanan', 'Nasi'],
+      stock: 40,
+      viewCount: 620,
+      description:
+          'Nasi goreng spesial dengan telur, ayam suwir, dan kerupuk. Cocok untuk makan siang atau malam.',
+      moreDetail: [
+        {'title': 'Porsi', 'description': '1 porsi kenyang'},
+        {'title': 'Level Pedas', 'description': 'Bisa request'},
+      ],
+      images: [
+        'https://images.unsplash.com/photo-1604908177522-4322e7f5fd9a?w=800',
+      ],
+      rating: 4.7,
+      reviewCount: 134,
+      seller: 'Nasi Goreng Pak Kumis',
+    ),
+
+    Product(
+      id: '14',
+      name: 'Ayam Geprek Sambal Bawang',
+      price: 22000,
+      kategori: ['Makanan', 'Ayam'],
+      stock: 55,
+      viewCount: 845,
+      description:
+          'Ayam geprek crispy dengan sambal bawang pedas dan nasi hangat.',
+      moreDetail: [
+        {'title': 'Level Pedas', 'description': '1–5'},
+        {'title': 'Bonus', 'description': 'Gratis lalapan'},
+      ],
+      images: [
+        'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=800',
+      ],
+      rating: 4.8,
+      reviewCount: 201,
+      seller: 'Geprek Jawara',
+    ),
+
+    Product(
+      id: '15',
+      name: 'Bakso Urat Jumbo',
+      price: 20000,
+      kategori: ['Makanan', 'Bakso'],
+      stock: 60,
+      viewCount: 710,
+      description: 'Bakso urat jumbo dengan kuah kaldu gurih dan mie kuning.',
+      moreDetail: [
+        {'title': 'Isi', 'description': 'Bakso urat, mie, tahu'},
+        {'title': 'Tambahan', 'description': 'Sambal & kecap'},
+      ],
+      images: [
+        'https://images.unsplash.com/photo-1601050690173-4a9c2e6a3c7c?w=800',
+      ],
+      rating: 4.6,
+      reviewCount: 156,
+      seller: 'Bakso Pak Slamet',
+    ),
+
+    Product(
+      id: '16',
+      name: 'Sate Ayam Madura',
+      price: 30000,
+      kategori: ['Makanan', 'Sate'],
+      stock: 35,
+      viewCount: 905,
+      description:
+          'Sate ayam khas Madura dengan bumbu kacang kental dan lontong.',
+      moreDetail: [
+        {'title': 'Isi', 'description': '10 tusuk + lontong'},
+        {'title': 'Bumbu', 'description': 'Kacang & kecap'},
+      ],
+      images: [
+        'https://images.unsplash.com/photo-1625944524124-4f4f8a0a8a5c?w=800',
+      ],
+      rating: 4.9,
+      reviewCount: 289,
+      seller: 'Sate Madura Cak Man',
     ),
   ];
 

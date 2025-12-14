@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
-
+import '../provider/transaction_provider.dart';
 import '../provider/product_provider.dart';
+import '../provider/account_provider.dart';
 
 class CheckoutView extends ConsumerStatefulWidget {
   const CheckoutView({
@@ -143,7 +144,7 @@ class _CheckoutViewState extends ConsumerState<CheckoutView> {
                   height: 60,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.fastfood, size: 40),
+                      const Icon(Icons.image, size: 40),
                 ),
               ),
               const SizedBox(width: 12),
@@ -409,7 +410,59 @@ class _CheckoutViewState extends ConsumerState<CheckoutView> {
             const SizedBox(width: 16),
 
             ElevatedButton(
-              onPressed: () => context.push('/transaction/2'),
+              onPressed: () {
+                final product = ref
+                    .read(productRepositoryProvider)
+                    .getProductById(widget.productId)!;
+
+                final qty = ref.read(quantityProvider(widget.productId));
+                final transactionId = DateTime.now().millisecondsSinceEpoch
+                    .toString();
+
+                // 🔹 SIMPAN TRANSAKSI DETAIL
+                ref
+                    .read(transactionListProvider.notifier)
+                    .addTransaction(
+                      Transaction(
+                        id: transactionId,
+                        productName: product.name,
+                        sellerName: product.seller,
+                        quantity: qty,
+                        subtotal: product.price * qty,
+                        deliveryFee: isDelivery ? 5000 : 0,
+                        serviceFee: 1000,
+                        total: total,
+                        paymentMethod: selectedPaymentMethod,
+                        qrCodeData: selectedPaymentMethod == "Bayar Ditempat"
+                            ? ""
+                            : "QR-$transactionId",
+                        recipientName: "Sudasoyono Muhdi",
+                        recipientPhone: "(+62 9123 1923)",
+                        recipientAddress: "Blok D - No. 4",
+                        createdAt: DateTime.now(),
+                        isDelivery: isDelivery,
+                      ),
+                    );
+
+                // 🔹 SIMPAN KE MY ORDERS (BUYER)
+                ref
+                    .read(myOrdersProvider.notifier)
+                    .addOrder(
+                      MyOrder(
+                        id: transactionId,
+                        productName: product.name,
+                        sellerName: product.seller,
+                        price: product.price,
+                        quantity: qty,
+                        total: total,
+                        status: 'pending',
+                        paymentMethod: selectedPaymentMethod,
+                        date: DateTime.now(),
+                      ),
+                    );
+
+                context.push('/transaction/$transactionId');
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary(context),
                 padding: const EdgeInsets.symmetric(

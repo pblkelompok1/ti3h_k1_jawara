@@ -83,9 +83,6 @@ class MyProductsTab extends ConsumerWidget {
   }
 }
 
-// ==========================================================================
-//                          SIMPLE PRODUCT CARD
-// ==========================================================================
 class _ProductCardSimple extends StatelessWidget {
   final Map<String, dynamic> product;
   const _ProductCardSimple({required this.product});

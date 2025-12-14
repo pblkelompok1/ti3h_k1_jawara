@@ -4,7 +4,6 @@ final accountModeProvider = StateProvider<String>((ref) => "toko");
 
 final accountSelectedTabProvider = StateProvider<int>((ref) => 0);
 
-// ==================== USER PRODUCTS PROVIDER ====================
 class UserProductsNotifier extends StateNotifier<List<Map<String, dynamic>>> {
   UserProductsNotifier() : super(_dummyProducts);
 
@@ -78,7 +77,6 @@ final userProductsProvider =
       (ref) => UserProductsNotifier(),
     );
 
-// ==================== ACTIVE TRANSACTIONS PROVIDER ====================
 final activeTransactionsProvider = StateProvider<List<Map<String, dynamic>>>((
   ref,
 ) {
@@ -171,30 +169,38 @@ final transactionHistoryProvider = StateProvider<List<Map<String, dynamic>>>((
   ];
 });
 
-// ==================== MY ORDERS PROVIDER (as buyer) ====================
-final myOrdersProvider = StateProvider<List<Map<String, dynamic>>>((ref) {
-  return [
-    {
-      'id': 'ORD001',
-      'product_name': 'Tahu Telor Warjo',
-      'seller_name': 'Warung Pak Warjo',
-      'price': 20000,
-      'quantity': 2,
-      'total': 40000,
-      'status': 'pending',
-      'date': '2025-12-01 11:00',
-      'payment_method': 'E-Wallet',
-    },
-    {
-      'id': 'ORD002',
-      'product_name': 'Baju Koko',
-      'seller_name': 'Toko Busana Muslim',
-      'price': 120000,
-      'quantity': 1,
-      'total': 120000,
-      'status': 'processing',
-      'date': '2025-11-30 15:30',
-      'payment_method': 'Transfer Bank',
-    },
-  ];
-});
+class MyOrder {
+  final String id;
+  final String productName;
+  final String sellerName;
+  final int price;
+  final int quantity;
+  final int total;
+  final String status;
+  final String paymentMethod;
+  final DateTime date;
+
+  MyOrder({
+    required this.id,
+    required this.productName,
+    required this.sellerName,
+    required this.price,
+    required this.quantity,
+    required this.total,
+    required this.status,
+    required this.paymentMethod,
+    required this.date,
+  });
+}
+
+class MyOrdersNotifier extends StateNotifier<List<MyOrder>> {
+  MyOrdersNotifier() : super([]);
+
+  void addOrder(MyOrder order) {
+    state = [order, ...state];
+  }
+}
+
+final myOrdersProvider = StateNotifierProvider<MyOrdersNotifier, List<MyOrder>>(
+  (ref) => MyOrdersNotifier(),
+);

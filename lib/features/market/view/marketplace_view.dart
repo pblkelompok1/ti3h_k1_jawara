@@ -4,6 +4,7 @@ import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:go_router/go_router.dart';
 import '../provider/product_provider.dart';
+import 'product_list_screen.dart';
 
 class MarketMainScreen extends ConsumerStatefulWidget {
   const MarketMainScreen({super.key});
@@ -44,7 +45,6 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
   }
 
   void _onScroll() {
-    // Trigger sticky search bar after scrolling 120 pixels
     final shouldStick = _scrollController.offset > 120;
 
     if (shouldStick != _isSearchBarSticky) {
@@ -505,7 +505,15 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                 ),
               ),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const ProductListScreen(initialCategory: 'Semua'),
+                    ),
+                  );
+                },
                 child: Padding(
                   padding: const EdgeInsets.only(right: 20),
                   child: Text(
@@ -562,28 +570,41 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
         accentColor = const Color(0xFF9C27B0); // Elektronik
     }
 
-    return Column(
-      children: [
-        Container(
-          width: 72,
-          height: 72,
-          decoration: BoxDecoration(
-            color: AppColors.bgDashboardCard(context),
-            shape: BoxShape.circle,
-            border: Border.all(color: accentColor.withOpacity(0.5), width: 1.5),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ProductListScreen(initialCategory: label),
           ),
-          child: Icon(icon, size: 24, color: accentColor.withOpacity(0.9)),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary(context),
+        );
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: AppColors.bgDashboardCard(context),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: accentColor.withOpacity(0.5),
+                width: 1.5,
+              ),
+            ),
+            child: Icon(icon, size: 24, color: accentColor.withOpacity(0.9)),
           ),
-        ),
-      ],
+          const SizedBox(height: 10),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary(context),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -697,6 +718,13 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
   }
 
   Widget _buildQuickFoodSection() {
+    final products = ref.watch(productRepositoryProvider).getAllProducts();
+
+    final foodProducts = products.where((p) {
+      return p.kategori.isNotEmpty &&
+          p.kategori.first.toLowerCase() == 'makanan';
+    }).toList();
+
     return Padding(
       padding: const EdgeInsets.only(top: 30),
       child: Column(
@@ -716,7 +744,15 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const ProductListScreen(initialCategory: 'Makanan'),
+                      ),
+                    );
+                  },
                   child: Text(
                     'Lihat Semua',
                     style: TextStyle(
@@ -729,30 +765,35 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
               ],
             ),
           ),
+
           const SizedBox(height: 16),
+
           SizedBox(
             height: 120,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: 4,
-              itemBuilder: (context, index) {
-                final items = [
-                  {'title': 'Pecel Buk Lintang', 'price': 'Rp 15.000'},
-                  {'title': 'Sate Kecap Pak Bambang', 'price': 'Rp 25.000'},
-                  {'title': 'Soto Enak Ala Madura', 'price': 'Rp 30.000'},
-                ];
-                final item = items[index % items.length];
-                return _buildFoodListItem(
-                  title: item['title']!,
-                  price: item['price']!,
-                  rating: 4.5,
-                  reviews: 16,
-                  imageUrl:
-                      'https://images.unsplash.com/photo-1551218808-94e220e084d2',
-                );
-              },
-            ),
+            child: foodProducts.isEmpty
+                ? Center(
+                    child: Text(
+                      'Belum ada makanan',
+                      style: TextStyle(
+                        color: AppColors.textSecondary(context),
+                        fontSize: 12,
+                      ),
+                    ),
+                  )
+                : ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: foodProducts.length > 6
+                        ? 6
+                        : foodProducts.length,
+                    itemBuilder: (context, index) {
+                      final product = foodProducts[index];
+                      return _buildFoodListItem(
+                        context: context,
+                        product: product,
+                      );
+                    },
+                  ),
           ),
         ],
       ),
@@ -760,95 +801,121 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
   }
 
   Widget _buildFoodListItem({
-    required String title,
-    required String price,
-    required double rating,
-    required int reviews,
-    required String imageUrl,
+    required BuildContext context,
+    required Product product,
   }) {
-    return Container(
-      width: 260,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: AppColors.bgDashboardCard(context),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.softBorder(context), width: 1.3),
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              bottomLeft: Radius.circular(16),
-            ),
-            child: SizedBox(
-              width: 100,
-              height: 120,
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const Icon(Icons.fastfood),
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        context.push('/product/${product.id}');
+      },
+      child: Container(
+        width: 260,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          color: AppColors.bgDashboardCard(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.softBorder(context), width: 1.3),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                bottomLeft: Radius.circular(16),
+              ),
+              child: SizedBox(
+                width: 100,
+                height: 120,
+                child: Image.network(
+                  product.images.first,
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: Colors.grey.shade200,
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey.shade200,
+                      alignment: Alignment.center,
+                      child: Icon(
+                        Icons.image,
+                        size: 32,
+                        color: Colors.grey.shade500,
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
 
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AutoSizeText(
-                    title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary(context),
-                    ),
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  Row(
-                    children: [
-                      Icon(Icons.star, size: 14, color: Colors.orange.shade600),
-                      const SizedBox(width: 4),
-                      Text(
-                        rating.toStringAsFixed(1),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textPrimary(context),
-                        ),
+            // ================= CONTENT =================
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AutoSizeText(
+                      product.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary(context),
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "($reviews)",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textSecondary(context),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  Text(
-                    price,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary(context),
                     ),
-                  ),
-                ],
+
+                    const SizedBox(height: 6),
+
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.star_rounded,
+                          size: 14,
+                          color: Colors.orange.shade600,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          product.rating.toStringAsFixed(1),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textPrimary(context),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          "(${product.reviewCount})",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary(context),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Text(
+                      "Rp ${product.price}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary(context),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
