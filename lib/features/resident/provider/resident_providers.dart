@@ -8,11 +8,19 @@ class ResidentListNotifier extends StateNotifier<AsyncValue<List<Map<String, dyn
 
   ResidentListNotifier(this.residentService) : super(const AsyncValue.loading());
 
-  Future<void> fetchResidents({String? search}) async {
+  Future<void> fetchResidents({String? search, String? familyId}) async {
     state = const AsyncValue.loading();
     try {
-      // TODO: Replace with actual API endpoint when available
-      // Using dummy data for now
+      final result = await residentService.getResidentList(
+        name: search,
+        familyId: familyId,
+        limit: 100,
+      );
+      
+      final residents = List<Map<String, dynamic>>.from(result['data'] ?? []);
+      state = AsyncValue.data(residents);
+    } catch (e) {
+      // Fallback to dummy data if API fails
       await Future.delayed(const Duration(milliseconds: 300));
       
       final dummyResidents = [
@@ -210,21 +218,34 @@ class ResidentListNotifier extends StateNotifier<AsyncValue<List<Map<String, dyn
       await fetchResidents(search: query);
     }
   }
-
-  void filterByStatus(String status) {
-    state.whenData((residents) {
-      final filtered = residents.where((r) {
-        final residentStatus = r['status'] ?? '';
-        return status.isEmpty || residentStatus == status;
-      }).toList();
-      state = AsyncValue.data(filtered);
-    });
-  }
 }
 
 final residentListProvider = StateNotifierProvider<ResidentListNotifier, AsyncValue<List<Map<String, dynamic>>>>((ref) {
   final residentService = ref.read(residentServiceProvider);
   return ResidentListNotifier(residentService);
+});
+
+// ==================== FAMILY LIST PROVIDER ====================
+class FamilyListNotifier extends StateNotifier<AsyncValue<List<Map<String, dynamic>>>> {
+  final ResidentService residentService;
+
+  FamilyListNotifier(this.residentService) : super(const AsyncValue.loading());
+
+  Future<void> fetchFamilies() async {
+    state = const AsyncValue.loading();
+    try {
+      final result = await residentService.getFamilyList();
+      final families = List<Map<String, dynamic>>.from(result);
+      state = AsyncValue.data(families);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+}
+
+final familyListProvider = StateNotifierProvider<FamilyListNotifier, AsyncValue<List<Map<String, dynamic>>>>((ref) {
+  final residentService = ref.read(residentServiceProvider);
+  return FamilyListNotifier(residentService);
 });
 
 // ==================== RESIDENT DETAIL PROVIDER ====================
@@ -505,44 +526,49 @@ class MyFamilyNotifier extends StateNotifier<AsyncValue<Map<String, dynamic>>> {
   Future<void> fetchMyFamily() async {
     state = const AsyncValue.loading();
     try {
-      // TODO: Replace with actual API endpoint when available
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Get user's family ID first
+      final familyId = await residentService.getUserFamilyId();
+      
+      if (familyId == null) {
+        // User doesn't have a family yet
+        state = const AsyncValue.data({});
+        return;
+      }
+
+      // Get family members
+      final members = await residentService.getMyFamilyResidents();
+      
+      if (members.isEmpty) {
+        state = const AsyncValue.data({});
+        return;
+      }
+
+      // Find head of family
+      final headMember = members.firstWhere(
+        (m) => (m['family_role'] ?? m['role'])?.toLowerCase() == 'kepala keluarga',
+        orElse: () => members.first,
+      );
+
+      // Get family info from family list endpoint
+      final familyList = await residentService.getFamilyList();
+      final familyInfo = familyList.firstWhere(
+        (f) => f['family_id'] == familyId,
+        orElse: () => {
+          'family_id': familyId,
+          'family_name': 'Keluarga Saya',
+          'head_of_family': headMember['name'],
+        },
+      );
+
       final myFamily = {
-        'family_id': 'my_family_1',
-        'family_name': 'Keluarga Saya',
-        'is_head': true, // User is family head
-        'head_name': 'Current User',
-        'member_count': 3,
-        'members': [
-          {
-            'id': '1',
-            'name': 'Current User',
-            'role': 'Kepala Keluarga',
-            'status': 'approved',
-            'gender': 'Laki-laki',
-            'occupation': 'Software Engineer',
-            'phone': '081234567890',
-          },
-          {
-            'id': '2',
-            'name': 'Partner Name',
-            'role': 'Istri',
-            'status': 'approved',
-            'gender': 'Perempuan',
-            'occupation': 'Teacher',
-            'phone': '081234567891',
-          },
-          {
-            'id': '3',
-            'name': 'Child Name',
-            'role': 'Anak',
-            'status': 'approved',
-            'gender': 'Laki-laki',
-            'occupation': 'Pelajar',
-            'phone': '-',
-          },
-        ],
+        'family_id': familyId,
+        'family_name': familyInfo['family_name'] ?? 'Keluarga Saya',
+        'is_head': true, // TODO: Check if current user is head
+        'head_name': familyInfo['head_of_family'] ?? headMember['name'],
+        'member_count': members.length,
+        'members': members,
       };
+      
       state = AsyncValue.data(myFamily);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);

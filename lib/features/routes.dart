@@ -39,7 +39,7 @@ final navigatorKey = GlobalKey<NavigatorState>();
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: '/onboarding',
+    initialLocation: '/auth-flow',
     routes: [
       GoRoute(
         path: '/onboarding',

@@ -5,10 +5,12 @@ import '../../../core/themes/app_colors.dart';
 
 class ResidentTopBar extends ConsumerWidget {
   final VoidCallback onSearchPressed;
+  final VoidCallback? onRefreshPressed;
 
   const ResidentTopBar({
     super.key,
     required this.onSearchPressed,
+    this.onRefreshPressed,
   });
 
   @override
@@ -89,6 +91,26 @@ class ResidentTopBar extends ConsumerWidget {
             ],
           ),
         ),
+        // Refresh Button
+        if (onRefreshPressed != null)
+          InkWell(
+            onTap: onRefreshPressed,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.refresh_rounded,
+                color: AppColors.textPrimaryDark,
+                size: 22,
+              ),
+            ),
+          ),
+        if (onRefreshPressed != null) const SizedBox(width: 8),
         // Search Button
         InkWell(
           onTap: onSearchPressed,

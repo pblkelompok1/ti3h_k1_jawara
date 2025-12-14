@@ -8,6 +8,7 @@ class AddActionBottomSheet {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      useRootNavigator: true,
       builder: (context) {
         return DraggableScrollableSheet(
           initialChildSize: 0.33,

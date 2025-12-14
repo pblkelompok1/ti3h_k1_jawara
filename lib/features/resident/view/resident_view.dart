@@ -34,6 +34,24 @@ class _ResidentViewState extends ConsumerState<ResidentView>
     );
   }
 
+  Future<void> _handleRefresh() async {
+    final currentTab = _tabController.index;
+    
+    // Refresh data based on current tab
+    switch (currentTab) {
+      case 0: // Keluarga Saya
+        await ref.read(myFamilyProvider.notifier).fetchMyFamily();
+        break;
+      case 1: // Warga
+        await ref.read(residentListProvider.notifier).fetchResidents();
+        break;
+      case 2: // Keluarga
+        // Families data is static for now, but can be extended later
+        await Future.delayed(const Duration(milliseconds: 500));
+        break;
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -93,15 +111,20 @@ class _ResidentViewState extends ConsumerState<ResidentView>
               
               const SizedBox(height: 8),
               
-              // Tab Content
+              // Tab Content with RefreshIndicator
               Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: const [
-                    MyFamilySection(),
-                    ResidentsSection(),
-                    FamiliesSection(),
-                  ],
+                child: RefreshIndicator(
+                  onRefresh: _handleRefresh,
+                  color: AppColors.primary(context),
+                  backgroundColor: isDark ? AppColors.surfaceDark : Colors.white,
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: const [
+                      MyFamilySection(),
+                      ResidentsSection(),
+                      FamiliesSection(),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -110,45 +133,7 @@ class _ResidentViewState extends ConsumerState<ResidentView>
           // Top Bar
           ResidentTopBar(
             onSearchPressed: _showSearchDialog,
-          ),
-        ],
-      ),
-      
-      // Floating Action Button
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddResidentDialog,
-        backgroundColor: AppColors.primary(context),
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Tambah Warga'),
-      ),
-    );
-  }
-
-  void _showAddResidentDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Tambah Warga Baru'),
-        content: const Text(
-          'Fitur ini akan mengarahkan ke form pendaftaran warga baru.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Tutup'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // TODO: Navigate to add resident form
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Navigasi ke form pendaftaran...'),
-                ),
-              );
-            },
-            child: const Text('Lanjut'),
+            onRefreshPressed: _handleRefresh,
           ),
         ],
       ),

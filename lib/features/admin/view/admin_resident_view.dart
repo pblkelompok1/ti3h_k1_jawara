@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../resident/provider/resident_providers.dart';
-import '../../resident/widgets/MyFamilySection.dart';
+import '../widgets/PlaceholderSection.dart';
 import '../../resident/widgets/ResidentsSection.dart';
 import '../../resident/widgets/FamiliesSection.dart';
 
@@ -185,7 +185,7 @@ class _AdminResidentViewState extends ConsumerState<AdminResidentView>
               ),
               dividerColor: Colors.transparent,
               tabs: const [
-                Tab(text: 'Keluarga Saya'),
+                Tab(text: 'Rumah'),
                 Tab(text: 'Warga'),
                 Tab(text: 'Keluarga'),
               ],
@@ -199,7 +199,11 @@ class _AdminResidentViewState extends ConsumerState<AdminResidentView>
             child: TabBarView(
               controller: _tabController,
               children: const [
-                MyFamilySection(),
+                PlaceholderSection(
+                  title: 'Halaman Rumah',
+                  subtitle: 'Fitur ini khusus untuk admin',
+                  icon: Icons.home_work_rounded,
+                ),
                 ResidentsSection(),
                 FamiliesSection(),
               ],

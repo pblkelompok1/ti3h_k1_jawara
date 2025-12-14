@@ -1,8 +1,12 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
+import 'package:ti3h_k1_jawara/core/provider/config_provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:ti3h_k1_jawara/core/models/kegiatan_model.dart';
+import 'package:ti3h_k1_jawara/features/dashboard/provider/activity_provider.dart';
+import 'package:intl/intl.dart';
 
 // 1. Provider untuk toggle antara recommendation dan popular
 final activityTypeProvider = StateProvider<ActivityType>(
@@ -17,6 +21,11 @@ class RecommendedActivityList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedType = ref.watch(activityTypeProvider);
+    
+    // Watch the appropriate provider based on selected type
+    final activitiesAsync = selectedType == ActivityType.recommendation
+        ? ref.watch(recommendedActivitiesProvider)
+        : ref.watch(popularActivitiesProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,103 +50,26 @@ class RecommendedActivityList extends ConsumerWidget {
         Container(
           width: double.infinity,
           height: 1.2,
-          color: AppColors.softBorder(context), // atau Colors.grey.shade300
+          color: AppColors.softBorder(context),
         ),
-        // 3. Placeholder container untuk list view
-        _buildActivityTile(
-          context: context,
-          imageUrl:
-              "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc",
-          title: 'Kegiatan Gotong Royong',
-          date: '16 Desember 2025',
-          category: 'Sosial',
-          activityData: {
-            'activity_id': '123e4567-e89b-12d3-a456-426614174000',
-            'activity_name': 'Kegiatan Gotong Royong',
-            'description':
-                'Kegiatan gotong royong membersihkan lingkungan RT untuk menyambut tahun baru. Semua warga diharapkan hadir dan membawa peralatan kebersihan masing-masing.',
-            'start_date': '2025-12-16 08:00:00',
-            'end_date': '2025-12-16 12:00:00',
-            'location': 'Balai RT 001/RW 005',
-            'organizer': 'Ketua RT 001',
-            'status': 'akan_datang',
-            'preview_images': [
-              'https://images.unsplash.com/photo-1617127365659-c47fa864d8bc',
-              'https://images.unsplash.com/photo-1559027615-cd4628902d4a',
-            ],
-            'category': 'Sosial',
+        // 3. Activities list
+        activitiesAsync.when(
+          data: (activities) {
+            if (activities.isEmpty) {
+              return _buildEmptyState(context);
+            }
+            return Column(
+              spacing: 0,
+              children: activities.map((activity) {
+                return _buildActivityTile(
+                  context: context,
+                  activity: activity,
+                );
+              }).toList(),
+            );
           },
-        ),
-        _buildActivityTile(
-          context: context,
-          imageUrl:
-              "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc",
-          title: 'Isra Miraj',
-          date: '30 Desember 2025',
-          category: 'Keagamaan',
-          activityData: {
-            'activity_id': '223e4567-e89b-12d3-a456-426614174001',
-            'activity_name': 'Peringatan Isra Miraj',
-            'description':
-                'Peringatan Isra Miraj Nabi Muhammad SAW dengan pengajian dan ceramah dari Ustadz Ahmad. Acara dimulai setelah sholat Maghrib.',
-            'start_date': '2025-12-30 18:30:00',
-            'end_date': '2025-12-30 21:00:00',
-            'location': 'Masjid Al-Ikhlas RT 001',
-            'organizer': 'Takmir Masjid',
-            'status': 'akan_datang',
-            'preview_images': [
-              'https://images.unsplash.com/photo-1584286595398-a59f21d092f0',
-            ],
-            'category': 'Keagamaan',
-          },
-        ),
-        _buildActivityTile(
-          context: context,
-          imageUrl:
-              "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc",
-          title: 'Maulid Nabi 2025',
-          date: '30 Januari 2026',
-          category: 'Keagamaan',
-          activityData: {
-            'activity_id': '323e4567-e89b-12d3-a456-426614174002',
-            'activity_name': 'Maulid Nabi Muhammad SAW 2025',
-            'description':
-                'Perayaan Maulid Nabi Muhammad SAW dengan pembacaan sholawat, dzikir bersama, dan santunan anak yatim.',
-            'start_date': '2026-01-30 19:00:00',
-            'end_date': '2026-01-30 22:00:00',
-            'location': 'Masjid Al-Ikhlas RT 001',
-            'organizer': 'Panitia Maulid Nabi RT 001',
-            'status': 'akan_datang',
-            'preview_images': [
-              'https://images.unsplash.com/photo-1591604466107-ec97de577aff',
-              'https://images.unsplash.com/photo-1584286595398-a59f21d092f0',
-              'https://images.unsplash.com/photo-1559027615-cd4628902d4a',
-            ],
-            'category': 'Keagamaan',
-          },
-        ),
-        _buildActivityTile(
-          context: context,
-          imageUrl:
-              "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc",
-          title: 'Syukuran Ramadhan',
-          date: '30 Desember 2025',
-          category: 'Keagamaan',
-          activityData: {
-            'activity_id': '423e4567-e89b-12d3-a456-426614174003',
-            'activity_name': 'Syukuran Menyambut Ramadhan',
-            'description':
-                'Acara syukuran menyambut bulan suci Ramadhan dengan doa bersama dan pembagian takjil untuk warga.',
-            'start_date': '2025-12-30 16:00:00',
-            'end_date': '2025-12-30 18:00:00',
-            'location': 'Balai RT 001/RW 005',
-            'organizer': 'Pengurus RT 001',
-            'status': 'akan_datang',
-            'preview_images': [
-              'https://images.unsplash.com/photo-1591604466107-ec97de577aff',
-            ],
-            'category': 'Keagamaan',
-          },
+          loading: () => _buildLoadingState(),
+          error: (error, stack) => _buildErrorState(context, error.toString()),
         ),
       ],
     );
@@ -182,13 +114,13 @@ class RecommendedActivityList extends ConsumerWidget {
     final textPainter = TextPainter(
       text: TextSpan(
         text: title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 16,
-          fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+          fontWeight: FontWeight.w500,
         ),
       ),
       maxLines: 1,
-      textDirection: TextDirection.ltr,
+      textDirection: ui.TextDirection.ltr,
     )..layout();
 
     final textWidth = textPainter.width;
@@ -223,105 +155,243 @@ class RecommendedActivityList extends ConsumerWidget {
     );
   }
 
-  Widget _buildActivityTile({
-    required BuildContext context,
-    required String imageUrl,
-    required String title,
-    required String date,
-    required String category,
-    required Map<String, dynamic> activityData,
-  }) {
-    return InkWell(
-      onTap: () => _showActivityDetail(context, activityData),
-      borderRadius: BorderRadius.circular(12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Image persegi tumpul
-          ClipRRect(
+  Widget _buildLoadingState() {
+    return Column(
+      spacing: 15,
+      children: List.generate(3, (index) {
+        return Container(
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade300,
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              imageUrl,
-              width: 80,
-              height: 80,
-              fit: BoxFit.cover,
-            ),
           ),
-          const SizedBox(width: 15),
-          // Column info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Judul
-                AutoSizeText(
-                  title,
-                  maxLines: 2,
-                  minFontSize: 15,
-                  maxFontSize: 24,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary(context),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Row tanggal & category
-                Row(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today_rounded,
-                          size: 14,
-                          color: AppColors.textSecondary(context),
-                        ),
-                        const SizedBox(width: 4),
-                        AutoSizeText(
-                          date,
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.category_outlined,
-                          size: 14,
-                          color: AppColors.textSecondary(context),
-                        ),
-                        const SizedBox(width: 4),
-                        AutoSizeText(
-                          category,
-                          maxLines: 1,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+        );
+      }),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.event_busy_rounded,
+              size: 64,
+              color: Colors.grey.shade400,
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Text(
+              'Belum ada kegiatan',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary(context),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  void _showActivityDetail(BuildContext context, Map<String, dynamic> data) {
+  Widget _buildErrorState(BuildContext context, String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              size: 64,
+              color: Colors.red.shade400,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Gagal memuat kegiatan',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary(context),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActivityTile({
+    required BuildContext context,
+    required KegiatanModel activity,
+  }) {
+    final baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+    
+    // Use first preview image if available, otherwise use banner image
+    String? imageUrl;
+    if (activity.previewImages.isNotEmpty) {
+      final imagePath = activity.previewImages[0];
+      final normalizedPath = imagePath.startsWith('/') ? imagePath : '/$imagePath';
+      final encodedPath = Uri.encodeComponent(normalizedPath);
+      imageUrl = "$baseUrl/files/$encodedPath";
+    } else if (activity.bannerImg != null) {
+      final normalizedPath = activity.bannerImg!.startsWith('/') ? activity.bannerImg! : '/${activity.bannerImg}';
+      final encodedPath = Uri.encodeComponent(normalizedPath);
+      imageUrl = "$baseUrl/files/$encodedPath";
+    }
+
+    final dateFormat = DateFormat('dd MMMM yyyy', 'id_ID');
+    final formattedDate = dateFormat.format(activity.startDate);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
+      child: InkWell(
+        onTap: () => _showActivityDetail(context, activity),
+        borderRadius: BorderRadius.circular(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Image persegi tumpul
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: imageUrl != null
+                  ? Image.network(
+                      imageUrl,
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 80,
+                          height: 80,
+                          color: Colors.grey.shade300,
+                          child: Icon(
+                            Icons.event_rounded,
+                            size: 40,
+                            color: Colors.grey.shade600,
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.grey.shade300,
+                      child: Icon(
+                        Icons.event_rounded,
+                        size: 40,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 15),
+            // Column info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Judul
+                  AutoSizeText(
+                    activity.activityName,
+                    maxLines: 2,
+                    minFontSize: 15,
+                    maxFontSize: 24,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary(context),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Row tanggal & category
+                  Row(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 14,
+                            color: AppColors.textSecondary(context),
+                          ),
+                          const SizedBox(width: 4),
+                          AutoSizeText(
+                            formattedDate,
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.category_outlined,
+                            size: 14,
+                            color: AppColors.textSecondary(context),
+                          ),
+                          const SizedBox(width: 4),
+                          AutoSizeText(
+                            _getKategoriText(activity.category),
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary(context),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getKategoriText(String kategori) {
+    switch (kategori) {
+      case 'sosial':
+        return 'Sosial';
+      case 'keagamaan':
+        return 'Keagamaan';
+      case 'olahraga':
+        return 'Olahraga';
+      case 'pendidikan':
+        return 'Pendidikan';
+      case 'lainnya':
+        return 'Lainnya';
+      default:
+        return kategori;
+    }
+  }
+
+  void _showActivityDetail(BuildContext context, KegiatanModel activity) {
+    final baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      useRootNavigator: true,
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         minChildSize: 0.5,
@@ -362,7 +432,7 @@ class RecommendedActivityList extends ConsumerWidget {
                         // Title
                         Center(
                           child: Text(
-                            data['activity_name'] ?? '',
+                            activity.activityName,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 26,
@@ -386,14 +456,14 @@ class RecommendedActivityList extends ConsumerWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: _getStatusColor(
-                                    data['status'],
+                                    activity.status,
                                   ).withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  _getStatusText(data['status']),
+                                  _getStatusText(activity.status),
                                   style: TextStyle(
-                                    color: _getStatusColor(data['status']),
+                                    color: _getStatusColor(activity.status),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),
@@ -409,7 +479,7 @@ class RecommendedActivityList extends ConsumerWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                data['category'] ?? '',
+                                _getKategoriText(activity.category),
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: AppColors.primary(context),
@@ -426,7 +496,7 @@ class RecommendedActivityList extends ConsumerWidget {
                           context: context,
                           icon: Icons.description_rounded,
                           title: 'Deskripsi',
-                          content: data['description'] ?? '-',
+                          content: activity.description,
                         ),
                         const SizedBox(height: 20),
 
@@ -436,7 +506,7 @@ class RecommendedActivityList extends ConsumerWidget {
                           icon: Icons.access_time_rounded,
                           title: 'Waktu Pelaksanaan',
                           content:
-                              '${_formatDateTime(data['start_date'])}${data['end_date'] != null ? '\nsampai ${_formatDateTime(data['end_date'])}' : ''}',
+                              '${_formatDateTime(activity.startDate)}${activity.endDate != null ? '\nsampai ${_formatDateTime(activity.endDate!)}' : ''}',
                         ),
                         const SizedBox(height: 20),
 
@@ -445,7 +515,7 @@ class RecommendedActivityList extends ConsumerWidget {
                           context: context,
                           icon: Icons.location_on_rounded,
                           title: 'Lokasi',
-                          content: data['location'] ?? '-',
+                          content: activity.location,
                         ),
                         const SizedBox(height: 20),
 
@@ -454,13 +524,12 @@ class RecommendedActivityList extends ConsumerWidget {
                           context: context,
                           icon: Icons.person_rounded,
                           title: 'Penyelenggara',
-                          content: data['organizer'] ?? '-',
+                          content: activity.organizer,
                         ),
                         const SizedBox(height: 20),
 
                         // Preview Images
-                        if (data['preview_images'] != null &&
-                            (data['preview_images'] as List).isNotEmpty)
+                        if (activity.previewImages.isNotEmpty)
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -477,18 +546,33 @@ class RecommendedActivityList extends ConsumerWidget {
                                 height: 120,
                                 child: ListView.separated(
                                   scrollDirection: Axis.horizontal,
-                                  itemCount:
-                                      (data['preview_images'] as List).length,
+                                  itemCount: activity.previewImages.length,
                                   separatorBuilder: (_, __) =>
                                       const SizedBox(width: 12),
                                   itemBuilder: (context, index) {
+                                    final imagePath = activity.previewImages[index];
+                                    final normalizedPath = imagePath.startsWith('/') ? imagePath : '/$imagePath';
+                                    final encodedPath = Uri.encodeComponent(normalizedPath);
+                                    final imageUrl = "$baseUrl/files/$encodedPath";
                                     return ClipRRect(
                                       borderRadius: BorderRadius.circular(12),
                                       child: Image.network(
-                                        data['preview_images'][index],
+                                        imageUrl,
                                         width: 160,
                                         height: 120,
                                         fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            width: 160,
+                                            height: 120,
+                                            color: Colors.grey.shade300,
+                                            child: Icon(
+                                              Icons.image_not_supported,
+                                              size: 40,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          );
+                                        },
                                       ),
                                     );
                                   },
@@ -565,37 +649,31 @@ class RecommendedActivityList extends ConsumerWidget {
     );
   }
 
-  String _formatDateTime(String? dateTime) {
-    if (dateTime == null) return '-';
-    try {
-      final dt = DateTime.parse(dateTime);
-      final months = [
-        'Jan',
-        'Feb',
-        'Mar',
-        'Apr',
-        'Mei',
-        'Jun',
-        'Jul',
-        'Agu',
-        'Sep',
-        'Oct',
-        'Nov',
-        'Des',
-      ];
-      final days = [
-        'Minggu',
-        'Senin',
-        'Selasa',
-        'Rabu',
-        'Kamis',
-        'Jumat',
-        'Sabtu',
-      ];
-      return '${days[dt.weekday % 7]}, ${dt.day} ${months[dt.month - 1]} ${dt.year} - ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      return dateTime;
-    }
+  String _formatDateTime(DateTime dateTime) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Des',
+    ];
+    final days = [
+      'Minggu',
+      'Senin',
+      'Selasa',
+      'Rabu',
+      'Kamis',
+      'Jumat',
+      'Sabtu',
+    ];
+    return '${days[dateTime.weekday % 7]}, ${dateTime.day} ${months[dateTime.month - 1]} ${dateTime.year} - ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   Color _getStatusColor(String status) {

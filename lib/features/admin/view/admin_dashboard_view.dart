@@ -438,8 +438,8 @@ class AdminDashboardView extends ConsumerWidget {
                         ),
                         _buildQuickAction(
                           context,
-                          Icons.attach_money_rounded,
-                          'Keuangan',
+                          Icons.run_circle,
+                          'Kegiatan',
                           Colors.green,
                           () => context.push('/admin/finance'),
                         ),
