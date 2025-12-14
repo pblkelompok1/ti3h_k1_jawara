@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/app_colors.dart';
 import '../../provider/account_provider.dart';
+import 'transaction_detail_screen.dart';
 
 class ActiveTransactionsTab extends ConsumerWidget {
   const ActiveTransactionsTab({super.key});
@@ -46,7 +47,7 @@ class ActiveTransactionsTab extends ConsumerWidget {
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       itemCount: transactions.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final transaction = transactions[index];
         return _TransactionCard(transaction: transaction);
@@ -60,6 +61,25 @@ class _TransactionCard extends StatelessWidget {
 
   const _TransactionCard({required this.transaction});
 
+  String _safeString(dynamic value, {String fallback = '-'}) {
+    if (value == null) return fallback;
+    if (value is String && value.isEmpty) return fallback;
+    return value.toString();
+  }
+
+  int _safeInt(dynamic value, {int fallback = 0}) {
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  String _formatPrice(int price) {
+    return price.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]}.',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -68,46 +88,45 @@ class _TransactionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? AppColors.bgDashboardCard(context) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.softBorder(context),
-          width: 1.5,
-        ),
+        border: Border.all(color: AppColors.softBorder(context), width: 1.5),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: ID & Status
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  transaction['id'],
+                  _safeString(transaction['id']),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary(context),
                   ),
                 ),
-                _StatusBadge(status: transaction['status']),
+                _StatusBadge(status: transaction['status'] as String?),
               ],
             ),
-            const SizedBox(height: 12),
 
-            // Product Info
+            const SizedBox(height: 12),
             Row(
               children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.shopping_bag_outlined,
-                    color: Colors.grey.shade400,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: 60,
+                    height: 60,
+                    child: Image.network(
+                      _safeString(transaction['product_image'], fallback: ''),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: Colors.grey.shade200,
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.image),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -116,7 +135,7 @@ class _TransactionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        transaction['product_name'],
+                        _safeString(transaction['product_name']),
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -125,7 +144,7 @@ class _TransactionCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Pembeli: ${transaction['buyer_name']}',
+                        'Pembeli: ${_safeString(transaction['buyer_name'])}',
                         style: TextStyle(
                           fontSize: 13,
                           color: AppColors.textSecondary(context),
@@ -136,43 +155,49 @@ class _TransactionCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
 
-            // Divider
+            const SizedBox(height: 16),
             Divider(color: AppColors.softBorder(context)),
             const SizedBox(height: 12),
 
-            // Transaction Details
             _DetailRow(
               icon: Icons.shopping_cart_outlined,
               label: 'Jumlah',
-              value: '${transaction['quantity']} item',
+              value: '${_safeInt(transaction['quantity'])} item',
             ),
             const SizedBox(height: 8),
             _DetailRow(
               icon: Icons.payment_rounded,
               label: 'Total',
-              value: 'Rp ${transaction['total'].toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}',
+              value: 'Rp ${_formatPrice(_safeInt(transaction['total']))}',
             ),
             const SizedBox(height: 8),
             _DetailRow(
               icon: Icons.account_balance_wallet_outlined,
               label: 'Pembayaran',
-              value: transaction['payment_method'],
+              value: _safeString(transaction['payment_method']),
             ),
             const SizedBox(height: 8),
             _DetailRow(
               icon: Icons.access_time_rounded,
               label: 'Waktu',
-              value: transaction['date'],
+              value: _safeString(transaction['date']),
             ),
+
             const SizedBox(height: 16),
 
-            // Action Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => _showTransactionDetailDialog(context),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          TransactionDetailScreen(transaction: transaction),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary(context),
                   foregroundColor: Colors.white,
@@ -191,90 +216,46 @@ class _TransactionCard extends StatelessWidget {
       ),
     );
   }
-
-  void _showTransactionDetailDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Transaksi ${transaction['id']}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Ubah status transaksi:'),
-            const SizedBox(height: 16),
-            ListTile(
-              title: const Text('Menunggu Pembayaran'),
-              leading: Radio(value: 'pending', groupValue: transaction['status'], onChanged: (v) {}),
-            ),
-            ListTile(
-              title: const Text('Sedang Diproses'),
-              leading: Radio(value: 'processing', groupValue: transaction['status'], onChanged: (v) {}),
-            ),
-            ListTile(
-              title: const Text('Siap Diambil'),
-              leading: Radio(value: 'ready', groupValue: transaction['status'], onChanged: (v) {}),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Tutup'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Status transaksi diperbarui')),
-              );
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _StatusBadge extends StatelessWidget {
-  final String status;
+  final String? status;
 
-  const _StatusBadge({required this.status});
+  const _StatusBadge({this.status});
 
   @override
   Widget build(BuildContext context) {
-    Color bgColor;
-    String label;
+    final safeStatus = status ?? 'pending';
 
-    switch (status) {
-      case 'pending':
-        bgColor = Colors.orange;
-        label = 'Menunggu';
-        break;
+    late Color color;
+    late String label;
+
+    switch (safeStatus) {
       case 'processing':
-        bgColor = Colors.blue;
+        color = Colors.blue;
         label = 'Diproses';
         break;
       case 'ready':
-        bgColor = Colors.green;
+        color = Colors.green;
         label = 'Siap';
         break;
+      case 'pending':
       default:
-        bgColor = Colors.grey;
-        label = status;
+        color = Colors.orange;
+        label = 'Menunggu';
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: bgColor.withOpacity(0.15),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.4)),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: Color.lerp(bgColor, Colors.black, 0.3)!,
+          color: color,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -298,11 +279,7 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 18,
-          color: AppColors.textSecondary(context),
-        ),
+        Icon(icon, size: 18, color: AppColors.textSecondary(context)),
         const SizedBox(width: 8),
         Text(
           '$label:',
