@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/app_colors.dart';
+import '../../provider/account_provider.dart';
 
-class TransactionDetailScreen extends StatelessWidget {
+class TransactionDetailScreen extends ConsumerWidget {
   final Map<String, dynamic> transaction;
 
   const TransactionDetailScreen({super.key, required this.transaction});
@@ -56,9 +58,9 @@ class TransactionDetailScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final status = transaction['status'];
     final paymentMethod = _safeString(transaction['payment_method']);
-    final status = _safeString(transaction['status']);
 
     return Scaffold(
       backgroundColor: AppColors.background(context),
@@ -77,10 +79,8 @@ class TransactionDetailScreen extends StatelessWidget {
               children: [
                 _buildStatusBadge(context, status),
                 const SizedBox(height: 20),
-
                 _buildProductCard(context),
                 const SizedBox(height: 20),
-
                 _buildInfoSection(
                   context,
                   title: 'Informasi Pemesan',
@@ -100,25 +100,19 @@ class TransactionDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 20),
-
                 _buildPaymentSection(context, paymentMethod),
-
                 const SizedBox(height: 20),
-
                 _buildOrderSummary(context),
-
                 const SizedBox(height: 100),
               ],
             ),
           ),
-
           Positioned(
             left: 0,
             right: 0,
             bottom: 0,
-            child: _buildBottomButton(context, status),
+            child: _buildBottomButton(context, ref, status),
           ),
         ],
       ),
@@ -192,7 +186,6 @@ class TransactionDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -467,32 +460,57 @@ class TransactionDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomButton(BuildContext context, String status) {
-    String buttonText;
-    IconData buttonIcon;
-    Color buttonColor;
-
-    switch (status) {
-      case 'pending':
-        buttonText = 'Proses Pesanan';
-        buttonIcon = Icons.receipt_long;
-        buttonColor = Colors.orange.shade600;
-        break;
-      case 'processing':
-        buttonText = 'Tandai Siap';
-        buttonIcon = Icons.check_circle;
-        buttonColor = Colors.blue.shade600;
-        break;
-      case 'ready':
-        buttonText = 'Selesaikan Transaksi';
-        buttonIcon = Icons.done_all;
-        buttonColor = Colors.green.shade600;
-        break;
-      default:
-        buttonText = 'Tutup';
-        buttonIcon = Icons.close;
-        buttonColor = Colors.grey.shade600;
+  Widget _buildBottomButton(
+    BuildContext context,
+    WidgetRef ref,
+    String status,
+  ) {
+    if (status == 'completed' || status == 'cancelled') {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.bgDashboardCard(context),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton(
+              onPressed: null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey.shade400,
+                disabledBackgroundColor: Colors.grey.shade400,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                status == 'completed'
+                    ? 'Transaksi Selesai'
+                    : 'Transaksi Dibatalkan',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
     }
+
+    final nextStatus = _getNextStatus(status);
+    final nextLabel = _getNextStatusLabel(status);
+    final buttonColor = _getButtonColor(nextStatus);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -513,16 +531,7 @@ class TransactionDetailScreen extends StatelessWidget {
           height: 52,
           child: ElevatedButton.icon(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Status transaksi diperbarui ke: $buttonText'),
-                  backgroundColor: buttonColor,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
+              _updateTransactionStatus(context, ref, nextStatus, nextLabel);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: buttonColor,
@@ -531,9 +540,9 @@ class TransactionDetailScreen extends StatelessWidget {
               ),
               elevation: 0,
             ),
-            icon: Icon(buttonIcon, color: Colors.white),
+            icon: Icon(_getStatusIcon(nextStatus), color: Colors.white),
             label: Text(
-              buttonText,
+              'Ubah ke $nextLabel',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -544,5 +553,82 @@ class TransactionDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _updateTransactionStatus(
+    BuildContext context,
+    WidgetRef ref,
+    String nextStatus,
+    String nextLabel,
+  ) {
+    if (nextStatus == 'completed') {
+      ref
+          .read(activeTransactionsProvider.notifier)
+          .removeById(transaction['id']);
+
+      ref.read(transactionHistoryProvider.notifier).addTransaction({
+        ...transaction,
+        'status': 'completed',
+      });
+    } else {
+      ref
+          .read(activeTransactionsProvider.notifier)
+          .updateStatus(transaction['id'], nextStatus);
+    }
+
+    Navigator.pop(context);
+  }
+
+  String _getNextStatus(String currentStatus) {
+    switch (currentStatus) {
+      case 'pending':
+        return 'processing';
+      case 'processing':
+        return 'ready';
+      case 'ready':
+        return 'completed';
+      default:
+        return currentStatus;
+    }
+  }
+
+  String _getNextStatusLabel(String currentStatus) {
+    final next = _getNextStatus(currentStatus);
+    switch (next) {
+      case 'processing':
+        return 'Diproses';
+      case 'ready':
+        return 'Siap Diambil';
+      case 'completed':
+        return 'Selesai';
+      default:
+        return 'Menunggu';
+    }
+  }
+
+  Color _getButtonColor(String status) {
+    switch (status) {
+      case 'processing':
+        return Colors.orange.shade600;
+      case 'ready':
+        return Colors.blue.shade600;
+      case 'completed':
+        return Colors.green.shade600;
+      default:
+        return Colors.grey.shade600;
+    }
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status) {
+      case 'processing':
+        return Icons.hourglass_empty;
+      case 'ready':
+        return Icons.check_circle_outline;
+      case 'completed':
+        return Icons.done_all;
+      default:
+        return Icons.help_outline;
+    }
   }
 }
