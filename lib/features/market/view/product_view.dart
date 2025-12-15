@@ -521,10 +521,6 @@ class _ProductViewState extends ConsumerState<ProductView> {
         color: Colors.white.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: IconButton(
-        icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
-        onPressed: () {},
-      ),
     );
   }
 
