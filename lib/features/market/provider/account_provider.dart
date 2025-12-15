@@ -77,10 +77,11 @@ final userProductsProvider =
       (ref) => UserProductsNotifier(),
     );
 
-final activeTransactionsProvider = StateProvider<List<Map<String, dynamic>>>((
-  ref,
-) {
-  return [
+class ActiveTransactionsNotifier
+    extends StateNotifier<List<Map<String, dynamic>>> {
+  ActiveTransactionsNotifier() : super(_dummy);
+
+  static final _dummy = [
     {
       'id': 'TRX001',
       'product_name': 'Sepatu Olahraga',
@@ -114,60 +115,49 @@ final activeTransactionsProvider = StateProvider<List<Map<String, dynamic>>>((
       'date': '2025-12-01 08:45',
       'payment_method': 'E-Wallet',
     },
-  ];
-});
-
-// ==================== TRANSACTION HISTORY PROVIDER ====================
-final transactionHistoryProvider = StateProvider<List<Map<String, dynamic>>>((
-  ref,
-) {
-  return [
     {
-      'id': 'TRX099',
-      'product_name': 'Brownies Coklat',
-      'buyer_name': 'Dewi Lestari',
+      'id': 'TRX004',
+      'product_name': 'Kue Brownies Coklat',
+      'buyer_name': 'Rina Wijaya',
       'price': 35000,
       'quantity': 2,
       'total': 70000,
-      'status': 'completed',
-      'date': '2025-11-30 16:20',
+      'status': 'processing',
+      'date': '2025-12-01 11:20',
       'payment_method': 'Transfer Bank',
     },
     {
-      'id': 'TRX098',
-      'product_name': 'Kemeja Batik',
-      'buyer_name': 'Eko Wijaya',
+      'id': 'TRX005',
+      'product_name': 'Kemeja Batik Pria',
+      'buyer_name': 'Hendra Gunawan',
       'price': 150000,
       'quantity': 1,
       'total': 150000,
-      'status': 'completed',
-      'date': '2025-11-29 14:10',
-      'payment_method': 'Cash',
-    },
-    {
-      'id': 'TRX097',
-      'product_name': 'Sepatu Casual',
-      'buyer_name': 'Maya Sari',
-      'price': 180000,
-      'quantity': 1,
-      'total': 180000,
-      'status': 'completed',
-      'date': '2025-11-28 11:30',
+      'status': 'pending',
+      'date': '2025-12-01 12:00',
       'payment_method': 'E-Wallet',
     },
-    {
-      'id': 'TRX096',
-      'product_name': 'Nasi Goreng Special',
-      'buyer_name': 'Rudi Hartono',
-      'price': 25000,
-      'quantity': 4,
-      'total': 100000,
-      'status': 'cancelled',
-      'date': '2025-11-27 10:15',
-      'payment_method': 'Transfer Bank',
-    },
   ];
-});
+
+  void updateStatus(String id, String status) {
+    state = state.map((t) {
+      if (t['id'] == id) {
+        return {...t, 'status': status};
+      }
+      return t;
+    }).toList();
+  }
+
+  void removeById(String id) {
+    state = state.where((t) => t['id'] != id).toList();
+  }
+}
+
+final activeTransactionsProvider =
+    StateNotifierProvider<
+      ActiveTransactionsNotifier,
+      List<Map<String, dynamic>>
+    >((ref) => ActiveTransactionsNotifier());
 
 class MyOrder {
   final String id;
@@ -204,3 +194,18 @@ class MyOrdersNotifier extends StateNotifier<List<MyOrder>> {
 final myOrdersProvider = StateNotifierProvider<MyOrdersNotifier, List<MyOrder>>(
   (ref) => MyOrdersNotifier(),
 );
+
+class TransactionHistoryNotifier
+    extends StateNotifier<List<Map<String, dynamic>>> {
+  TransactionHistoryNotifier() : super([]);
+
+  void addTransaction(Map<String, dynamic> transaction) {
+    state = [transaction, ...state];
+  }
+}
+
+final transactionHistoryProvider =
+    StateNotifierProvider<
+      TransactionHistoryNotifier,
+      List<Map<String, dynamic>>
+    >((ref) => TransactionHistoryNotifier());
