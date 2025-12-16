@@ -51,12 +51,16 @@ class PredictService {
   /// Get full URL for similar images
   /// 
   /// Backend returns relative paths like: /storage/vegetable_images/bunga_kol/bunga_kol_1.jpg
-  /// This method converts them to full URLs
+  /// This method converts them to full URLs using /files/ endpoint with proper encoding
   String getSimilarImageUrl(String relativePath) {
     if (relativePath.startsWith('http')) {
       return relativePath; // Already a full URL
     }
-    return '$baseUrl$relativePath';
+    // Ensure path starts with /
+    final normalizedPath = relativePath.startsWith('/') ? relativePath : '/$relativePath';
+    // Encode the path for URL
+    final encodedPath = Uri.encodeComponent(normalizedPath);
+    return '$baseUrl/files/$encodedPath';
   }
 }
 

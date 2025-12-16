@@ -1,61 +1,63 @@
 class KegiatanModel {
-  final String id;
-  final String namaKegiatan;
-  final String deskripsi;
-  final DateTime tanggalMulai;
-  final DateTime? tanggalSelesai;
-  final String lokasi;
-  final String penyelenggara;
+  final String activityId;
+  final String activityName;
+  final String description;
+  final DateTime startDate;
+  final DateTime? endDate;
+  final String location;
+  final String organizer;
   final String status; // 'akan_datang', 'ongoing', 'selesai'
-  final String? gambar;
-  final int? jumlahPeserta;
-  final String kategori; // 'sosial', 'keagamaan', 'olahraga', 'pendidikan', 'lainnya'
+  final String? bannerImg;
+  final List<String> previewImages;
+  final String category; // 'sosial', 'keagamaan', 'olahraga', 'pendidikan', 'lainnya'
 
   KegiatanModel({
-    required this.id,
-    required this.namaKegiatan,
-    required this.deskripsi,
-    required this.tanggalMulai,
-    this.tanggalSelesai,
-    required this.lokasi,
-    required this.penyelenggara,
+    required this.activityId,
+    required this.activityName,
+    required this.description,
+    required this.startDate,
+    this.endDate,
+    required this.location,
+    required this.organizer,
     required this.status,
-    this.gambar,
-    this.jumlahPeserta,
-    required this.kategori,
+    this.bannerImg,
+    required this.previewImages,
+    required this.category,
   });
 
   factory KegiatanModel.fromJson(Map<String, dynamic> json) {
     return KegiatanModel(
-      id: json['id'],
-      namaKegiatan: json['nama_kegiatan'],
-      deskripsi: json['deskripsi'],
-      tanggalMulai: DateTime.parse(json['tanggal_mulai']),
-      tanggalSelesai: json['tanggal_selesai'] != null
-          ? DateTime.parse(json['tanggal_selesai'])
+      activityId: json['activity_id'],
+      activityName: json['activity_name'],
+      description: json['description'],
+      startDate: DateTime.parse(json['start_date']),
+      endDate: json['end_date'] != null
+          ? DateTime.parse(json['end_date'])
           : null,
-      lokasi: json['lokasi'],
-      penyelenggara: json['penyelenggara'],
+      location: json['location'],
+      organizer: json['organizer'],
       status: json['status'],
-      gambar: json['gambar'],
-      jumlahPeserta: json['jumlah_peserta'],
-      kategori: json['kategori'],
+      bannerImg: json['banner_img'],
+      previewImages: json['preview_images'] != null
+          ? List<String>.from(json['preview_images'])
+          : [],
+      category: json['category'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'nama_kegiatan': namaKegiatan,
-      'deskripsi': deskripsi,
-      'tanggal_mulai': tanggalMulai.toIso8601String(),
-      'tanggal_selesai': tanggalSelesai?.toIso8601String(),
-      'lokasi': lokasi,
-      'penyelenggara': penyelenggara,
+      'activity_id': activityId,
+      'activity_name': activityName,
+      'description': description,
+      'start_date': startDate.toIso8601String(),
+      'end_date': endDate?.toIso8601String(),
+      'location': location,
+      'organizer': organizer,
       'status': status,
-      'gambar': gambar,
-      'jumlah_peserta': jumlahPeserta,
-      'kategori': kategori,
+      'banner_img': bannerImg,
+      'preview_images': previewImages,
+      'category': category,
     };
   }
 }

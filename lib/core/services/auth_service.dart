@@ -65,6 +65,7 @@ class AuthService {
               'id': userData['user_id'],
               'email': email,  // Use email from login form
               'role': userData['role'],
+              
             };
             
             await storage.write(key: "user_data", value: jsonEncode(userObject));
@@ -81,7 +82,7 @@ class AuthService {
   }
 
   Future<bool> register(String email, String password) async {
-    final url = Uri.parse("$baseUrl/auth/register");
+    final url = Uri.parse("$baseUrl/auth/signup");
 
     final res = await http.post(
       url,

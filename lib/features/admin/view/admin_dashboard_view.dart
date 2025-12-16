@@ -208,14 +208,14 @@ class AdminDashboardView extends ConsumerWidget {
                           ),
                           AdminStatCard(
                             icon: Icons.report_problem_rounded,
-                            title: 'Laporan Baru',
+                            title: 'Laporan Warga',
                             value: stats.newReportsToday.toString(),
                             subtitle: 'Hari ini',
                             gradientColors: const [
                               Color(0xFFF44336),
                               Color(0xFFE57373),
                             ],
-                            onTap: () => context.push('/admin/reports'),
+                            onTap: () => context.push('/admin/laporan'),
                           ),
                           AdminStatCard(
                             icon: Icons.mail_rounded,
@@ -226,7 +226,7 @@ class AdminDashboardView extends ConsumerWidget {
                               Color(0xFF2196F3),
                               Color(0xFF64B5F6),
                             ],
-                            onTap: () => context.push('/admin/letters'),
+                            onTap: () => context.push('/admin/letter-approval'),
                           ),
                         ],
                       ),
@@ -438,10 +438,10 @@ class AdminDashboardView extends ConsumerWidget {
                         ),
                         _buildQuickAction(
                           context,
-                          Icons.attach_money_rounded,
-                          'Keuangan',
+                          Icons.run_circle,
+                          'Kegiatan',
                           Colors.green,
-                          () => context.push('/admin/finance'),
+                          () => context.push('/admin/activities'),
                         ),
                         _buildQuickAction(
                           context,
@@ -462,7 +462,7 @@ class AdminDashboardView extends ConsumerWidget {
                           Icons.mail_rounded,
                           'Surat',
                           Colors.blue,
-                          () => context.push('/admin/letters'),
+                          () => context.push('/admin/letter-approval'),
                         ),
                       ],
                     ),

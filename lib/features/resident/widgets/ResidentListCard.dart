@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import '../../../core/themes/app_colors.dart';
+import '../../../core/widgets/resident_avatar.dart';
 
 class ResidentListCard extends StatelessWidget {
   final Map<String, dynamic> resident;
@@ -15,31 +16,9 @@ class ResidentListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final status = resident['status'] ?? 'pending';
     final name = resident['name'] ?? resident['family_name'] ?? 'Unknown';
     final familyName = resident['family_name'] ?? resident['name'] ?? '-';
-    final occupation = resident['occupation_name'] ?? resident['occupation'] ?? '-';
-
-    Color statusColor;
-    String statusText;
-    
-    switch (status.toLowerCase()) {
-      case 'approved':
-        statusColor = const Color(0xFF4CAF50);
-        statusText = 'Disetujui';
-        break;
-      case 'pending':
-        statusColor = const Color(0xFFFF9800);
-        statusText = 'Pending';
-        break;
-      case 'rejected':
-        statusColor = AppColors.redAccentLight;
-        statusText = 'Ditolak';
-        break;
-      default:
-        statusColor = AppColors.textSecondary(context);
-        statusText = status;
-    }
+    final occupation = resident['occupation_name'] ?? 'Tidak diketahui';
 
     return InkWell(
       onTap: onTap,
@@ -64,18 +43,10 @@ class ResidentListCard extends StatelessWidget {
         child: Row(
           children: [
             // Avatar
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppColors.primary(context).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                Icons.person_rounded,
-                color: AppColors.primary(context),
-                size: 32,
-              ),
+            ResidentAvatar(
+              profilePath: resident['profile_img_path']?.toString(),
+              size: 60,
+              enableTap: true,
             ),
             const SizedBox(width: 16),
             
@@ -152,29 +123,9 @@ class ResidentListCard extends StatelessWidget {
             
             const SizedBox(width: 8),
             
-            // Status Badge
+            // Arrow Icon
             Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: statusColor.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    statusText,
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: statusColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
                 Icon(
                   Icons.arrow_forward_ios_rounded,
                   size: 16,

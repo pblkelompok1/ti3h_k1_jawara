@@ -15,103 +15,128 @@ class FamilyListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final familyName = family['family_name'] ?? family['name'] ?? 'Keluarga';
-    final familyId = family['family_id'] ?? family['id'] ?? '';
-    final memberCount = family['member_count'] ?? 0;
     
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.bgDashboardCard(context) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: AppColors.primary(context).withOpacity(0.2),
-            width: 1.5,
+    final familyName = family['family_name']?.toString() ?? '-';
+    final headOfFamily = family['head_of_family']?.toString();
+    final address = family['address']?.toString();
+    final rtName = family['rt_name']?.toString() ?? '-';
+    
+    return Card(
+      margin: EdgeInsets.zero,
+      elevation: isDark ? 4 : 1,
+      color: isDark ? AppColors.surfaceDark : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: AppColors.primary(context).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          child: Icon(
+            Icons.family_restroom,
+            size: 28,
+            color: AppColors.primary(context),
+          ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
+        title: Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: AutoSizeText(
+            familyName,
+            maxLines: 1,
+            minFontSize: 14,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary(context),
+            ),
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icon Container
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: AppColors.primary(context).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(14),
+            // Head of family
+            if (headOfFamily != null && headOfFamily.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.person,
+                      size: 14,
+                      color: AppColors.textSecondary(context).withOpacity(0.8),
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: AutoSizeText(
+                        headOfFamily,
+                        maxLines: 1,
+                        minFontSize: 10,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondary(context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Icon(
-                Icons.home_rounded,
-                color: AppColors.primary(context),
-                size: 28,
-              ),
-            ),
-            const SizedBox(height: 12),
             
-            // Family Name
-            AutoSizeText(
-              familyName,
-              maxLines: 2,
-              minFontSize: 13,
-              maxFontSize: 15,
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary(context),
-              ),
+            // Address - max 1 line with ellipsis
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on,
+                  size: 14,
+                  color: AppColors.textSecondary(context).withOpacity(0.8),
+                ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: AutoSizeText(
+                    address?.isEmpty ?? true ? 'Alamat belum diisi' : address!,
+                    maxLines: 1,
+                    minFontSize: 10,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary(context),
+                      fontStyle: address?.isEmpty ?? true ? FontStyle.italic : FontStyle.normal,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 6),
             
-            // Family ID
+            const SizedBox(height: 4),
+            
+            // RT badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: AppColors.primary(context).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                'ID: ${familyId.length > 8 ? familyId.substring(0, 8) : familyId}',
+                rtName,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: AppColors.primary(context),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            
-            // Members Count
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.people_rounded,
-                  size: 14,
-                  color: AppColors.textSecondary(context),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '$memberCount Anggota',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.textSecondary(context),
-                  ),
-                ),
-              ],
-            ),
           ],
+        ),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: AppColors.textSecondary(context),
         ),
       ),
     );

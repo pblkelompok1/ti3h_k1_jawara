@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/themes/app_colors.dart';
 import '../provider/resident_providers.dart';
+import '../view/edit_family_member_page.dart';
+import '../view/add_family_member_page.dart';
 import 'EmptyStateWidget.dart';
 import 'FamilyMemberCard.dart';
 import 'FamilySummaryCard.dart';
@@ -89,11 +91,43 @@ class MyFamilySection extends ConsumerWidget {
                     member: member,
                     isHead: isHead,
                     onEdit: isHead
-                        ? () => _showEditMemberDialog(context, ref, member)
+                        ? () => _navigateToEditMember(context, ref, member)
                         : null,
                   );
                 },
               ),
+              
+              const SizedBox(height: 24),
+              
+              // Add Member Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _navigateToAddMember(context, ref, family),
+                    icon: const Icon(Icons.add_rounded, size: 24),
+                    label: const Text(
+                      'Tambah Anggota Keluarga',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 2,
+                    ),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 16),
             ],
           ),
         );
@@ -151,70 +185,53 @@ class MyFamilySection extends ConsumerWidget {
     );
   }
 
-  void _showEditMemberDialog(BuildContext context, WidgetRef ref, Map<String, dynamic> member) {
-    final nameController = TextEditingController(text: member['name']);
-    final phoneController = TextEditingController(text: member['phone']);
-    final occupationController = TextEditingController(text: member['occupation']);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Anggota Keluarga'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nama',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'No. Telepon',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: occupationController,
-                decoration: const InputDecoration(
-                  labelText: 'Pekerjaan',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              ref.read(myFamilyProvider.notifier).updateMember(
-                member['id'],
-                {
-                  'name': nameController.text,
-                  'phone': phoneController.text,
-                  'occupation': occupationController.text,
-                },
-              );
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Data berhasil diperbarui')),
-              );
-            },
-            child: const Text('Simpan'),
-          ),
-        ],
+  void _navigateToEditMember(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> member,
+  ) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditFamilyMemberPage(member: member),
       ),
     );
+
+    // Show success message if update was successful
+    if (result == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Data berhasil diperbarui'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _navigateToAddMember(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> family,
+  ) async {
+    // Navigate to add family member page
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddFamilyMemberPage(
+          familyInfo: {
+            'family_id': family['family_id'],
+            'family_name': family['family_name'],
+            'head_name': family['head_name'],
+            'member_count': family['member_count'],
+          },
+        ),
+      ),
+    );
+
+    // Show success message if registration was successful
+    if (result == true && context.mounted) {
+      // Data will be automatically refreshed via provider
+    }
   }
 }

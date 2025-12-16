@@ -4,15 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/app_colors.dart';
 import '../../provider/account_provider.dart';
 import '../../view/product_form_view.dart';
+import '../../models/marketplace_product_model.dart';
 
 class ProductDetailView extends ConsumerWidget {
-  final Map<String, dynamic> product;
+  final MarketplaceProduct product;
 
   const ProductDetailView({super.key, required this.product});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isActive = product['status'] == "active";
+    final isActive = product.status == "active";
 
     return Scaffold(
       backgroundColor: AppColors.background(context),
@@ -26,7 +27,7 @@ class ProductDetailView extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildProductImages(),
+            _buildProductImages(context, ref),
 
             Padding(
               padding: const EdgeInsets.all(20),
@@ -56,7 +57,7 @@ class ProductDetailView extends ConsumerWidget {
                   const SizedBox(height: 16),
 
                   Text(
-                    product['name'],
+                    product.name,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -67,7 +68,7 @@ class ProductDetailView extends ConsumerWidget {
                   const SizedBox(height: 8),
 
                   Text(
-                    "${product['category']}",
+                    product.category,
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary(context),
@@ -82,7 +83,7 @@ class ProductDetailView extends ConsumerWidget {
                         child: _buildInfoItem(
                           context,
                           "Harga",
-                          "Rp ${product['price']}",
+                          "Rp ${product.price}",
                           Icons.attach_money,
                         ),
                       ),
@@ -91,7 +92,7 @@ class ProductDetailView extends ConsumerWidget {
                         child: _buildInfoItem(
                           context,
                           "Stok",
-                          "${product['stock']}",
+                          "${product.stock}",
                           Icons.inventory_2_outlined,
                         ),
                       ),
@@ -103,7 +104,7 @@ class ProductDetailView extends ConsumerWidget {
                   _buildInfoItem(
                     context,
                     "Terjual",
-                    "${product['sold'] ?? 0}",
+                    "${product.soldCount ?? 0}",
                     Icons.shopping_cart_outlined,
                   ),
 
@@ -121,7 +122,7 @@ class ProductDetailView extends ConsumerWidget {
                   const SizedBox(height: 8),
 
                   Text(
-                    product['description'] ?? "Tidak ada deskripsi",
+                    product.description.isNotEmpty ? product.description : "Tidak ada deskripsi",
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.textPrimary(context),
@@ -136,11 +137,8 @@ class ProductDetailView extends ConsumerWidget {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        ref
-                            .read(userProductsProvider.notifier)
-                            .toggleProductStatus(product['id']);
-                        Navigator.pop(context); // kembali setelah toggle
+                      onPressed: () async {
+                        await _toggleProductStatus(context, ref, isActive);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isActive
@@ -177,16 +175,34 @@ class ProductDetailView extends ConsumerWidget {
                           height: 48,
                           child: OutlinedButton.icon(
                             onPressed: () async {
+                              // Convert MarketplaceProduct to Map for ProductFormScreen
+                              final productMap = {
+                                'id': product.productId,
+                                'name': product.name,
+                                'category': product.category,
+                                'price': product.price,
+                                'stock': product.stock,
+                                'description': product.description,
+                                'image': product.imagesPath.isNotEmpty ? product.imagesPath.first : '',
+                                'images': product.imagesPath,
+                                'status': product.status,
+                                'sold': product.soldCount,
+                              };
+                              
                               final updated = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) =>
-                                      ProductFormScreen(product: product),
+                                      ProductFormScreen(product: productMap),
                                 ),
                               );
 
-                              if (updated == true) {
+                              // Refresh data setelah edit
+                              if (updated == true && context.mounted) {
+                                // Invalidate provider to refresh list
                                 ref.invalidate(userProductsProvider);
+                                // Pop back to list so it refreshes
+                                Navigator.pop(context);
                               }
                             },
                             style: OutlinedButton.styleFrom(
@@ -256,28 +272,20 @@ class ProductDetailView extends ConsumerWidget {
   // ===========================
   //   IMAGE VIEWER
   // ===========================
-  Widget _buildProductImages() {
-    final single = product['image'];
-    final multi = product['images'];
-
-    if (multi != null && multi is List && multi.isNotEmpty) {
+  Widget _buildProductImages(BuildContext context, WidgetRef ref) {
+    final marketplaceService = ref.read(marketplaceServiceProvider);
+    
+    if (product.imagesPath.isNotEmpty) {
       return SizedBox(
         height: 260,
         child: PageView.builder(
-          itemCount: multi.length,
+          itemCount: product.imagesPath.length,
           itemBuilder: (context, index) {
-            final img = multi[index].toString();
-            return _buildImageItem(img);
+            final imgPath = product.imagesPath[index];
+            final fullUrl = marketplaceService.getImageUrl(imgPath);
+            return _buildImageItem(fullUrl);
           },
         ),
-      );
-    }
-
-    if (single != null && single.toString().isNotEmpty) {
-      return SizedBox(
-        height: 260,
-        width: double.infinity,
-        child: _buildImageItem(single.toString()),
       );
     }
 
@@ -289,32 +297,20 @@ class ProductDetailView extends ConsumerWidget {
     );
   }
 
-  Widget _buildImageItem(String imgPath) {
-    final isUrl = imgPath.startsWith("http");
-
+  Widget _buildImageItem(String imgUrl) {
     return Container(
       width: double.infinity,
       height: 260,
       color: Colors.grey.shade200,
-      child: isUrl
-          ? Image.network(
-              imgPath,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Icon(
-                Icons.image_outlined,
-                size: 80,
-                color: Colors.grey.shade400,
-              ),
-            )
-          : Image.file(
-              File(imgPath),
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Icon(
-                Icons.image_outlined,
-                size: 80,
-                color: Colors.grey.shade400,
-              ),
-            ),
+      child: Image.network(
+        imgUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Icon(
+          Icons.image_outlined,
+          size: 80,
+          color: Colors.grey.shade400,
+        ),
+      ),
     );
   }
 
@@ -363,13 +359,71 @@ class ProductDetailView extends ConsumerWidget {
     );
   }
 
+  Future<void> _toggleProductStatus(BuildContext context, WidgetRef ref, bool currentIsActive) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Get the toggle function with parameters
+      final params = {
+        'productId': product.productId,
+        'userId': product.userId,
+      };
+      
+      final toggleFunction = ref.read(toggleProductStatusProvider(params));
+      
+      // Call the API with new status
+      final newStatus = currentIsActive ? 'inactive' : 'active';
+      await toggleFunction(newStatus);
+      
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.pop(context);
+        
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              currentIsActive 
+                ? 'Produk berhasil dinonaktifkan' 
+                : 'Produk berhasil diaktifkan'
+            ),
+            backgroundColor: Colors.green.shade600,
+          ),
+        );
+        
+        // Go back to refresh the list
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.pop(context);
+        
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengubah status: $e'),
+            backgroundColor: Colors.red.shade600,
+          ),
+        );
+      }
+    }
+  }
+
   void _showDeleteDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text("Hapus Produk?"),
-        content: Text("Produk '${product['name']}' akan dihapus permanen."),
+        content: Text("Produk '${product.name}' akan dihapus permanen."),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -377,11 +431,14 @@ class ProductDetailView extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              ref
-                  .read(userProductsProvider.notifier)
-                  .deleteProduct(product['id']);
+              // TODO: Implement API integration for delete product
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text("Fitur hapus produk sedang dalam pengembangan"),
+                  backgroundColor: Colors.orange.shade600,
+                ),
+              );
               Navigator.pop(ctx);
-              Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text("Hapus", style: TextStyle(color: Colors.white)),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import '../../../core/themes/app_colors.dart';
+import '../../../core/widgets/resident_avatar.dart';
 
 class FamilyMemberCard extends StatelessWidget {
   final Map<String, dynamic> member;
@@ -17,32 +18,10 @@ class FamilyMemberCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final status = member['status'] ?? 'pending';
-    final role = member['role'] ?? '-';
+    final role = member['role'] ?? member['family_role'] ?? '-';
     final name = member['name'] ?? 'Unknown';
-    final occupation = member['occupation'] ?? '-';
+    final occupation = member['occupation_name'] ?? member['occupation'] ?? 'Tidak diketahui';
     final gender = member['gender'] ?? '-';
-
-    Color statusColor;
-    String statusText;
-    
-    switch (status.toLowerCase()) {
-      case 'approved':
-        statusColor = const Color(0xFF4CAF50);
-        statusText = 'Disetujui';
-        break;
-      case 'pending':
-        statusColor = const Color(0xFFFF9800);
-        statusText = 'Pending';
-        break;
-      case 'rejected':
-        statusColor = AppColors.redAccentLight;
-        statusText = 'Ditolak';
-        break;
-      default:
-        statusColor = AppColors.textSecondary(context);
-        statusText = status;
-    }
 
     return InkWell(
       onTap: onEdit,
@@ -67,20 +46,10 @@ class FamilyMemberCard extends StatelessWidget {
         child: Row(
           children: [
             // Avatar
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: AppColors.primary(context).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                gender.toLowerCase() == 'laki-laki' 
-                    ? Icons.man_rounded 
-                    : Icons.woman_rounded,
-                color: AppColors.primary(context),
-                size: 32,
-              ),
+            ResidentAvatar(
+              profilePath: member['profile_img_path']?.toString(),
+              size: 60,
+              enableTap: true,
             ),
             const SizedBox(width: 16),
             
@@ -89,38 +58,16 @@ class FamilyMemberCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: AutoSizeText(
-                          name,
-                          maxLines: 1,
-                          minFontSize: 14,
-                          maxFontSize: 16,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary(context),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          statusText,
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: statusColor,
-                          ),
-                        ),
-                      ),
-                    ],
+                  AutoSizeText(
+                    name,
+                    maxLines: 1,
+                    minFontSize: 14,
+                    maxFontSize: 16,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary(context),
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Row(

@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:go_router/go_router.dart';
-import '../provider/product_provider.dart';
-import 'product_list_screen.dart';
+import 'package:ti3h_k1_jawara/features/market/view/product_list_screen.dart';
+import '../provider/marketplace_provider.dart';
+import '../models/marketplace_product_model.dart';
+import 'dart:async';
 
 class MarketMainScreen extends ConsumerStatefulWidget {
   const MarketMainScreen({super.key});
@@ -19,10 +21,14 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
     viewportFraction: 0.92,
   );
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _stickySearchController = TextEditingController();
+  
   int _currentBannerPage = 0;
   bool _isSearchBarSticky = false;
   late AnimationController _animationController;
   late Animation<Offset> _slideAnimation;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -42,6 +48,18 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
             curve: Curves.easeInOut,
           ),
         );
+    
+    // Listen to scroll for infinite scroll
+    _scrollController.addListener(_onScrollForPagination);
+    
+    // Listen to search query changes and trigger search
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.listenManual(searchQueryProvider, (previous, next) {
+        if (previous != next) {
+          ref.read(searchProductsProvider.notifier).searchProducts(next);
+        }
+      });
+    });
   }
 
   void _onScroll() {
@@ -58,17 +76,50 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
       }
     }
   }
+  
+  void _onScrollForPagination() {
+    if (_scrollController.position.pixels >= 
+        _scrollController.position.maxScrollExtent - 200) {
+      // Load more when near bottom (200px before end)
+      final searchQuery = ref.read(searchQueryProvider);
+      if (searchQuery.isEmpty) {
+        ref.read(allProductsProvider.notifier).loadMore();
+      }
+    }
+  }
+  
+  void _onSearchChanged(String value) {
+    // Sync both search controllers
+    if (_searchController.text != value) {
+      _searchController.text = value;
+    }
+    if (_stickySearchController.text != value) {
+      _stickySearchController.text = value;
+    }
+    
+    // Debounce search - wait 3 seconds after user stops typing
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(seconds: 3), () {
+      ref.read(searchQueryProvider.notifier).state = value;
+    });
+  }
 
   @override
   void dispose() {
     _scrollController.dispose();
     _bannerController.dispose();
     _animationController.dispose();
+    _searchController.dispose();
+    _stickySearchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final searchQuery = ref.watch(searchQueryProvider);
+    final isSearching = searchQuery.isNotEmpty;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
@@ -81,29 +132,35 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
               // Search Bar
               SliverToBoxAdapter(child: _buildSearchBar()),
 
-              SliverToBoxAdapter(child: _buildBannerSection()),
-              SliverToBoxAdapter(child: _buildCategoriesSection()),
-              SliverToBoxAdapter(child: _buildRecommendationSection()),
-              SliverToBoxAdapter(child: _buildQuickFoodSection()),
+              // Show only grid when searching
+              if (isSearching) ...[
+                _buildSearchResultsGrid(),
+              ] else ...[
+                // Show all sections when not searching
+                SliverToBoxAdapter(child: _buildBannerSection()),
+                SliverToBoxAdapter(child: _buildCategoriesSection()),
+                SliverToBoxAdapter(child: _buildRecommendationSection()),
+                SliverToBoxAdapter(child: _buildQuickFoodSection()),
 
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 30, 20, 16),
-                  child: Text(
-                    'Produk Lokal Lainnya',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary(context),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 30, 20, 16),
+                    child: Text(
+                      'Produk Lokal Lainnya',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary(context),
+                      ),
                     ),
                   ),
                 ),
-              ),
 
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: _buildLocalProductsGrid(),
-              ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: _buildLocalProductsGrid(),
+                ),
+              ],
 
               const SliverToBoxAdapter(child: SizedBox(height: 80)),
             ],
@@ -211,13 +268,19 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextField(
-                      decoration: const InputDecoration(
+                      controller: _searchController,
+                      onChanged: _onSearchChanged,
+                      decoration: InputDecoration(
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,
                         isCollapsed: true,
                         contentPadding: EdgeInsets.zero,
                         hintText: 'Cari Produk',
+                        hintStyle: TextStyle(
+                          color: AppColors.textSecondary(context),
+                          fontSize: 14,
+                        ),
                       ),
                       style: TextStyle(
                         color: AppColors.textPrimary(context),
@@ -225,6 +288,20 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                       ),
                     ),
                   ),
+                  if (_searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: Icon(
+                        Icons.clear,
+                        color: AppColors.textSecondary(context),
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        _searchController.clear();
+                        _stickySearchController.clear();
+                        ref.read(searchQueryProvider.notifier).state = '';
+                        ref.read(searchProductsProvider.notifier).clear();
+                      },
+                    ),
                 ],
               ),
             ),
@@ -293,6 +370,8 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                       const SizedBox(width: 10),
                       Expanded(
                         child: TextField(
+                          controller: _stickySearchController,
+                          onChanged: _onSearchChanged,
                           decoration: InputDecoration(
                             hintText: 'Cari Produk',
                             hintStyle: TextStyle(
@@ -311,6 +390,20 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                           ),
                         ),
                       ),
+                      if (_stickySearchController.text.isNotEmpty)
+                        IconButton(
+                          icon: Icon(
+                            Icons.clear,
+                            color: AppColors.textSecondary(context),
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            _searchController.clear();
+                            _stickySearchController.clear();
+                            ref.read(searchQueryProvider.notifier).state = '';
+                            ref.read(searchProductsProvider.notifier).clear();
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -609,7 +702,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
   }
 
   Widget _buildRecommendationSection() {
-    final products = ref.watch(productRepositoryProvider).getAllProducts();
+    final recommendationAsync = ref.watch(recommendationProductsProvider);
 
     return Padding(
       padding: const EdgeInsets.only(top: 30),
@@ -671,8 +764,10 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
           // Products List
           SizedBox(
             height: 260,
-            child: products.isEmpty
-                ? Center(
+            child: recommendationAsync.when(
+              data: (products) {
+                if (products.isEmpty) {
+                  return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -691,26 +786,44 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: products.length,
-                    itemBuilder: (context, index) {
-                      final p = products[index];
-
-                      return _buildProductCard(
-                        productId: p.id,
-                        title: p.name,
-                        price: "Rp ${p.price}",
-                        imageUrl: p.images.first,
-                        rating: p.rating,
-                        reviews: p.reviewCount,
-                        stock: p.stock,
-                      );
-                    },
-                  ),
+                  );
+                }
+                
+                return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final p = products[index];
+                    return _buildProductCard(product: p);
+                  },
+                );
+              },
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              error: (error, stack) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.red.shade400,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Gagal memuat rekomendasi',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -718,12 +831,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
   }
 
   Widget _buildQuickFoodSection() {
-    final products = ref.watch(productRepositoryProvider).getAllProducts();
-
-    final foodProducts = products.where((p) {
-      return p.kategori.isNotEmpty &&
-          p.kategori.first.toLowerCase() == 'makanan';
-    }).toList();
+    final quickFoodAsync = ref.watch(quickFoodProductsProvider);
 
     return Padding(
       padding: const EdgeInsets.only(top: 30),
@@ -745,13 +853,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                 ),
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            const ProductListScreen(initialCategory: 'Makanan'),
-                      ),
-                    );
+                    // Navigate to category view if needed
                   },
                   child: Text(
                     'Lihat Semua',
@@ -770,8 +872,10 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
 
           SizedBox(
             height: 120,
-            child: foodProducts.isEmpty
-                ? Center(
+            child: quickFoodAsync.when(
+              data: (foodProducts) {
+                if (foodProducts.isEmpty) {
+                  return Center(
                     child: Text(
                       'Belum ada makanan',
                       style: TextStyle(
@@ -779,21 +883,32 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                         fontSize: 12,
                       ),
                     ),
-                  )
-                : ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: foodProducts.length > 6
-                        ? 6
-                        : foodProducts.length,
-                    itemBuilder: (context, index) {
-                      final product = foodProducts[index];
-                      return _buildFoodListItem(
-                        context: context,
-                        product: product,
-                      );
-                    },
+                  );
+                }
+                
+                return ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: foodProducts.length,
+                  itemBuilder: (context, index) {
+                    final product = foodProducts[index];
+                    return _buildFoodListItem(product: product);
+                  },
+                );
+              },
+              loading: () => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              error: (error, stack) => Center(
+                child: Text(
+                  'Gagal memuat makanan',
+                  style: TextStyle(
+                    color: AppColors.textSecondary(context),
+                    fontSize: 12,
                   ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -801,13 +916,18 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
   }
 
   Widget _buildFoodListItem({
-    required BuildContext context,
-    required Product product,
+    required MarketplaceProduct product,
   }) {
+    final service = ref.read(marketplaceServiceProvider);
+    final imageUrl = product.imagesPath.isNotEmpty 
+        ? service.getImageUrl(product.imagesPath.first) 
+        : '';
+    
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () {
-        context.push('/product/${product.id}');
+        context.push('/product/${product.productId}');
+        service.incrementViewCount(product.productId);
       },
       child: Container(
         width: 260,
@@ -827,29 +947,39 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
               child: SizedBox(
                 width: 100,
                 height: 120,
-                child: Image.network(
-                  product.images.first,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Container(
-                      color: Colors.grey.shade200,
-                      alignment: Alignment.center,
-                      child: const CircularProgressIndicator(strokeWidth: 2),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey.shade200,
-                      alignment: Alignment.center,
-                      child: Icon(
-                        Icons.image,
-                        size: 32,
-                        color: Colors.grey.shade500,
+                child: imageUrl.isNotEmpty
+                    ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.grey.shade200,
+                            alignment: Alignment.center,
+                            child: const CircularProgressIndicator(strokeWidth: 2),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey.shade200,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.image,
+                              size: 32,
+                              color: Colors.grey.shade500,
+                            ),
+                          );
+                        },
+                      )
+                    : Container(
+                        color: Colors.grey.shade200,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.image,
+                          size: 32,
+                          color: Colors.grey.shade500,
+                        ),
                       ),
-                    );
-                  },
-                ),
               ),
             ),
 
@@ -883,7 +1013,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          product.rating.toStringAsFixed(1),
+                          product.averageRating?.toStringAsFixed(1) ?? '0.0',
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textPrimary(context),
@@ -891,7 +1021,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          "(${product.reviewCount})",
+                          "(${product.totalRatings})",
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary(context),
@@ -921,16 +1051,18 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
   }
 
   Widget _buildProductCard({
-    required String productId,
-    required String title,
-    required String price,
-    required String imageUrl,
-    required double rating,
-    required int reviews,
-    required int stock,
+    required MarketplaceProduct product,
   }) {
+    final service = ref.read(marketplaceServiceProvider);
+    final imageUrl = product.imagesPath.isNotEmpty 
+        ? service.getImageUrl(product.imagesPath.first) 
+        : '';
+    
     return GestureDetector(
-      onTap: () => context.push('/product/$productId'),
+      onTap: () {
+        context.push('/product/${product.productId}');
+        service.incrementViewCount(product.productId);
+      },
       child: Container(
         width: 165,
         margin: const EdgeInsets.only(right: 12),
@@ -958,65 +1090,79 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                   ),
                   child: AspectRatio(
                     aspectRatio: 1.25,
-                    child: Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: Colors.grey.shade200,
-                        child: const Icon(Icons.image, size: 40),
-                      ),
-                    ),
+                    child: imageUrl.isNotEmpty
+                        ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                color: Colors.grey.shade200,
+                                alignment: Alignment.center,
+                                child: const CircularProgressIndicator(strokeWidth: 2),
+                              );
+                            },
+                            errorBuilder: (_, __, ___) => Container(
+                              color: Colors.grey.shade200,
+                              child: const Icon(Icons.image, size: 40),
+                            ),
+                          )
+                        : Container(
+                            color: Colors.grey.shade200,
+                            child: const Icon(Icons.image, size: 40),
+                          ),
                   ),
                 ),
 
                 // RATING BADGE
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.bgDashboardCard(
-                        context,
-                      ).withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.softBorder(context),
-                        width: 1,
+                if (product.averageRating != null)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.black.withOpacity(0.4)
-                              : Colors.black.withOpacity(0.08),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgDashboardCard(
+                          context,
+                        ).withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.softBorder(context),
+                          width: 1,
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.star_rounded,
-                          color: Colors.amber.shade600,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          rating.toStringAsFixed(1),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary(context),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.black.withOpacity(0.4)
+                                : Colors.black.withOpacity(0.08),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.star_rounded,
+                            color: Colors.amber.shade600,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            product.averageRating!.toStringAsFixed(1),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary(context),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
 
@@ -1028,7 +1174,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                   children: [
                     Expanded(
                       child: AutoSizeText(
-                        title,
+                        product.name,
                         maxLines: 2,
                         minFontSize: 14,
                         maxFontSize: 18,
@@ -1053,7 +1199,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          "$reviews ulasan",
+                          "${product.totalRatings} ulasan",
                           style: TextStyle(
                             fontSize: 11,
                             color: AppColors.textSecondary(context),
@@ -1065,7 +1211,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                     const SizedBox(height: 10),
 
                     Text(
-                      price,
+                      "Rp ${product.price}",
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -1081,20 +1227,20 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: stock > 0
+                        color: product.stock > 0
                             ? Colors.green.withOpacity(0.1)
                             : Colors.red.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: stock > 0 ? Colors.green : Colors.red,
+                          color: product.stock > 0 ? Colors.green : Colors.red,
                         ),
                       ),
                       child: Text(
-                        stock > 0 ? "Stok: $stock" : "Stok Habis",
+                        product.stock > 0 ? "Stok: ${product.stock}" : "Stok Habis",
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: stock > 0 ? Colors.green : Colors.red,
+                          color: product.stock > 0 ? Colors.green : Colors.red,
                         ),
                       ),
                     ),
@@ -1109,7 +1255,7 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
   }
 
   SliverGrid _buildLocalProductsGrid() {
-    final products = ref.watch(productRepositoryProvider).getAllProducts();
+    final productsState = ref.watch(allProductsProvider);
 
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -1118,19 +1264,137 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
         crossAxisSpacing: 6,
         mainAxisSpacing: 12,
       ),
-      delegate: SliverChildBuilderDelegate((context, index) {
-        final p = products[index];
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          if (index < productsState.products.length) {
+            final product = productsState.products[index];
+            return _buildProductCard(product: product);
+          } else {
+            // Loading indicator at the end
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+        },
+        childCount: productsState.products.length + 
+            (productsState.isLoading ? 1 : 0),
+      ),
+    );
+  }
 
-        return _buildProductCard(
-          productId: p.id,
-          title: p.name,
-          price: "Rp ${p.price}",
-          imageUrl: p.images.first,
-          rating: p.rating,
-          reviews: p.reviewCount,
-          stock: p.stock,
-        );
-      }, childCount: products.length),
+  Widget _buildSearchResultsGrid() {
+    final productsState = ref.watch(searchProductsProvider);
+
+    if (productsState.isLoading && productsState.products.isEmpty) {
+      return SliverFillRemaining(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Mencari produk...',
+                style: TextStyle(
+                  color: AppColors.textSecondary(context),
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (productsState.error != null) {
+      return SliverFillRemaining(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.red.shade400,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Gagal memuat produk',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary(context),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                productsState.error!,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary(context),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (productsState.products.isEmpty) {
+      return SliverFillRemaining(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search_off_rounded,
+                size: 64,
+                color: AppColors.textSecondary(context),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Tidak ada produk ditemukan',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary(context),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Coba kata kunci lain',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary(context),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
+      sliver: SliverGrid(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.6,
+          crossAxisSpacing: 6,
+          mainAxisSpacing: 12,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final product = productsState.products[index];
+            return _buildProductCard(product: product);
+          },
+          childCount: productsState.products.length,
+        ),
+      ),
     );
   }
 }

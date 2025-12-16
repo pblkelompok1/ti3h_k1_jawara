@@ -2,75 +2,147 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/app_colors.dart';
 import '../../provider/account_provider.dart';
-import '../../widgets/account/transaction_detail_screen.dart';
+import '../../models/transaction_detail_model.dart';
+import 'transaction_detail_screen.dart';
+import '../../helpers/status_helper.dart';
 
 class TransactionHistoryTab extends ConsumerWidget {
   const TransactionHistoryTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final history = ref.watch(transactionHistoryProvider);
+    final userIdAsync = ref.watch(currentUserIdProvider);
 
+    return userIdAsync.when(
+      data: (userId) {
+        if (userId == null) {
+          return Center(
+            child: Text(
+              'User tidak ditemukan',
+              style: TextStyle(color: AppColors.textSecondary(context)),
+            ),
+          );
+        }
+
+        final historyAsync = ref.watch(transactionHistoryProvider(userId));
+
+        return historyAsync.when(
+          data: (history) => _buildContent(context, ref, history),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.red),
+                SizedBox(height: 16),
+                Text(
+                  'Error: $error',
+                  style: TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Text(
+          'Error loading user: $error',
+          style: TextStyle(color: Colors.red),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    List<TransactionDetail> history,
+  ) {
     if (history.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.history_rounded,
-              size: 80,
-              color: AppColors.textSecondary(context).withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Belum ada riwayat',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.textSecondary(context),
-                fontWeight: FontWeight.w500,
+      return RefreshIndicator(
+        onRefresh: () async {
+          final userId = await ref.read(currentUserIdProvider.future);
+          if (userId != null) {
+            ref.invalidate(transactionHistoryProvider(userId));
+          }
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.history_rounded,
+                    size: 80,
+                    color: AppColors.textSecondary(context).withOpacity(0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Belum ada riwayat',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textSecondary(context),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tarik ke bawah untuk refresh',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary(context),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Transaksi yang selesai akan muncul di sini',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary(context).withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+          ),
         ),
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-      itemCount: history.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final item = history[index];
-        return _HistoryCard(item: item);
+    return RefreshIndicator(
+      onRefresh: () async {
+        final userId = await ref.read(currentUserIdProvider.future);
+        if (userId != null) {
+          ref.invalidate(transactionHistoryProvider(userId));
+        }
       },
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        itemCount: history.length,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final item = history[index];
+          return _HistoryCard(item: item);
+        },
+      ),
     );
   }
 }
 
 class _HistoryCard extends StatelessWidget {
-  final Map<String, dynamic> item;
+  final TransactionDetail item;
 
   const _HistoryCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    final isCompleted = item['status'] == 'completed';
+    // Normalize status to handle both backend formats
+    final normalizedStatus = StatusHelper.formatStatus(item.status);
+    final isCompleted = normalizedStatus == 'Selesai';
 
     return InkWell(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => TransactionDetailScreen(transaction: item),
+            builder: (context) => TransactionDetailScreen(transaction: item),
           ),
         );
       },
@@ -97,24 +169,7 @@ class _HistoryCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.receipt_long,
-                        size: 16,
-                        color: AppColors.textSecondary(context),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        item['id'],
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary(context),
-                        ),
-                      ),
-                    ],
-                  ),
+                  const SizedBox.shrink(),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
@@ -157,7 +212,7 @@ class _HistoryCard extends StatelessWidget {
 
               // Product Name
               Text(
-                item['product_name'],
+                item.items.isNotEmpty ? item.items.first.productName : '-',
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -180,7 +235,7 @@ class _HistoryCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      item['buyer_name'],
+                      item.buyerName ?? 'Unknown',
                       style: TextStyle(
                         fontSize: 13,
                         color: AppColors.textSecondary(context),
@@ -212,7 +267,7 @@ class _HistoryCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        '${item['quantity']} item',
+                        '${item.items.length} item',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -222,7 +277,7 @@ class _HistoryCard extends StatelessWidget {
                     ],
                   ),
                   Text(
-                    'Rp ${_formatPrice(item['total'])}',
+                    'Rp ${_formatPrice(item.totalAmount)}',
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -244,7 +299,8 @@ class _HistoryCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    item['payment_method'],
+                    item.transactionMethodName ?? 'Unknown',
+
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary(context),
@@ -258,7 +314,7 @@ class _HistoryCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    _formatDate(item['date']),
+                    _formatDate(item.createdAt),
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textSecondary(context),
@@ -314,11 +370,7 @@ class _HistoryCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(dynamic date) {
-    final dateStr = date.toString();
-    if (dateStr.contains(' ')) {
-      return dateStr.split(' ')[0];
-    }
-    return dateStr;
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }

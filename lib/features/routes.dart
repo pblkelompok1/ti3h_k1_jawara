@@ -15,6 +15,7 @@ import 'package:ti3h_k1_jawara/features/market/view/checkout_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/transaction_view.dart';
 import 'package:ti3h_k1_jawara/features/resident/view/resident_view.dart';
 import 'package:ti3h_k1_jawara/features/resident/view/report_issue_view.dart';
+import 'package:ti3h_k1_jawara/features/resident/view/report_detail_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/marketplace_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/product_view.dart';
 import 'package:ti3h_k1_jawara/features/market/view/account_view.dart';
@@ -27,19 +28,32 @@ import 'auth/view/auth_flow_view.dart';
 import 'auth/view/form_input_data_screen.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/admin_dashboard_view.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/registration_approval_view.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_laporan_view.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_request_surat_view.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_report_dashboard.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_report_detail.dart';
 import 'package:ti3h_k1_jawara/features/admin/view/finance_view.dart'
     as admin_finance;
-import 'finance/widgets/detail_iuran_page.dart';
 import 'market/view/camera_detection_screen.dart';
 import 'finance/widgets/add_finance_page.dart';
 import 'finance/widgets/tagih_iuran_page.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_banner_view.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_activity_view.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_activity_form_view.dart';
+import 'package:ti3h_k1_jawara/features/admin/view/admin_activity_detail_view.dart';
+import 'package:ti3h_k1_jawara/features/letter/presentation/screens/letter_selection_screen.dart';
+import 'package:ti3h_k1_jawara/features/letter/presentation/screens/letter_type_selection_screen.dart';
+import 'package:ti3h_k1_jawara/features/letter/presentation/screens/domisili_form_screen.dart';
+import 'package:ti3h_k1_jawara/features/letter/presentation/screens/usaha_form_screen.dart';
+import 'package:ti3h_k1_jawara/features/letter/presentation/screens/admin_letter_approval_screen.dart';
+import 'package:ti3h_k1_jawara/features/letter/data/models/letter_type.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: '/onboarding',
+    initialLocation: '/auth-flow',
     routes: [
       GoRoute(
         path: '/onboarding',
@@ -167,6 +181,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const ReportIssueView(),
       ),
       GoRoute(
+        path: '/report-detail/:reportId',
+        builder: (context, state) {
+          final reportId = state.pathParameters['reportId'] ?? '';
+          return ReportDetailView(reportId: reportId);
+        },
+      ),
+      GoRoute(
         path: '/ajukan-surat',
         builder: (_, __) => const AjukanSuratView(),
       ),
@@ -208,6 +229,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/admin/registrations',
         builder: (_, __) => const RegistrationApprovalView(),
       ),
+      GoRoute(
+        path: '/admin/laporan',
+        builder: (_, __) => const AdminLaporanView(),
+      ),
       // Placeholder routes untuk fitur admin lainnya
       GoRoute(
         path: '/admin/residents',
@@ -219,21 +244,72 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/admin/banners',
-        builder: (_, __) => const Scaffold(
-          body: Center(child: Text('Banners View - Coming Soon')),
-        ),
+        builder: (_, __) => const AdminBannerView(),
       ),
       GoRoute(
         path: '/admin/reports',
-        builder: (_, __) => const Scaffold(
-          body: Center(child: Text('Problem Reports View - Coming Soon')),
-        ),
+        builder: (_, __) => const AdminReportDashboard(),
+      ),
+      GoRoute(
+        path: '/admin/report-detail/:reportId',
+        builder: (context, state) {
+          final reportId = state.pathParameters['reportId'] ?? '';
+          return AdminReportDetail(reportId: reportId);
+        },
       ),
       GoRoute(
         path: '/admin/letters',
-        builder: (_, __) => const Scaffold(
-          body: Center(child: Text('Letter Requests View - Coming Soon')),
-        ),
+        builder: (_, __) => const AdminRequestSuratView(),
+      ),
+      // Letter Management Routes (New System)
+      GoRoute(
+        path: '/letter/selection',
+        builder: (_, __) => const LetterSelectionScreen(),
+      ),
+      GoRoute(
+        path: '/letter/type-selection',
+        builder: (_, __) => const LetterTypeSelectionScreen(),
+      ),
+      GoRoute(
+        path: '/letter/domisili-form',
+        builder: (context, state) {
+          final letterType = state.extra as LetterType;
+          return DomisiliFormScreen(letterType: letterType);
+        },
+      ),
+      GoRoute(
+        path: '/letter/usaha-form',
+        builder: (context, state) {
+          final letterType = state.extra as LetterType;
+          return UsahaFormScreen(letterType: letterType);
+        },
+      ),
+      GoRoute(
+        path: '/admin/letter-approval',
+        builder: (_, __) => const AdminLetterApprovalScreen(),
+      ),
+      // Activity Management Routes
+      GoRoute(
+        path: '/admin/activities',
+        builder: (_, __) => const AdminActivityView(),
+      ),
+      GoRoute(
+        path: '/admin/activities/create',
+        builder: (_, __) => const AdminActivityFormView(),
+      ),
+      GoRoute(
+        path: '/admin/activities/:activityId',
+        builder: (context, state) {
+          final activityId = state.pathParameters['activityId'] ?? '';
+          return AdminActivityDetailView(activityId: activityId);
+        },
+      ),
+      GoRoute(
+        path: '/admin/activities/:activityId/edit',
+        builder: (context, state) {
+          final activityId = state.pathParameters['activityId'] ?? '';
+          return AdminActivityFormView(activityId: activityId);
+        },
       ),
       GoRoute(
         path: '/camera-detection',

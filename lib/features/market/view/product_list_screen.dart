@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
-import '../provider/product_provider.dart';
+import '../provider/marketplace_provider.dart';
+import '../models/marketplace_product_model.dart';
+import 'dart:async';
 
 class ProductListScreen extends ConsumerStatefulWidget {
   final String initialCategory;
@@ -18,6 +20,8 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
   late String selectedCategory;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _debounce;
+  final ScrollController _scrollController = ScrollController();
 
   final List<Map<String, dynamic>> categories = [
     {'label': 'Semua', 'icon': Icons.apps},
@@ -28,6 +32,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
     {'label': 'Elektronik', 'icon': Icons.electrical_services},
   ];
 
+  // Provider for category filter
+  late final StateProvider<String> categoryFilterProvider;
+  late final StateProvider<String> searchQueryProvider;
+
   @override
   void initState() {
     super.initState();
@@ -35,37 +43,51 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
         categories.any((c) => c['label'] == widget.initialCategory)
         ? widget.initialCategory
         : 'Semua';
+
+    // Create providers
+    categoryFilterProvider = StateProvider<String>((ref) => selectedCategory);
+    searchQueryProvider = StateProvider<String>((ref) => '');
+
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      // Load more when near bottom
+      _loadMore();
+    }
+  }
+
+  void _loadMore() {
+    final category = ref.read(categoryFilterProvider);
+    final query = ref.read(searchQueryProvider);
+    final notifier = ref.read(
+      _categoryProductsProvider((category, query)).notifier,
+    );
+    notifier.loadProducts();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _debounce?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final products = ref.watch(productRepositoryProvider).getAllProducts();
-
-    // Filter by category
-    var filteredProducts = selectedCategory == 'Semua'
-        ? products
-        : products.where((p) {
-            return p.kategori.isNotEmpty &&
-                p.kategori.first.toLowerCase() ==
-                    selectedCategory.toLowerCase();
-          }).toList();
-
-    // Filter by search
-    if (_searchQuery.isNotEmpty) {
-      filteredProducts = filteredProducts.where((p) {
-        return p.name.toLowerCase().contains(_searchQuery.toLowerCase());
-      }).toList();
-    }
+    final category = ref.watch(categoryFilterProvider);
+    final searchQuery = ref.watch(searchQueryProvider);
+    final productsState = ref.watch(
+      _categoryProductsProvider((category, searchQuery)),
+    );
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           // App Bar
           SliverAppBar(
@@ -87,48 +109,94 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
           SliverToBoxAdapter(child: _buildCategoryFilter()),
 
           // Products Grid
-          filteredProducts.isEmpty
-              ? SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search_off,
-                          size: 64,
-                          color: AppColors.textSecondary(context),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Produk tidak ditemukan',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.textSecondary(context),
-                          ),
-                        ),
-                      ],
+          if (productsState.error != null)
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red.shade400,
                     ),
-                  ),
-                )
-              : SliverPadding(
-                  padding: const EdgeInsets.all(16),
-                  sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.62,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 16,
-                        ),
-                    delegate: SliverChildBuilderDelegate((context, index) {
-                      final product = filteredProducts[index];
+                    const SizedBox(height: 16),
+                    Text(
+                      'Gagal memuat produk',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary(context),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      productsState.error!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary(context),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else if (productsState.products.isEmpty && !productsState.isLoading)
+            SliverFillRemaining(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search_off,
+                      size: 64,
+                      color: AppColors.textSecondary(context),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Produk tidak ditemukan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.textSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.all(16),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 0.62,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 16,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    if (index < productsState.products.length) {
+                      final product = productsState.products[index];
                       return _buildProductCard(
                         context: context,
                         product: product,
                       );
-                    }, childCount: filteredProducts.length),
-                  ),
+                    } else {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+                  },
+                  childCount:
+                      productsState.products.length + (productsState.isLoading ? 1 : 0),
                 ),
+              ),
+            ),
         ],
       ),
     );
@@ -159,6 +227,11 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                 controller: _searchController,
                 onChanged: (value) {
                   setState(() => _searchQuery = value);
+                  // Debounce search
+                  if (_debounce?.isActive ?? false) _debounce!.cancel();
+                  _debounce = Timer(const Duration(milliseconds: 800), () {
+                    ref.read(searchQueryProvider.notifier).state = value;
+                  });
                 },
                 decoration: InputDecoration(
                   border: InputBorder.none,
@@ -181,6 +254,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                     _searchController.clear();
                     _searchQuery = '';
                   });
+                  ref.read(searchQueryProvider.notifier).state = '';
                 },
                 icon: Icon(
                   Icons.close,
@@ -212,7 +286,10 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
             icon: icon,
             label: label,
             isActive: isActive,
-            onTap: () => setState(() => selectedCategory = label),
+            onTap: () {
+              setState(() => selectedCategory = label);
+              ref.read(categoryFilterProvider.notifier).state = label;
+            },
           );
         },
       ),
@@ -289,11 +366,19 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
 
   Widget _buildProductCard({
     required BuildContext context,
-    required Product product,
+    required MarketplaceProduct product,
   }) {
+    final service = ref.read(marketplaceServiceProvider);
+    final imageUrl = product.imagesPath.isNotEmpty
+        ? service.getImageUrl(product.imagesPath.first)
+        : '';
+
     return InkWell(
       borderRadius: BorderRadius.circular(18),
-      onTap: () => context.push('/product/${product.id}'),
+      onTap: () {
+        context.push('/product/${product.productId}');
+        service.incrementViewCount(product.productId);
+      },
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.bgDashboardCard(context),
@@ -318,19 +403,39 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   ),
                   child: AspectRatio(
                     aspectRatio: 1.2,
-                    child: Image.network(
-                      product.images.first,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: Colors.grey.shade200,
-                        alignment: Alignment.center,
-                        child: Icon(
-                          Icons.image,
-                          size: 40,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
-                    ),
+                    child: imageUrl.isNotEmpty
+                        ? Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                color: Colors.grey.shade200,
+                                alignment: Alignment.center,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              );
+                            },
+                            errorBuilder: (_, __, ___) => Container(
+                              color: Colors.grey.shade200,
+                              alignment: Alignment.center,
+                              child: Icon(
+                                Icons.image,
+                                size: 40,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          )
+                        : Container(
+                            color: Colors.grey.shade200,
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.image,
+                              size: 40,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
                   ),
                 ),
 
@@ -352,40 +457,41 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                   ),
                 ),
 
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.bgDashboardCard(
-                        context,
-                      ).withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.star_rounded,
-                          size: 14,
-                          color: Colors.amber.shade600,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          product.rating.toStringAsFixed(1),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary(context),
+                if (product.averageRating != null)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.bgDashboardCard(
+                          context,
+                        ).withOpacity(0.95),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.star_rounded,
+                            size: 14,
+                            color: Colors.amber.shade600,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Text(
+                            product.averageRating!.toStringAsFixed(1),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary(context),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
                 Positioned(
                   bottom: 10,
@@ -436,7 +542,7 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
                     const Spacer(),
 
                     Text(
-                      "Rp ${product.price}",
+                      "Rp ${_formatPrice(product.price)}",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -452,7 +558,32 @@ class _ProductListScreenState extends ConsumerState<ProductListScreen> {
       ),
     );
   }
+
+  String _formatPrice(int price) {
+    return price.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (m) => '${m[1]}.',
+    );
+  }
 }
+
+// Category Products Provider
+final _categoryProductsProvider =
+    StateNotifierProvider.family<
+      ProductsNotifier,
+      ProductsState,
+      (String category, String searchQuery)
+    >((ref, params) {
+      final service = ref.watch(marketplaceServiceProvider);
+      final category = params.$1 == 'Semua' ? null : params.$1;
+      final searchQuery = params.$2.isEmpty ? null : params.$2;
+
+      return ProductsNotifier(
+        service,
+        category: category,
+        searchQuery: searchQuery,
+      );
+    });
 
 // Sticky Search Delegate
 class _StickySearchDelegate extends SliverPersistentHeaderDelegate {
