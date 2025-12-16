@@ -1,211 +1,160 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/marketplace_service.dart';
+import '../../../core/provider/auth_service_provider.dart';
+import '../models/marketplace_product_model.dart';
+import '../models/transaction_detail_model.dart';
 
 final accountModeProvider = StateProvider<String>((ref) => "toko");
 
 final accountSelectedTabProvider = StateProvider<int>((ref) => 0);
 
-class UserProductsNotifier extends StateNotifier<List<Map<String, dynamic>>> {
-  UserProductsNotifier() : super(_dummyProducts);
+final marketplaceServiceProvider = Provider<MarketplaceService>((ref) {
+  return MarketplaceService();
+});
 
-  static final _dummyProducts = [
-    {
-      'id': 'UP001',
-      'name': 'Nasi Goreng Special',
-      'price': 25000,
-      'stock': 50,
-      'category': 'Makanan',
-      'description': 'Nasi goreng dengan telur, ayam, dan sayuran',
-      'image': 'https://images.unsplash.com/photo-1603133872878-684f208fb84b',
-      'status': 'active',
-      'sold': 45,
-    },
-    {
-      'id': 'UP002',
-      'name': 'Kue Brownies Coklat',
-      'price': 35000,
-      'stock': 20,
-      'category': 'Makanan',
-      'description': 'Brownies coklat premium dengan topping kacang',
-      'image': 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c',
-      'status': 'active',
-      'sold': 30,
-    },
-    {
-      'id': 'UP003',
-      'name': 'Kemeja Batik Pria',
-      'price': 150000,
-      'stock': 0,
-      'category': 'Pakaian',
-      'description': 'Kemeja batik motif klasik, bahan katun premium',
-      'image': 'https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf',
-      'status': 'inactive',
-      'sold': 12,
-    },
-  ];
+// Provider to get current user ID
+final currentUserIdProvider = FutureProvider<String?>((ref) async {
+  final authService = ref.watch(authServiceProvider);
+  final user = await authService.getCurrentUser();
+  return user?.id;
+});
 
-  void addProduct(Map<String, dynamic> product) {
-    state = [...state, product];
+// Provider to get seller's products from API
+final userProductsProvider = FutureProvider.family<List<MarketplaceProduct>, String>((ref, userId) async {
+  final service = ref.watch(marketplaceServiceProvider);
+  try {
+    final response = await service.getMyProducts(userId: userId);
+    return response.data;
+  } catch (e) {
+    print('Error loading user products: $e');
+    return [];
   }
+});
 
-  void updateProduct(String id, Map<String, dynamic> updatedProduct) {
-    state = [
-      for (final product in state)
-        if (product['id'] == id) updatedProduct else product,
-    ];
-  }
+// Provider for toggling product status
+final toggleProductStatusProvider = Provider.family<Future<void> Function(String status), Map<String, String>>((ref, params) {
+  return (String status) async {
+    final service = ref.read(marketplaceServiceProvider);
+    final productId = params['productId']!;
+    final userId = params['userId']!;
+    
+    try {
+      await service.toggleProductStatus(
+        productId: productId,
+        userId: userId,
+        status: status,
+      );
+      // Refresh the products list
+      ref.invalidate(userProductsProvider);
+    } catch (e) {
+      print('Error toggling product status: $e');
+      rethrow;
+    }
+  };
+});
 
-  void deleteProduct(String id) {
-    state = state.where((product) => product['id'] != id).toList();
-  }
-
-  void toggleProductStatus(String id) {
-    state = [
-      for (final product in state)
-        if (product['id'] == id)
-          {
-            ...product,
-            'status': product['status'] == 'active' ? 'inactive' : 'active',
-          }
-        else
-          product,
-    ];
-  }
-}
-
-final userProductsProvider =
-    StateNotifierProvider<UserProductsNotifier, List<Map<String, dynamic>>>(
-      (ref) => UserProductsNotifier(),
+// Provider to get seller's active transactions from API
+final activeTransactionsProvider = FutureProvider.family<List<TransactionDetail>, String>((ref, userId) async {
+  final service = ref.watch(marketplaceServiceProvider);
+  try {
+    print('🔄 Loading active transactions for seller: $userId');
+    final response = await service.getSellerTransactions(
+      userId: userId,
+      type: 'active', // Get only active transactions (Belum Dibayar, Proses, Siap Diambil, Sedang Dikirim)
     );
-
-class ActiveTransactionsNotifier
-    extends StateNotifier<List<Map<String, dynamic>>> {
-  ActiveTransactionsNotifier() : super(_dummy);
-
-  static final _dummy = [
-    {
-      'id': 'TRX001',
-      'product_name': 'Sepatu Olahraga',
-      'buyer_name': 'Ahmad Fauzi',
-      'price': 250000,
-      'quantity': 1,
-      'total': 250000,
-      'status': 'pending',
-      'date': '2025-12-01 10:30',
-      'payment_method': 'Transfer Bank',
-    },
-    {
-      'id': 'TRX002',
-      'product_name': 'Tahu Telor',
-      'buyer_name': 'Siti Rahayu',
-      'price': 15000,
-      'quantity': 2,
-      'total': 30000,
-      'status': 'processing',
-      'date': '2025-12-01 09:15',
-      'payment_method': 'Cash',
-    },
-    {
-      'id': 'TRX003',
-      'product_name': 'Nasi Goreng Special',
-      'buyer_name': 'Budi Santoso',
-      'price': 25000,
-      'quantity': 3,
-      'total': 75000,
-      'status': 'ready',
-      'date': '2025-12-01 08:45',
-      'payment_method': 'E-Wallet',
-    },
-    {
-      'id': 'TRX004',
-      'product_name': 'Kue Brownies Coklat',
-      'buyer_name': 'Rina Wijaya',
-      'price': 35000,
-      'quantity': 2,
-      'total': 70000,
-      'status': 'processing',
-      'date': '2025-12-01 11:20',
-      'payment_method': 'Transfer Bank',
-    },
-    {
-      'id': 'TRX005',
-      'product_name': 'Kemeja Batik Pria',
-      'buyer_name': 'Hendra Gunawan',
-      'price': 150000,
-      'quantity': 1,
-      'total': 150000,
-      'status': 'pending',
-      'date': '2025-12-01 12:00',
-      'payment_method': 'E-Wallet',
-    },
-  ];
-
-  void updateStatus(String id, String status) {
-    state = state.map((t) {
-      if (t['id'] == id) {
-        return {...t, 'status': status};
-      }
-      return t;
-    }).toList();
+    print('✅ Active transactions loaded: ${response.data.length} items');
+    if (response.data.isNotEmpty) {
+      print('   First transaction: ${response.data.first.productTransactionId} - ${response.data.first.status}');
+    }
+    return response.data;
+  } catch (e) {
+    print('❌ Error loading active transactions: $e');
+    return [];
   }
+});
 
-  void removeById(String id) {
-    state = state.where((t) => t['id'] != id).toList();
+// Provider for updating transaction status
+final updateTransactionStatusProvider = Provider.family<Future<void> Function(String status), Map<String, String>>((ref, params) {
+  return (String status) async {
+    final service = ref.read(marketplaceServiceProvider);
+    final transactionId = params['transactionId']!;
+    final userId = params['userId']!;
+    
+    print('🔄 PROVIDER updateTransactionStatus');
+    print('   Transaction ID: $transactionId');
+    print('   User ID: $userId');
+    print('   Status: "$status"');
+    
+    try {
+      await service.updateTransactionStatus(
+        transactionId: transactionId,
+        userId: userId,
+        status: status,
+      );
+      // Refresh the transactions list
+      ref.invalidate(activeTransactionsProvider);
+      ref.invalidate(transactionHistoryProvider);
+    } catch (e) {
+      print('❌ Error updating transaction status: $e');
+      rethrow;
+    }
+  };
+});
+
+// Provider for cancelling transaction (buyer)
+final cancelTransactionProvider = Provider.family<Future<void> Function(), Map<String, String>>((ref, params) {
+  return () async {
+    final service = ref.read(marketplaceServiceProvider);
+    final transactionId = params['transactionId']!;
+    final userId = params['userId']!;
+    
+    try {
+      await service.cancelTransaction(
+        transactionId: transactionId,
+        userId: userId,
+      );
+      // Refresh the transactions list
+      ref.invalidate(myOrdersProvider);
+    } catch (e) {
+      print('Error cancelling transaction: $e');
+      rethrow;
+    }
+  };
+});
+
+// Provider to get seller's transaction history from API
+final transactionHistoryProvider = FutureProvider.family<List<TransactionDetail>, String>((ref, userId) async {
+  final service = ref.watch(marketplaceServiceProvider);
+  try {
+    print('🔄 Loading transaction history for seller: $userId');
+    final response = await service.getSellerTransactions(
+      userId: userId,
+      type: 'history', // Get only history transactions (Selesai, Ditolak)
+    );
+    print('✅ Transaction history loaded: ${response.data.length} items');
+    if (response.data.isNotEmpty) {
+      print('   First transaction: ${response.data.first.productTransactionId} - ${response.data.first.status}');
+    }
+    return response.data;
+  } catch (e) {
+    print('❌ Error loading transaction history: $e');
+    return [];
   }
-}
+});
 
-final activeTransactionsProvider =
-    StateNotifierProvider<
-      ActiveTransactionsNotifier,
-      List<Map<String, dynamic>>
-    >((ref) => ActiveTransactionsNotifier());
-
-class MyOrder {
-  final String id;
-  final String productName;
-  final String sellerName;
-  final int price;
-  final int quantity;
-  final int total;
-  final String status;
-  final String paymentMethod;
-  final DateTime date;
-
-  MyOrder({
-    required this.id,
-    required this.productName,
-    required this.sellerName,
-    required this.price,
-    required this.quantity,
-    required this.total,
-    required this.status,
-    required this.paymentMethod,
-    required this.date,
-  });
-}
-
-class MyOrdersNotifier extends StateNotifier<List<MyOrder>> {
-  MyOrdersNotifier() : super([]);
-
-  void addOrder(MyOrder order) {
-    state = [order, ...state];
+// Provider to get buyer's orders from API
+final myOrdersProvider = FutureProvider.family<List<TransactionDetail>, String>((ref, userId) async {
+  final service = ref.watch(marketplaceServiceProvider);
+  try {
+    print('🔄 Loading orders for buyer: $userId');
+    final response = await service.getBuyerTransactions(userId: userId);
+    print('✅ Buyer orders loaded: ${response.data.length} items');
+    if (response.data.isNotEmpty) {
+      print('   First order: ${response.data.first.productTransactionId} - ${response.data.first.status}');
+    }
+    return response.data;
+  } catch (e) {
+    print('❌ Error loading my orders: $e');
+    return [];
   }
-}
-
-final myOrdersProvider = StateNotifierProvider<MyOrdersNotifier, List<MyOrder>>(
-  (ref) => MyOrdersNotifier(),
-);
-
-class TransactionHistoryNotifier
-    extends StateNotifier<List<Map<String, dynamic>>> {
-  TransactionHistoryNotifier() : super([]);
-
-  void addTransaction(Map<String, dynamic> transaction) {
-    state = [transaction, ...state];
-  }
-}
-
-final transactionHistoryProvider =
-    StateNotifierProvider<
-      TransactionHistoryNotifier,
-      List<Map<String, dynamic>>
-    >((ref) => TransactionHistoryNotifier());
+});

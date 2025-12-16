@@ -26,12 +26,19 @@ class AppColors {
   // Accent Colors
   static const redAccentLight = Color(0xFFD66B6B);
   static const redAccentDark = Color(0xFFE04848);
+  static const orangeLight = Color(0xFFFF9800);
+  static const orangeDark = Color(0xFFFFA726);
 
   // Border Colors
   static const softBorderLight = Color(0xFFF3F3F3);
   static const softBorderDark = Color(0xFF6F7166);
   static const primaryBorderLight = Color(0xFF8B8B8B);
   static const primaryBorderDark = Color(0xFF6F7166);
+  static const borderLight = Color(0xFFF3F3F3);
+  static const borderDark = Color(0xFF6F7166);
+
+  // Card Colors
+  static const cardDark = Color(0xFF1E1E1E);
 
   // Input Box Background
   static const bgPrimaryInputBoxLight = Color(0xFFFFFFFF);
@@ -61,6 +68,9 @@ class AppColors {
 
   static Color redAccent(BuildContext context) =>
       adaptive(context, light: redAccentLight, dark: redAccentDark);
+
+  static Color orange(BuildContext context) =>
+      adaptive(context, light: orangeLight, dark: orangeDark);
 
   static Color softBorder(BuildContext context) =>
       adaptive(context, light: softBorderLight, dark: softBorderDark);

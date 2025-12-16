@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/app_colors.dart';
 import '../../provider/account_provider.dart';
+import '../../models/transaction_detail_model.dart';
 import 'transaction_detail_screen.dart';
 
 class ActiveTransactionsTab extends ConsumerWidget {
@@ -9,69 +10,121 @@ class ActiveTransactionsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactions = ref.watch(activeTransactionsProvider);
+    final userIdAsync = ref.watch(currentUserIdProvider);
 
+    return userIdAsync.when(
+      data: (userId) {
+        if (userId == null) {
+          return Center(
+            child: Text(
+              'User tidak ditemukan',
+              style: TextStyle(color: AppColors.textSecondary(context)),
+            ),
+          );
+        }
+
+        final transactionsAsync = ref.watch(activeTransactionsProvider(userId));
+        
+        return transactionsAsync.when(
+          data: (transactions) => _buildContent(context, ref, transactions),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.red),
+                SizedBox(height: 16),
+                Text(
+                  'Error: $error',
+                  style: TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Text(
+          'Error loading user: $error',
+          style: TextStyle(color: Colors.red),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, WidgetRef ref, List<TransactionDetail> transactions) {
     if (transactions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 80,
-              color: AppColors.textSecondary(context).withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Tidak ada transaksi aktif',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.textSecondary(context),
-                fontWeight: FontWeight.w500,
+      return RefreshIndicator(
+        onRefresh: () async {
+          final userId = await ref.read(currentUserIdProvider.future);
+          if (userId != null) {
+            ref.invalidate(activeTransactionsProvider(userId));
+          }
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.receipt_long_outlined,
+                    size: 80,
+                    color: AppColors.textSecondary(context).withOpacity(0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Tidak ada transaksi aktif',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: AppColors.textSecondary(context),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tarik ke bawah untuk refresh',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary(context),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Transaksi yang sedang berlangsung akan muncul di sini',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary(context).withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+          ),
         ),
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-      itemCount: transactions.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final transaction = transactions[index];
-        return _TransactionCard(transaction: transaction);
+    return RefreshIndicator(
+      onRefresh: () async {
+        final userId = await ref.read(currentUserIdProvider.future);
+        if (userId != null) {
+          ref.invalidate(activeTransactionsProvider(userId));
+        }
       },
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        itemCount: transactions.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final transaction = transactions[index];
+          return _TransactionCard(transaction: transaction);
+        },
+      ),
     );
   }
 }
 
 class _TransactionCard extends StatelessWidget {
-  final Map<String, dynamic> transaction;
+  final TransactionDetail transaction;
 
   const _TransactionCard({required this.transaction});
-
-  String _safeString(dynamic value, {String fallback = '-'}) {
-    if (value == null) return fallback;
-    if (value is String && value.isEmpty) return fallback;
-    return value.toString();
-  }
-
-  int _safeInt(dynamic value, {int fallback = 0}) {
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value) ?? fallback;
-    return fallback;
-  }
 
   String _formatPrice(int price) {
     return price.toString().replaceAllMapped(
@@ -83,6 +136,7 @@ class _TransactionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final firstItem = transaction.items.isNotEmpty ? transaction.items.first : null;
 
     return Container(
       decoration: BoxDecoration(
@@ -96,65 +150,55 @@ class _TransactionCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(
-                  _safeString(transaction['id']),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary(context),
-                  ),
-                ),
-                _StatusBadge(status: transaction['status'] as String?),
+                _StatusBadge(status: transaction.status),
               ],
             ),
 
             const SizedBox(height: 12),
-            Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: SizedBox(
-                    width: 60,
-                    height: 60,
-                    child: Image.network(
-                      _safeString(transaction['product_image'], fallback: ''),
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: Colors.grey.shade200,
-                        alignment: Alignment.center,
-                        child: const Icon(Icons.image),
-                      ),
+            if (firstItem != null) ...[
+              Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      color: Colors.grey.shade200,
+                      child: Icon(Icons.shopping_bag, color: Colors.grey),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _safeString(transaction['product_name']),
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary(context),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          firstItem.productName,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary(context),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Pembeli: ${_safeString(transaction['buyer_name'])}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textSecondary(context),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Pembeli: ${transaction.buyerName ?? 'Unknown'}',
+
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textSecondary(context),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ],
 
             const SizedBox(height: 16),
             Divider(color: AppColors.softBorder(context)),
@@ -162,26 +206,26 @@ class _TransactionCard extends StatelessWidget {
 
             _DetailRow(
               icon: Icons.shopping_cart_outlined,
-              label: 'Jumlah',
-              value: '${_safeInt(transaction['quantity'])} item',
+              label: 'Total Item',
+              value: '${transaction.items.length} item',
             ),
             const SizedBox(height: 8),
             _DetailRow(
               icon: Icons.payment_rounded,
               label: 'Total',
-              value: 'Rp ${_formatPrice(_safeInt(transaction['total']))}',
+              value: 'Rp ${_formatPrice(transaction.totalAmount)}',
             ),
             const SizedBox(height: 8),
             _DetailRow(
               icon: Icons.account_balance_wallet_outlined,
               label: 'Pembayaran',
-              value: _safeString(transaction['payment_method']),
+              value: transaction.transactionMethodName ?? 'Unknown',
             ),
             const SizedBox(height: 8),
             _DetailRow(
               icon: Icons.access_time_rounded,
               label: 'Waktu',
-              value: _safeString(transaction['date']),
+              value: _formatDateTime(transaction.createdAt),
             ),
 
             const SizedBox(height: 16),
@@ -193,8 +237,9 @@ class _TransactionCard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) =>
-                          TransactionDetailScreen(transaction: transaction),
+                      builder: (context) => TransactionDetailScreen(
+                        transaction: transaction,
+                      ),
                     ),
                   );
                 },
@@ -216,29 +261,39 @@ class _TransactionCard extends StatelessWidget {
       ),
     );
   }
+
+  String _formatDateTime(DateTime dateTime) {
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
 }
 
 class _StatusBadge extends StatelessWidget {
-  final String? status;
+  final String status;
 
-  const _StatusBadge({this.status});
+  const _StatusBadge({required this.status});
 
   @override
   Widget build(BuildContext context) {
-    final safeStatus = status ?? 'pending';
-
     late Color color;
     late String label;
 
-    switch (safeStatus) {
+    switch (status.toLowerCase()) {
+      case 'proses':
       case 'processing':
         color = Colors.blue;
         label = 'Diproses';
         break;
+      case 'siap diambil':
       case 'ready':
         color = Colors.green;
         label = 'Siap';
         break;
+      case 'sedang dikirim':
+      case 'shipping':
+        color = Colors.purple;
+        label = 'Dikirim';
+        break;
+      case 'belum dibayar':
       case 'pending':
       default:
         color = Colors.orange;

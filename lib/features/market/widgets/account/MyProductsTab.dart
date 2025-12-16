@@ -1,18 +1,53 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/themes/app_colors.dart';
 import '../../provider/account_provider.dart';
-import '../../widgets/account/product_detail_view.dart';
 import '../../view/product_form_view.dart';
+import '../../models/marketplace_product_model.dart';
+import 'product_detail_view.dart';
 
 class MyProductsTab extends ConsumerWidget {
   const MyProductsTab({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final products = ref.watch(userProductsProvider);
+    final userIdAsync = ref.watch(currentUserIdProvider);
 
+    return userIdAsync.when(
+      data: (userId) {
+        if (userId == null) {
+          return Center(
+            child: Text(
+              'User tidak ditemukan',
+              style: TextStyle(color: AppColors.textSecondary(context)),
+            ),
+          );
+        }
+
+        final productsAsync = ref.watch(userProductsProvider(userId));
+        
+        return productsAsync.when(
+          data: (products) => _buildContent(context, ref, products, userId),
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Text(
+              'Error: $error',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Text(
+          'Error loading user: $error',
+          style: TextStyle(color: Colors.red),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, WidgetRef ref, List<MarketplaceProduct> products, String userId) {
     return Column(
       children: [
         Padding(
@@ -50,7 +85,10 @@ class MyProductsTab extends ConsumerWidget {
                   itemCount: products.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (_, index) {
-                    return _ProductCardSimple(product: products[index]);
+                    return _ProductCardSimple(
+                      product: products[index],
+                      userId: userId,
+                    );
                   },
                 ),
         ),
@@ -83,14 +121,21 @@ class MyProductsTab extends ConsumerWidget {
   }
 }
 
-class _ProductCardSimple extends StatelessWidget {
-  final Map<String, dynamic> product;
-  const _ProductCardSimple({required this.product});
+class _ProductCardSimple extends ConsumerWidget {
+  final MarketplaceProduct product;
+  final String userId;
+  
+  const _ProductCardSimple({
+    required this.product,
+    required this.userId,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    final isActive = product['status'] == 'active';
-    final String? imageUrl = product['image'];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isActive = product.status == 'active';
+    final marketplaceService = ref.read(marketplaceServiceProvider);
+    final String? imageUrl = product.imagesPath.isNotEmpty ? product.imagesPath.first : null;
+    final fullImageUrl = imageUrl != null ? marketplaceService.getImageUrl(imageUrl) : null;
 
     return GestureDetector(
       onTap: () {
@@ -113,7 +158,7 @@ class _ProductCardSimple extends StatelessWidget {
             // ===================== IMAGE =====================
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: _buildImage(imageUrl),
+              child: _buildImage(fullImageUrl),
             ),
 
             const SizedBox(width: 14),
@@ -124,27 +169,45 @@ class _ProductCardSimple extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product['name'] ?? "-",
+                    product.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: AppColors.textPrimary(context)),
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  Text(
-                    "Rp ${product['price']}",
-                    style: TextStyle(color: AppColors.primary(context)),
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  Text(
-                    "Stok: ${product['stock'] ?? 0}",
                     style: TextStyle(
-                      color: AppColors.textSecondary(context),
-                      fontSize: 12,
+                      color: AppColors.textPrimary(context),
+                      fontWeight: FontWeight.w600,
                     ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    "Rp ${product.price}",
+                    style: TextStyle(
+                      color: AppColors.primary(context),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Row(
+                    children: [
+                      Text(
+                        "Stok: ${product.stock}",
+                        style: TextStyle(
+                          color: AppColors.textSecondary(context),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        "Terjual: ${product.soldCount}",
+                        style: TextStyle(
+                          color: AppColors.textSecondary(context),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -172,26 +235,29 @@ class _ProductCardSimple extends StatelessWidget {
     );
   }
 
-  // UNIVERSAL IMAGE LOADER (network/file/fallback)
-  Widget _buildImage(String? path) {
+  // UNIVERSAL IMAGE LOADER (network only for now)
+  Widget _buildImage(String? url) {
     return Container(
       width: 80,
       height: 80,
       color: Colors.grey.shade200,
-      child: path == null || path.isEmpty
+      child: url == null || url.isEmpty
           ? Icon(Icons.image_outlined, color: Colors.grey.shade400, size: 34)
-          // Network Image
-          : path.startsWith("http")
-          ? Image.network(
-              path,
+          : Image.network(
+              url,
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
-            )
-          // File Image
-          : Image.file(
-              File(path),
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => const Icon(Icons.broken_image),
+              loadingBuilder: (_, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
+                  ),
+                );
+              },
             ),
     );
   }

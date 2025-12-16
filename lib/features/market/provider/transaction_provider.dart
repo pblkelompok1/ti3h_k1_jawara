@@ -1,5 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/transaction_detail_model.dart';
+import './marketplace_provider.dart';
+import '../../../core/provider/auth_service_provider.dart';
 
+// Provider untuk fetch transaction detail dari API
+final transactionDetailProvider = FutureProvider.family<TransactionDetail, String>((ref, transactionId) async {
+  final service = ref.read(marketplaceServiceProvider);
+  final authService = ref.read(authServiceProvider);
+  
+  final user = await authService.getCurrentUser();
+  if (user == null) {
+    throw Exception('User tidak ditemukan');
+  }
+
+  return service.getTransactionById(
+    transactionId: transactionId,
+    userId: user.id,
+  );
+});
+
+// ========== OLD PROVIDER (for backward compatibility) ==========
 class TransactionListNotifier extends StateNotifier<List<Transaction>> {
   TransactionListNotifier() : super([]);
 

@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
-import '../provider/transaction_provider.dart';
-import '../provider/product_provider.dart';
-import '../provider/account_provider.dart';
+import '../provider/marketplace_provider.dart';
+import '../provider/account_provider.dart' as account;
+import '../models/marketplace_product_model.dart';
+import '../models/transaction_method_model.dart';
+import '../../../core/provider/auth_service_provider.dart';
 
 class CheckoutView extends ConsumerStatefulWidget {
   const CheckoutView({
@@ -23,37 +25,26 @@ class CheckoutView extends ConsumerStatefulWidget {
 
 class _CheckoutViewState extends ConsumerState<CheckoutView> {
   bool isDelivery = true;
-  String selectedPaymentMethod = 'Paypal';
+  TransactionMethod? selectedPaymentMethod;
+  final TextEditingController _descriptionController = TextEditingController();
+  bool _isCreatingTransaction = false;
 
   final currencyFormatter = NumberFormat.currency(
     locale: 'id_ID',
-    symbol: 'Rp. ',
+    symbol: 'Rp ',
     decimalDigits: 0,
   );
 
   @override
+  void dispose() {
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final repo = ref.watch(productRepositoryProvider);
-    final product = repo.getProductById(widget.productId);
-
-    if (product == null) {
-      return Scaffold(
-        body: Center(
-          child: Text(
-            "Produk tidak ditemukan",
-            style: TextStyle(color: AppColors.textPrimary(context)),
-          ),
-        ),
-      );
-    }
-
-    final qty = ref.watch(quantityProvider(widget.productId));
-    final price = product.price;
-
-    final subtotal = price * qty;
-    final deliveryFee = isDelivery ? 5000 : 0;
-    final serviceFee = 1000;
-    final total = subtotal + deliveryFee + serviceFee;
+    final productAsync = ref.watch(productDetailProvider(widget.productId));
+    final methodsAsync = ref.watch(transactionMethodsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bgTransaction(context),
@@ -64,31 +55,65 @@ class _CheckoutViewState extends ConsumerState<CheckoutView> {
         centerTitle: true,
         scrolledUnderElevation: 0,
       ),
+      body: productAsync.when(
+        data: (product) {
+          final subtotal = product.price * widget.quantity;
+          final deliveryFee = isDelivery ? 5000 : 0;
+          final serviceFee = 1000;
+          final total = subtotal + deliveryFee + serviceFee;
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _buildAddressCard(),
-            const SizedBox(height: 16),
-
-            _buildOrderItemCard(product, qty),
-            const SizedBox(height: 16),
-
-            _buildDeliveryCard(),
-            const SizedBox(height: 16),
-
-            _buildPaymentMethodCard(),
-            const SizedBox(height: 16),
-
-            _buildPaymentSummaryCard(subtotal, deliveryFee, serviceFee, total),
-
-            const SizedBox(height: 120),
-          ],
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                _buildAddressCard(),
+                const SizedBox(height: 16),
+                _buildOrderItemCard(product, widget.quantity),
+                const SizedBox(height: 16),
+                _buildDescriptionCard(),
+                const SizedBox(height: 16),
+                _buildDeliveryCard(),
+                const SizedBox(height: 16),
+                methodsAsync.when(
+                  data: (methods) => _buildPaymentMethodCard(methods),
+                  loading: () => _buildLoadingCard(),
+                  error: (error, stack) => _buildErrorCard(error.toString()),
+                ),
+                const SizedBox(height: 16),
+                _buildPaymentSummaryCard(subtotal, deliveryFee, serviceFee, total),
+                const SizedBox(height: 120),
+              ],
+            ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.red.shade400),
+              const SizedBox(height: 16),
+              Text(
+                'Gagal memuat produk',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary(context),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-
-      bottomNavigationBar: _buildBottomBar(total),
+      bottomNavigationBar: productAsync.maybeWhen(
+        data: (product) {
+          final total = (product.price * widget.quantity) +
+              (isDelivery ? 5000 : 0) +
+              1000;
+          return _buildBottomBar(product, total);
+        },
+        orElse: () => const SizedBox.shrink(),
+      ),
     );
   }
 
@@ -128,52 +153,64 @@ class _CheckoutViewState extends ConsumerState<CheckoutView> {
     );
   }
 
-  Widget _buildOrderItemCard(product, int qty) {
+  Widget _buildOrderItemCard(MarketplaceProduct product, int qty) {
+    final service = ref.read(marketplaceServiceProvider);
+    final imageUrl = product.imagesPath.isNotEmpty
+        ? service.getImageUrl(product.imagesPath.first)
+        : '';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  product.images.first,
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                      const Icon(Icons.image, size: 40),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: imageUrl.isNotEmpty
+                ? Image.network(
+                    imageUrl,
+                    width: 60,
+                    height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 60,
+                      height: 60,
+                      color: Colors.grey.shade300,
+                      child: const Icon(Icons.image, size: 40),
+                    ),
+                  )
+                : Container(
+                    width: 60,
+                    height: 60,
+                    color: Colors.grey.shade300,
+                    child: const Icon(Icons.image, size: 40),
+                  ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  product.name,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary(context),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 4),
+                Text(
+                  "Penjual: ${product.sellerName ?? 'UMKM Lokal'}",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary(context),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      product.name,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary(context),
-                      ),
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    Text(
-                      "Penjual: ${product.seller ?? 'UMKM Lokal'}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary(context),
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
                     Text(
                       "x $qty",
                       style: TextStyle(
@@ -182,32 +219,60 @@ class _CheckoutViewState extends ConsumerState<CheckoutView> {
                         color: AppColors.textPrimary(context),
                       ),
                     ),
+                    Text(
+                      currencyFormatter.format(product.price),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary(context),
+                      ),
+                    ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-
-          const SizedBox(height: 16),
-          Divider(color: AppColors.softBorder(context)),
-          const SizedBox(height: 12),
-          _buildOrderDetailRow("Atur Pesanan *", "Atur >", isRequired: true),
         ],
       ),
     );
   }
 
-  Widget _buildOrderDetailRow(
-    String label,
-    String value, {
-    bool isRequired = false,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: TextStyle(color: AppColors.textPrimary(context))),
-        Text(value, style: TextStyle(color: AppColors.textSecondary(context))),
-      ],
+  Widget _buildDescriptionCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Catatan Pesanan (Opsional)",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary(context),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _descriptionController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: 'Tambahkan catatan untuk penjual...',
+              hintStyle: TextStyle(color: AppColors.textSecondary(context)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.softBorder(context)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.primary(context)),
+              ),
+              filled: true,
+              fillColor: AppColors.bgPrimaryInputBox(context),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -246,7 +311,7 @@ class _CheckoutViewState extends ConsumerState<CheckoutView> {
     );
   }
 
-  Widget _buildPaymentMethodCard() {
+  Widget _buildPaymentMethodCard(List<TransactionMethod> methods) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(),
@@ -262,47 +327,122 @@ class _CheckoutViewState extends ConsumerState<CheckoutView> {
             ),
           ),
           const SizedBox(height: 16),
-
-          _buildPaymentOption("Paypal", Icons.payment, Colors.blue),
-          _buildPaymentOption("BNI", Icons.account_balance, Colors.orange),
-          _buildPaymentOption("BRI", Icons.account_balance, Colors.blueAccent),
-          _buildPaymentOption(
-            "Bayar Ditempat",
-            Icons.money,
-            Colors.green.shade700,
-          ),
+          ...methods.map((method) => _buildPaymentOption(method)),
         ],
       ),
     );
   }
 
-  Widget _buildPaymentOption(String name, IconData icon, Color color) {
-    return InkWell(
-      onTap: () => setState(() => selectedPaymentMethod = name),
-      child: Row(
+  Widget _buildPaymentOption(TransactionMethod method) {
+    final isSelected = selectedPaymentMethod?.transactionMethodId == method.transactionMethodId;
+    IconData icon;
+    Color color;
+
+    // Map icon dan warna berdasarkan nama metode
+    if (method.methodName.toLowerCase().contains('cod')) {
+      icon = Icons.money;
+      color = Colors.green.shade700;
+    } else if (method.methodName.toLowerCase().contains('transfer')) {
+      icon = Icons.account_balance;
+      color = Colors.orange;
+    } else if (method.methodName.toLowerCase().contains('wallet')) {
+      icon = Icons.account_balance_wallet;
+      color = Colors.purple;
+    } else if (method.methodName.toLowerCase().contains('qris')) {
+      icon = Icons.qr_code_2;
+      color = Colors.blue;
+    } else {
+      icon = Icons.payment;
+      color = Colors.grey;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: () => setState(() => selectedPaymentMethod = method),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? AppColors.primary(context).withValues(alpha: 0.1)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.primary(context)
+                  : AppColors.softBorder(context),
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      method.methodName,
+                      style: TextStyle(
+                        color: AppColors.textPrimary(context),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      method.description,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Radio<int>(
+                value: method.transactionMethodId,
+                groupValue: selectedPaymentMethod?.transactionMethodId,
+                onChanged: (v) => setState(() => selectedPaymentMethod = method),
+                activeColor: AppColors.primary(context),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingCard() {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: _cardDecoration(),
+      child: const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Widget _buildErrorCard(String error) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(),
+      child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+          Icon(Icons.error_outline, size: 48, color: Colors.red.shade400),
+          const SizedBox(height: 8),
+          Text(
+            'Gagal memuat metode pembayaran',
+            style: TextStyle(
+              color: AppColors.textPrimary(context),
+              fontWeight: FontWeight.w600,
             ),
-            child: Icon(icon, color: color, size: 18),
-          ),
-          const SizedBox(width: 12),
-
-          Expanded(
-            child: Text(
-              name,
-              style: TextStyle(color: AppColors.textPrimary(context)),
-            ),
-          ),
-
-          Radio<String>(
-            value: name,
-            groupValue: selectedPaymentMethod,
-            onChanged: (v) => setState(() => selectedPaymentMethod = v!),
-            activeColor: AppColors.primary(context),
           ),
         ],
       ),
@@ -378,14 +518,14 @@ class _CheckoutViewState extends ConsumerState<CheckoutView> {
     );
   }
 
-  Widget _buildBottomBar(int total) {
+  Widget _buildBottomBar(MarketplaceProduct product, int total) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.bgDashboardCard(context),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -396,75 +536,34 @@ class _CheckoutViewState extends ConsumerState<CheckoutView> {
         child: Row(
           children: [
             Expanded(
-              child: Text(
-                currencyFormatter.format(total),
-                textAlign: TextAlign.right,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary(context),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Total Pembayaran',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary(context),
+                    ),
+                  ),
+                  Text(
+                    currencyFormatter.format(total),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary(context),
+                    ),
+                  ),
+                ],
               ),
             ),
-
             const SizedBox(width: 16),
-
             ElevatedButton(
-              onPressed: () {
-                final product = ref
-                    .read(productRepositoryProvider)
-                    .getProductById(widget.productId)!;
-
-                final qty = ref.read(quantityProvider(widget.productId));
-                final transactionId = DateTime.now().millisecondsSinceEpoch
-                    .toString();
-
-                // 🔹 SIMPAN TRANSAKSI DETAIL
-                ref
-                    .read(transactionListProvider.notifier)
-                    .addTransaction(
-                      Transaction(
-                        id: transactionId,
-                        productName: product.name,
-                        sellerName: product.seller,
-                        quantity: qty,
-                        subtotal: product.price * qty,
-                        deliveryFee: isDelivery ? 5000 : 0,
-                        serviceFee: 1000,
-                        total: total,
-                        paymentMethod: selectedPaymentMethod,
-                        qrCodeData: selectedPaymentMethod == "Bayar Ditempat"
-                            ? ""
-                            : "QR-$transactionId",
-                        recipientName: "Sudasoyono Muhdi",
-                        recipientPhone: "(+62 9123 1923)",
-                        recipientAddress: "Blok D - No. 4",
-                        createdAt: DateTime.now(),
-                        isDelivery: isDelivery,
-                      ),
-                    );
-
-                // 🔹 SIMPAN KE MY ORDERS (BUYER)
-                ref
-                    .read(myOrdersProvider.notifier)
-                    .addOrder(
-                      MyOrder(
-                        id: transactionId,
-                        productName: product.name,
-                        sellerName: product.seller,
-                        price: product.price,
-                        quantity: qty,
-                        total: total,
-                        status: 'pending',
-                        paymentMethod: selectedPaymentMethod,
-                        date: DateTime.now(),
-                      ),
-                    );
-
-                context.push('/transaction/$transactionId');
-              },
+              onPressed: _isCreatingTransaction ? null : () => _createTransaction(product, total),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary(context),
+                disabledBackgroundColor: AppColors.softBorder(context),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
                   vertical: 16,
@@ -473,19 +572,122 @@ class _CheckoutViewState extends ConsumerState<CheckoutView> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                'Buat Pesanan',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              child: _isCreatingTransaction
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      'Buat Pesanan',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _createTransaction(MarketplaceProduct product, int total) async {
+    if (selectedPaymentMethod == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Pilih metode pembayaran terlebih dahulu'),
+          backgroundColor: Colors.red.shade400,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isCreatingTransaction = true);
+
+    try {
+      // Get current user ID from auth service
+      final authService = ref.read(authServiceProvider);
+      final user = await authService.getCurrentUser();
+      
+      if (user == null) {
+        throw Exception('User tidak ditemukan. Silakan login kembali.');
+      }
+
+      final service = ref.read(marketplaceServiceProvider);
+      
+      print('🛒 CREATING TRANSACTION:');
+      print('   User ID: ${user.id}');
+      print('   Product ID: ${widget.productId}');
+      print('   Quantity: ${widget.quantity}');
+      print('   Payment Method: ${selectedPaymentMethod!.transactionMethodId}');
+      
+      final result = await service.createTransaction(
+        userId: user.id,
+        productId: widget.productId,
+        quantity: widget.quantity,
+        transactionMethodId: selectedPaymentMethod!.transactionMethodId,
+        address: "Sudasoyono Muhdi, (+62 9123 1923), Blok D - No. 4",
+        description: _descriptionController.text.trim().isEmpty
+            ? null
+            : _descriptionController.text.trim(),
+      );
+
+      print('✅ Transaction created: ${result['product_transaction_id']}');
+
+      if (!mounted) return;
+
+      // Invalidate my orders to refresh
+      ref.invalidate(account.myOrdersProvider(user.id));
+
+      // Navigate to transaction detail
+      final transactionId = result['product_transaction_id']?.toString();
+      if (transactionId != null) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white),
+                const SizedBox(width: 8),
+                const Expanded(child: Text('Pesanan berhasil dibuat!')),
+              ],
+            ),
+            backgroundColor: Colors.green.shade600,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        
+        // Navigate to transaction detail
+        context.go('/transaction/$transactionId');
+      } else {
+        // Fallback to marketplace if no transaction ID
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Pesanan dibuat, tapi tidak bisa membuka detail'),
+            backgroundColor: Colors.orange.shade600,
+          ),
+        );
+        context.go('/marketplace');
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal membuat pesanan: ${e.toString()}'),
+          backgroundColor: Colors.red.shade400,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isCreatingTransaction = false);
+      }
+    }
   }
 
   BoxDecoration _cardDecoration() {

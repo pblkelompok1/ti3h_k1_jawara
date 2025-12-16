@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-
 import 'auth_service.dart';
 import '../models/family_model.dart';
 import '../models/resident_model.dart';

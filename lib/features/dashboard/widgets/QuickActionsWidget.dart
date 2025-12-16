@@ -27,7 +27,7 @@ class QuickActionsWidget extends StatelessWidget {
       'subtitle': 'Minta surat secara online',
       'icon': Icons.schedule_rounded,
       'color': Color(0xFF9C27B0),
-      'path': '/ajukan-surat',
+      'path': '/letter/selection',
     },
     {
       'title': 'Kegiatan RT',
