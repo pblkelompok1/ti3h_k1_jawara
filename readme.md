@@ -276,18 +276,32 @@ Output build akan tersedia di folder `build/`:
 
 ## ✅ To-Do List
 
-### ✔️ Completed Tasks
+## ✅ To-Do List Completed
 
-- [x] **Memperbarui Database** - Alex
-- [x] **Memperbarui Seeder** - Alex
-- [x] **Memperbaiki Bug atau Logic yang keliru (CRUD)** - Alex
-- [x] **Request Surat screen** - Alex
-- [x] **Laporan Screen** - Alex
-- [x] **Managemen Banner (dashboard + marketplace)** - Alex
-- [x] **Rework Registrasi pending (sekarang kurang bagus sih)** - Alex
-- [x] **Rapikan Backend** - Ninis
-- [x] **Rapikan UI** - Ninis
+### Backend Development - Alex
+- [x] Memperbarui Database
+- [x] Memperbarui Seeder
+- [x] Memperbaiki Bug atau Logic yang keliru (CRUD)
 
+### Frontend Development - Alex
+- [x] Request Surat screen
+- [x] Laporan Screen
+- [x] Managemen Banner (dashboard + marketplace)
+- [x] Rework Registrasi pending (sekarang kurang bagus sih)
+
+### UI/UX Development - Ninis
+- [x] Rapikan Backend
+- [x] Rapikan UI
+
+### Additional Features Completed
+- [x] Activity Management untuk Admin
+- [x] Product Rating & Review System
+- [x] Marketplace dengan sistem transaksi
+- [x] Letter Request System (Domisili & Usaha)
+- [x] Finance Management (Iuran RT/RW)
+- [x] Citizen Report System
+- [x] Authentication & Authorization
+- [x] Profile Management dengan Family Data
 ---
 
 ## 📚 Dokumentasi API
@@ -395,10 +409,12 @@ flutter run
 
 ---
 
-## 👥 Team
+## 👥 Tim Pengembang
 
-- **Alex** - Backend & API Integration
-- **Ninis** - Frontend & UI/UX
+- **Alex** - FullStack Developer
+- **Ninis** - ML/AI Developer
+- **Candra** - Frontend Developer
+- **Ekya** - FullStack Developer
 
 ---
 
