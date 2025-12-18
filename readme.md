@@ -288,14 +288,6 @@ Output build akan tersedia di folder `build/`:
 - [x] **Rapikan Backend** - Ninis
 - [x] **Rapikan UI** - Ninis
 
-### 🔄 In Progress / Planned
-
-- [ ] Testing & Bug Fixes
-- [ ] Performance Optimization
-- [ ] UI/UX Improvements
-- [ ] Documentation Updates
-- [ ] Deployment ke Production
-
 ---
 
 ## 📚 Dokumentasi API
