@@ -395,16 +395,16 @@ Untuk detail lengkap API integration, lihat dokumentasi berikut:
 
 Proyek ini mengimplementasikan berbagai konsep dan teknik Flutter yang dipelajari dalam kurikulum mobile development:
 
-| No | Materi | Implementasi | Status |
-|----|---------|--------------|--------|
-| #09 | **Kamera** | Menggunakan plugin `camera` untuk capture foto dari kamera perangkat. Diimplementasikan di marketplace (upload produk), activity management (upload kegiatan), dan report (lampiran laporan) | ✅ Implemented |
-| #10 | **Dasar State Management** | Menggunakan `Riverpod` sebagai state management untuk mengelola UI state di seluruh aplikasi. Provider patterns digunakan untuk auth, marketplace, finance, dan fitur lainnya | ✅ Implemented |
-| #11 | **Pemrograman Asynchronous** | Implementasi async/await di API calls, file operations, dan permission handling. Menggunakan `Future` dan `async` di service layer (`lib/core/services/`) | ✅ Implemented |
-| #12 | **Streams** | Implementasi stream dengan Riverpod `StreamProvider` untuk real-time updates di dashboard, activity list, dan marketplace transactions | ✅ Implemented |
-| #13 | **Persistensi Data** | JSON serialization dengan `freezed` dan `json_serializable`. Local storage dengan `SharedPreferences` dan `FlutterSecureStorage` untuk token/session management | ✅ Implemented |
-| #14 | **Restful API** | Backend API di FastAPI dengan endpoint CRUD untuk semua fitur. HTTP requests menggunakan `Dio` dan `http` package. API integration di `lib/core/services/` | ✅ Implemented |
-| #15 | **Progress Project - Bagian 1** | Phase 1 development dengan fitur authentication, dashboard, dan marketplace basic functionality. Selesai dengan struktur project yang clean | ✅ Completed |
-| #16 | **Progress Project - Bagian 2 + #17 UAS** | Phase 2 development dengan semua advanced features (activity management, letter system, finance, reports). Final project yang comprehensive dan siap production | ✅ Completed |
+| Jobsheet | Materi | Penjelasan Implementasi | Status |
+|----------|--------|------------------------|--------|
+| #09 | Kamera | Capture foto dari kamera di marketplace (upload produk), activity management (upload kegiatan), dan report (lampiran laporan) | ✅ Implemented |
+| #10 | Dasar State Management | Riverpod untuk mengelola UI state. Provider patterns untuk auth, marketplace, finance, dan fitur lainnya | ✅ Implemented |
+| #11 | Pemrograman Asynchronous | Async/await di API calls, file operations, dan permission handling di `lib/core/services/` | ✅ Implemented |
+| #12 | Streams | StreamProvider untuk real-time updates di dashboard, activity list, dan marketplace transactions | ✅ Implemented |
+| #13 | Persistensi Data | JSON serialization dengan `freezed` & `json_serializable`, local storage dengan SharedPreferences & FlutterSecureStorage | ✅ Implemented |
+| #14 | Restful API | Backend FastAPI dengan endpoint CRUD. HTTP requests via `Dio` & `http` di `lib/core/services/` | ✅ Implemented |
+| #15 | Progress Project - Bagian 1 | Phase 1: authentication, dashboard, marketplace basic. Struktur project yang clean dan terorganisir | ✅ Completed |
+| #16 | Progress Project - Bagian 2 + #17 UAS | Phase 2: activity management, letter system, finance, reports. Final project comprehensive & production-ready | ✅ Completed |
 
 ---
 
