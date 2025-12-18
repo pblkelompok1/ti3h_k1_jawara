@@ -7,14 +7,15 @@ Aplikasi mobile untuk manajemen RT berbasis Flutter dengan backend FastAPI. Apli
 ## 📋 Daftar Isi
 
 - [Fitur Utama](#-fitur-utama)
-- [Struktur Project](#-struktur-project)
 - [Prerequisites](#-prerequisites)
 - [Instalasi & Setup](#-instalasi--setup)
 - [Konfigurasi](#-konfigurasi)
+- [Fitur Wajib Diimplementasikan](#-fitur-wajib-diimplementasikan)
 - [Menjalankan Aplikasi](#-menjalankan-aplikasi)
 - [To-Do List](#-to-do-list)
 - [Dokumentasi API](#-dokumentasi-api)
 - [Tech Stack](#-tech-stack)
+- [Tim Pengembang](#-tim-pengembang)
 
 ---
 
@@ -38,101 +39,6 @@ Aplikasi mobile untuk manajemen RT berbasis Flutter dengan backend FastAPI. Apli
 - **Laporan Warga**: Review dan tindak lanjuti laporan dari warga
 - **Keuangan**: Kelola iuran dan transaksi keuangan
 - **Marketplace**: Monitor transaksi marketplace
-
----
-
-## 📁 Struktur Project
-
-```
-ti3h_k1_jawara/
-├── lib/                          # Source code utama
-│   ├── main.dart                 # Entry point aplikasi
-│   ├── core/                     # Core utilities & shared resources
-│   │   ├── enum/                 # Enumerations
-│   │   ├── models/               # Shared models
-│   │   ├── provider/             # Shared providers (Riverpod)
-│   │   ├── services/             # API services
-│   │   ├── themes/               # Theme configuration
-│   │   ├── utils/                # Helper utilities
-│   │   └── widgets/              # Shared widgets
-│   │
-│   └── features/                 # Feature modules
-│       ├── routes.dart           # App routing configuration
-│       ├── admin/                # Admin features
-│       │   ├── model/            # Admin-specific models
-│       │   ├── provider/         # State management
-│       │   ├── repository/       # Data layer
-│       │   └── view/             # UI screens
-│       │
-│       ├── auth/                 # Authentication
-│       │   ├── provider/         # Auth state management
-│       │   ├── view/             # Login/Register screens
-│       │   └── widget/           # Auth-related widgets
-│       │
-│       ├── dashboard/            # Dashboard features
-│       │   ├── provider/
-│       │   ├── view/
-│       │   └── widgets/
-│       │
-│       ├── finance/              # Financial management
-│       │   ├── data/
-│       │   ├── provider/
-│       │   ├── view/
-│       │   └── widgets/
-│       │
-│       ├── letter/               # Letter request system
-│       │   ├── data/
-│       │   │   ├── models/       # Letter models
-│       │   │   └── services/     # Letter API
-│       │   └── presentation/
-│       │       └── screens/      # Letter UI screens
-│       │
-│       ├── market/               # Marketplace
-│       │   ├── models/           # Product, transaction models
-│       │   ├── provider/         # Market state management
-│       │   ├── view/             # Marketplace screens
-│       │   └── widgets/          # Market-related widgets
-│       │
-│       ├── profile/              # User profile
-│       │   ├── data/
-│       │   ├── provider/
-│       │   └── view/
-│       │
-│       ├── report/               # Citizen reports
-│       │   ├── models/
-│       │   ├── provider/
-│       │   └── view/
-│       │
-│       └── resident/             # Resident management
-│           ├── data/
-│           ├── provider/
-│           ├── view/
-│           └── widgets/
-│
-├── assets/                       # Static assets
-│   ├── img/                      # Images
-│   └── lottie/                   # Lottie animations
-│
-├── android/                      # Android-specific files
-├── ios/                          # iOS-specific files
-├── web/                          # Web-specific files
-├── windows/                      # Windows-specific files
-├── linux/                        # Linux-specific files
-├── macos/                        # macOS-specific files
-│
-├── test/                         # Unit & widget tests
-│
-├── pubspec.yaml                  # Dependencies & project config
-├── analysis_options.yaml         # Dart linter rules
-├── build.yaml                    # Build runner configuration
-│
-└── Documentation Files:
-    ├── ACTIVITY_MANAGEMENT_DOCS.md
-    ├── AJUKAN_SURAT_DOCS.md
-    ├── BACKEND_FIX_TRANSACTION_STATUS.md
-    ├── LETTER_FEATURE_DOCS.md
-    └── PRODUCT_RATING_API_FRONTEND.md
-```
 
 ---
 
@@ -227,7 +133,133 @@ Buka `ios/Runner/Info.plist` dan tambahkan permissions:
 
 ---
 
-## 🎯 Menjalankan Aplikasi
+## 🎯 Fitur Wajib Diimplementasikan
+
+### 1️⃣ Marketplace & Product Rating
+
+| Fitur | Component | State Management | Package | Status |
+|-------|-----------|------------------|---------|--------|
+| Upload Foto Produk | `image_picker_widget.dart` | `ProductImageProvider` | `image_picker` | ✅ Implemented |
+| Ambil Foto dari Kamera | `camera_capture_screen.dart` | `CameraProvider` | `camera` | ✅ Implemented |
+| Perlihatkan Gallery | `product_gallery_view.dart` | `GalleryProvider` | `photo_view` | ✅ Implemented |
+| Rating Produk (1-5 Star) | `product_rating_widget.dart` | `ProductRatingProvider` | `fl_chart` | ✅ Implemented |
+| Review Produk | `product_review_screen.dart` | `ReviewProvider` | `dio` | ✅ Implemented |
+| Marketplace List | `marketplace_list_view.dart` | `MarketplaceProvider` | `flutter_riverpod` | ✅ Implemented |
+| Transaksi Produk | `transaction_detail_view.dart` | `TransactionProvider` | `http` | ✅ Implemented |
+
+**Location:** `lib/features/market/`
+**Key Files:**
+- `lib/features/market/models/product_model.dart`
+- `lib/features/market/provider/product_provider.dart`
+- `lib/features/market/view/marketplace_list_view.dart`
+
+---
+
+### 2️⃣ Activity Management (Admin)
+
+| Fitur | Component | State Management | File Location | Status |
+|-------|-----------|------------------|---------------|--------|
+| List Kegiatan | `admin_activity_view.dart` | `ActivityProvider` | `lib/features/admin/view/` | ✅ Implemented |
+| Create Kegiatan | `admin_activity_form_view.dart` | `ActivityFormProvider` | `lib/features/admin/view/` | ✅ Implemented |
+| Edit Kegiatan | `admin_activity_form_view.dart` | `ActivityFormProvider` | `lib/features/admin/view/` | ✅ Implemented |
+| Delete Kegiatan | `admin_activity_view.dart` | `ActivityProvider` | `lib/features/admin/view/` | ✅ Implemented |
+| Upload Foto Kegiatan (Multi) | `activity_image_picker.dart` | `ActivityImageProvider` | `lib/features/admin/widget/` | ✅ Implemented |
+| Detail Kegiatan | `admin_activity_detail_view.dart` | `ActivityDetailProvider` | `lib/features/admin/view/` | ✅ Implemented |
+| Filter by Status | `activity_filter_widget.dart` | `ActivityFilterProvider` | `lib/features/admin/widget/` | ✅ Implemented |
+| Search Kegiatan | `activity_search_widget.dart` | `ActivitySearchProvider` | `lib/features/admin/widget/` | ✅ Implemented |
+
+**Location:** `lib/features/admin/`
+**Key Files:**
+- `lib/features/admin/model/activity_model.dart`
+- `lib/features/admin/provider/activity_provider.dart`
+- `lib/features/admin/repository/activity_repository.dart`
+
+---
+
+### 3️⃣ Letter Request System
+
+| Fitur | Component | State Management | User Type | Status |
+|-------|-----------|------------------|-----------|--------|
+| Pilih Jenis Surat | `letter_selection_screen.dart` | `LetterTypeProvider` | Warga | ✅ Implemented |
+| Form Surat Domisili | `domisili_form_screen.dart` | `DomisiliFormProvider` | Warga | ✅ Implemented |
+| Form Surat Usaha | `usaha_form_screen.dart` | `UsahaFormProvider` | Warga | ✅ Implemented |
+| Lihat Status Pengajuan | `my_letter_requests_screen.dart` | `LetterRequestsProvider` | Warga | ✅ Implemented |
+| Download/View PDF | `letter_pdf_viewer.dart` | `LetterPdfProvider` | Warga | ✅ Implemented |
+| Approval Pengajuan | `admin_letter_approval_screen.dart` | `LetterApprovalProvider` | Admin | ✅ Implemented |
+| Reject dengan Alasan | `letter_rejection_dialog.dart` | `LetterRejectionProvider` | Admin | ✅ Implemented |
+
+**Location:** `lib/features/letter/`
+**Key Files:**
+- `lib/features/letter/data/models/letter_transaction.dart`
+- `lib/features/letter/data/services/letter_api_service.dart`
+- `lib/features/letter/presentation/screens/`
+
+---
+
+### 4️⃣ Finance Management
+
+| Fitur | Component | State Management | Status |
+|-------|-----------|------------------|--------|
+| Lihat Iuran RT | `finance_list_view.dart` | `FinanceProvider` | ✅ Implemented |
+| Bayar Iuran | `payment_screen.dart` | `PaymentProvider` | ✅ Implemented |
+| Riwayat Pembayaran | `payment_history_view.dart` | `PaymentHistoryProvider` | ✅ Implemented |
+| QR Code Pembayaran | `payment_qr_screen.dart` | `QrProvider` | ✅ Implemented |
+| Struk Pembayaran | `payment_receipt_view.dart` | `ReceiptProvider` | ✅ Implemented |
+
+**Location:** `lib/features/finance/`
+**Key Files:**
+- `lib/features/finance/data/models/fee_model.dart`
+- `lib/features/finance/provider/finance_provider.dart`
+
+---
+
+### 5️⃣ Report & Dashboard
+
+| Fitur | Component | State Management | User Type | Status |
+|-------|-----------|------------------|-----------|--------|
+| Buat Laporan | `report_form_screen.dart` | `ReportFormProvider` | Warga | ✅ Implemented |
+| Lihat Laporan Saya | `my_reports_view.dart` | `MyReportsProvider` | Warga | ✅ Implemented |
+| Dashboard Warga | `dashboard_citizen_view.dart` | `DashboardProvider` | Warga | ✅ Implemented |
+| Dashboard Admin | `admin_dashboard_view.dart` | `AdminDashboardProvider` | Admin | ✅ Implemented |
+| Statistik & Chart | `dashboard_chart_widget.dart` | `ChartProvider` | Admin | ✅ Implemented |
+| Lihat Laporan Warga | `admin_laporan_view.dart` | `LaporanAdminProvider` | Admin | ✅ Implemented |
+
+**Location:** `lib/features/dashboard/`, `lib/features/report/`
+**Key Files:**
+- `lib/features/report/models/report_model.dart`
+- `lib/features/dashboard/provider/dashboard_provider.dart`
+
+---
+
+### 6️⃣ Authentication & Profile
+
+| Fitur | Component | State Management | Status |
+|-------|-----------|------------------|--------|
+| Login | `login_screen.dart` | `AuthProvider` | ✅ Implemented |
+| Register | `register_screen.dart` | `RegisterProvider` | ✅ Implemented |
+| Profile Management | `profile_view.dart` | `ProfileProvider` | ✅ Implemented |
+| Family Data | `family_management_view.dart` | `FamilyProvider` | ✅ Implemented |
+| Logout | `profile_view.dart` | `AuthProvider` | ✅ Implemented |
+| Token Management | `auth_service.dart` | FlutterSecureStorage | ✅ Implemented |
+
+**Location:** `lib/features/auth/`, `lib/features/profile/`
+**Key Files:**
+- `lib/core/services/auth_service.dart`
+- `lib/core/models/user_model.dart`
+
+---
+
+### 7️⃣ Additional Features
+
+| Fitur | State Management | Location | Status |
+|-------|------------------|----------|--------|
+| Permission Handler | `permission_provider.dart` | `lib/core/provider/` | ✅ Implemented |
+| File Download/Storage | `download_service.dart` | `lib/core/services/` | ✅ Implemented |
+| PDF Viewer | `pdf_viewer_widget.dart` | `lib/core/widgets/` | ✅ Implemented |
+| Banner Management | `BannerProvider` | `lib/features/admin/` | ✅ Implemented |
+| Resident Registration Approval | `RegistrationProvider` | `lib/features/admin/` | ✅ Implemented |
+
+---
 
 ### Development Mode
 
@@ -353,20 +385,6 @@ Untuk detail lengkap API integration, lihat dokumentasi berikut:
 
 ---
 
-## 🔐 Authentication Flow
-
-1. User login/register → Dapat access token
-2. Token disimpan di `FlutterSecureStorage`
-3. Setiap API request menggunakan token di header:
-   ```
-   Authorization: Bearer <token>
-   ```
-4. Token expired → Auto logout & redirect ke login
-
----
-
-## 📱 Supported Platforms
-
 - ✅ Android (Min SDK 21 / Android 5.0)
 - ✅ iOS (Min iOS 12.0)
 - ✅ Web
@@ -376,57 +394,12 @@ Untuk detail lengkap API integration, lihat dokumentasi berikut:
 
 ---
 
-## 🐛 Troubleshooting
-
-### Build Errors
-
-```bash
-# Clean build cache
-flutter clean
-
-# Get dependencies
-flutter pub get
-
-# Rebuild generated files
-flutter pub run build_runner build --delete-conflicting-outputs
-
-# Rebuild app
-flutter run
-```
-
-### API Connection Issues
-
-- Pastikan backend API sudah running
-- Check URL di `config_provider.dart`
-- Untuk Android Emulator, gunakan `10.0.2.2` bukan `localhost`
-- Untuk iOS Simulator/Web, gunakan `localhost` atau IP komputer
-
-### Permission Errors
-
-- Android: Check `AndroidManifest.xml`
-- iOS: Check `Info.plist`
-- Runtime permissions dihandle oleh `permission_handler` package
-
----
-
-## 👥 Tim Pengembang
+## � Tim Pengembang
 
 - **Alex** - FullStack Developer
 - **Ninis** - ML/AI Developer
 - **Candra** - Frontend Developer
 - **Ekya** - FullStack Developer
-
----
-
-## 📄 License
-
-[Specify your license here]
-
----
-
-## 📞 Contact & Support
-
-Untuk pertanyaan atau issue, silakan hubungi tim development atau buat issue di repository ini.
 
 ---
 
