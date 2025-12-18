@@ -40,6 +40,20 @@ Aplikasi mobile untuk manajemen RT berbasis Flutter dengan backend FastAPI. Apli
 - **Keuangan**: Kelola iuran dan transaksi keuangan
 - **Marketplace**: Monitor transaksi marketplace
 
+
+## 🎓 Implementasi Materi Pembelajaran
+
+Proyek ini mengimplementasikan berbagai konsep dan teknik Flutter yang dipelajari dalam kurikulum mobile development:
+
+| Jobsheet | Materi | Penjelasan Implementasi | Status |
+|----------|--------|------------------------|--------|
+| #09 | Kamera | Capture foto dari kamera di marketplace (upload produk), activity management (upload kegiatan), dan report (lampiran laporan) | ✅ Completed |
+| #10 | Dasar State Management | Riverpod untuk mengelola UI state. Provider patterns untuk auth, marketplace, finance, dan fitur lainnya | ✅ Completed |
+| #11 | Pemrograman Asynchronous | Async/await di API calls, file operations, dan permission handling di `lib/core/services/` | ✅ Completed |
+| #12 | Streams | StreamProvider untuk real-time updates di dashboard, activity list, dan marketplace transactions | ✅ Completed |
+| #13 | Persistensi Data | JSON serialization dengan `freezed` & `json_serializable`, local storage dengan SharedPreferences & FlutterSecureStorage | ✅ Completed |
+| #14 | Restful API | Backend FastAPI dengan endpoint CRUD. HTTP requests via `Dio` & `http` di `lib/core/services/` | ✅ Completed |
+
 ---
 
 
@@ -209,15 +223,6 @@ Output build akan tersedia di folder `build/`:
 - [x] Profile Management dengan Family Data
 ---
 
-## 📚 Dokumentasi API
-
-Untuk detail lengkap implementasi, lihat dokumentasi berikut:
-
-- **[ACTIVITY_MANAGEMENT_DOCS.md](ACTIVITY_MANAGEMENT_DOCS.md)** - Manajemen kegiatan RT
-- **[AJUKAN_SURAT_DOCS.md](AJUKAN_SURAT_DOCS.md)** - Sistem pengajuan surat
-- **[LETTER_FEATURE_DOCS.md](LETTER_FEATURE_DOCS.md)** - Fitur surat lengkap
-- **[BACKEND_FIX_TRANSACTION_STATUS.md](BACKEND_FIX_TRANSACTION_STATUS.md)** - Fix transaction status
-
 ---
 
 ## 🛠️ Tech Stack
@@ -254,19 +259,6 @@ Untuk detail lengkap implementasi, lihat dokumentasi berikut:
 - **Database**: PostgreSQL
 - **Authentication**: JWT
 - **File Storage**: Local/Cloud storage
-
-## 🎓 Implementasi Materi Pembelajaran
-
-Proyek ini mengimplementasikan berbagai konsep dan teknik Flutter yang dipelajari dalam kurikulum mobile development:
-
-| Jobsheet | Materi | Penjelasan Implementasi | Status |
-|----------|--------|------------------------|--------|
-| #09 | Kamera | Capture foto dari kamera di marketplace (upload produk), activity management (upload kegiatan), dan report (lampiran laporan) | ✅ Completed |
-| #10 | Dasar State Management | Riverpod untuk mengelola UI state. Provider patterns untuk auth, marketplace, finance, dan fitur lainnya | ✅ Completed |
-| #11 | Pemrograman Asynchronous | Async/await di API calls, file operations, dan permission handling di `lib/core/services/` | ✅ Completed |
-| #12 | Streams | StreamProvider untuk real-time updates di dashboard, activity list, dan marketplace transactions | ✅ Completed |
-| #13 | Persistensi Data | JSON serialization dengan `freezed` & `json_serializable`, local storage dengan SharedPreferences & FlutterSecureStorage | ✅ Completed |
-| #14 | Restful API | Backend FastAPI dengan endpoint CRUD. HTTP requests via `Dio` & `http` di `lib/core/services/` | ✅ Completed |
 
 ---
 
