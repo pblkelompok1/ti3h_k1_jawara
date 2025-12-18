@@ -1,269 +1,255 @@
-# 🏘️ Jawara - Aplikasi Manajemen RT/RW
+# 🏘️ Jawara - RT Management Mobile Application
 
-Aplikasi mobile berbasis Flutter untuk memudahkan pengelolaan administrasi dan komunikasi di lingkungan RT/RW. Dibangun dengan arsitektur modern menggunakan Riverpod untuk state management dan Go Router untuk navigasi.
+Aplikasi mobile untuk manajemen RT berbasis Flutter dengan backend FastAPI. Aplikasi ini menyediakan fitur-fitur lengkap untuk pengelolaan RT termasuk marketplace, keuangan, pengajuan surat, laporan warga, dan manajemen kegiatan.
 
 ---
 
 ## 📋 Daftar Isi
 
 - [Fitur Utama](#-fitur-utama)
-- [Struktur Folder](#-struktur-folder)
-- [Teknologi yang Digunakan](#-teknologi-yang-digunakan)
-- [Cara Instalasi](#-cara-instalasi)
+- [Struktur Project](#-struktur-project)
+- [Prerequisites](#-prerequisites)
+- [Instalasi & Setup](#-instalasi--setup)
 - [Konfigurasi](#-konfigurasi)
-- [To-Do List Completed](#-to-do-list-completed)
-- [Tim Pengembang](#-tim-pengembang)
+- [Menjalankan Aplikasi](#-menjalankan-aplikasi)
+- [To-Do List](#-to-do-list)
+- [Dokumentasi API](#-dokumentasi-api)
+- [Tech Stack](#-tech-stack)
 
 ---
 
 ## ✨ Fitur Utama
 
-### 👤 Untuk Warga (Citizen)
-- **Dashboard Warga**: Informasi kegiatan, iuran, dan pengumuman
-- **Marketplace**: Jual beli produk antar warga dengan sistem rating dan review
-- **Manajemen Iuran**: Lihat dan bayar iuran RT/RW
-- **Pengajuan Surat**: Ajukan surat domisili dan surat usaha secara online
-- **Laporan Warga**: Laporkan keluhan atau masalah di lingkungan RT
-- **Profile**: Kelola data pribadi dan keluarga
+### 👤 Untuk Warga (Citizens)
+- **Dashboard**: Overview informasi RT, banner, dan quick access
+- **Marketplace**: Jual beli produk antar warga dengan sistem rating & review
+- **Keuangan**: Pembayaran iuran RT, riwayat transaksi
+- **Pengajuan Surat**: Request surat domisili dan surat usaha
+- **Laporan**: Buat laporan untuk RT (infrastruktur, keamanan, dll)
+- **Kegiatan**: Lihat dan ikuti kegiatan RT
+- **Profile**: Manajemen profil dan keluarga
 
-### 👨‍💼 Untuk Admin RT/RW
-- **Dashboard Admin**: Overview statistik warga, iuran, dan kegiatan
-- **Manajemen Warga**: CRUD data warga dan verifikasi pendaftaran
-- **Manajemen Kegiatan**: Buat dan kelola kegiatan RT/RW dengan foto
-- **Manajemen Banner**: Kelola banner untuk dashboard dan marketplace
-- **Persetujuan Surat**: Review dan setujui/tolak pengajuan surat warga
-- **Laporan & Statistik**: Monitoring keuangan dan aktivitas RT
-- **Manajemen Iuran**: Atur jenis dan besaran iuran
+### 👨‍💼 Untuk Admin
+- **Dashboard Admin**: Statistik dan overview RT
+- **Manajemen Warga**: Approve/reject registrasi warga baru
+- **Manajemen Banner**: Kelola banner di dashboard dan marketplace
+- **Manajemen Kegiatan**: CRUD kegiatan RT dengan upload foto
+- **Review Surat**: Approve/reject pengajuan surat warga
+- **Laporan Warga**: Review dan tindak lanjuti laporan dari warga
+- **Keuangan**: Kelola iuran dan transaksi keuangan
+- **Marketplace**: Monitor transaksi marketplace
 
 ---
 
-## 📁 Struktur Folder
+## 📁 Struktur Project
 
-### Root Directory
 ```
 ti3h_k1_jawara/
-├── android/              # Konfigurasi platform Android
-├── ios/                  # Konfigurasi platform iOS
-├── linux/                # Konfigurasi platform Linux
-├── macos/                # Konfigurasi platform macOS
-├── windows/              # Konfigurasi platform Windows
-├── web/                  # Konfigurasi platform Web
-├── assets/               # Asset statis (gambar, lottie, dll)
-├── lib/                  # Source code utama aplikasi
-├── test/                 # File testing
-├── build/                # Build artifacts (generated)
-├── .dart_tool/           # Dart tools cache (generated)
-└── Documentation files   # File dokumentasi fitur
-```
-
-### `/lib` - Source Code Utama
-
-```
-lib/
-├── main.dart                    # Entry point aplikasi
-├── core/                        # Core functionality & shared resources
-│   ├── enum/                    # Enumerations
-│   ├── models/                  # Shared data models
-│   ├── provider/                # Global providers
-│   ├── services/                # API services & business logic
-│   ├── themes/                  # App theming (colors, theme provider)
-│   ├── utils/                   # Utility functions
-│   └── widgets/                 # Reusable widgets
+├── lib/                          # Source code utama
+│   ├── main.dart                 # Entry point aplikasi
+│   ├── core/                     # Core utilities & shared resources
+│   │   ├── enum/                 # Enumerations
+│   │   ├── models/               # Shared models
+│   │   ├── provider/             # Shared providers (Riverpod)
+│   │   ├── services/             # API services
+│   │   ├── themes/               # Theme configuration
+│   │   ├── utils/                # Helper utilities
+│   │   └── widgets/              # Shared widgets
+│   │
+│   └── features/                 # Feature modules
+│       ├── routes.dart           # App routing configuration
+│       ├── admin/                # Admin features
+│       │   ├── model/            # Admin-specific models
+│       │   ├── provider/         # State management
+│       │   ├── repository/       # Data layer
+│       │   └── view/             # UI screens
+│       │
+│       ├── auth/                 # Authentication
+│       │   ├── provider/         # Auth state management
+│       │   ├── view/             # Login/Register screens
+│       │   └── widget/           # Auth-related widgets
+│       │
+│       ├── dashboard/            # Dashboard features
+│       │   ├── provider/
+│       │   ├── view/
+│       │   └── widgets/
+│       │
+│       ├── finance/              # Financial management
+│       │   ├── data/
+│       │   ├── provider/
+│       │   ├── view/
+│       │   └── widgets/
+│       │
+│       ├── letter/               # Letter request system
+│       │   ├── data/
+│       │   │   ├── models/       # Letter models
+│       │   │   └── services/     # Letter API
+│       │   └── presentation/
+│       │       └── screens/      # Letter UI screens
+│       │
+│       ├── market/               # Marketplace
+│       │   ├── models/           # Product, transaction models
+│       │   ├── provider/         # Market state management
+│       │   ├── view/             # Marketplace screens
+│       │   └── widgets/          # Market-related widgets
+│       │
+│       ├── profile/              # User profile
+│       │   ├── data/
+│       │   ├── provider/
+│       │   └── view/
+│       │
+│       ├── report/               # Citizen reports
+│       │   ├── models/
+│       │   ├── provider/
+│       │   └── view/
+│       │
+│       └── resident/             # Resident management
+│           ├── data/
+│           ├── provider/
+│           ├── view/
+│           └── widgets/
 │
-└── features/                    # Feature modules (by domain)
-    ├── routes.dart              # App routing configuration
-    │
-    ├── admin/                   # Admin feature module
-    │   ├── data/                # Data layer (services, models)
-    │   ├── model/               # Domain models
-    │   ├── provider/            # State management providers
-    │   ├── repository/          # Data repositories
-    │   ├── view/                # UI screens
-    │   └── widgets/             # Feature-specific widgets
-    │
-    ├── auth/                    # Authentication module
-    │   ├── provider/            # Auth state providers
-    │   ├── view/                # Login, register screens
-    │   └── widget/              # Auth widgets
-    │
-    ├── dashboard/               # Dashboard module (citizen & admin)
-    │   ├── data/                # Dashboard data
-    │   ├── provider/            # Dashboard providers
-    │   ├── view/                # Dashboard screens
-    │   └── widgets/             # Dashboard widgets
-    │
-    ├── finance/                 # Finance & payment module
-    │   ├── data/                # Finance data & models
-    │   ├── provider/            # Finance providers
-    │   ├── view/                # Payment screens
-    │   └── widgets/             # Finance widgets
-    │
-    ├── layout/                  # App layout & navigation
-    │   ├── provider/            # Layout state providers
-    │   ├── views/               # Layout components
-    │   └── widgets/             # Layout widgets
-    │
-    ├── letter/                  # Letter request module
-    │   ├── data/                # Letter models & services
-    │   └── presentation/        # Letter UI screens
-    │
-    ├── market/                  # Marketplace module
-    │   ├── models/              # Product, transaction models
-    │   ├── provider/            # Marketplace providers
-    │   ├── view/                # Product, cart, transaction screens
-    │   ├── widgets/             # Marketplace widgets
-    │   └── helpers/             # Helper utilities
-    │
-    ├── profile/                 # User profile module
-    │   ├── data/                # Profile data
-    │   ├── provider/            # Profile providers
-    │   └── view/                # Profile screens
-    │
-    ├── report/                  # Citizen report module
-    │   ├── models/              # Report models
-    │   └── provider/            # Report providers
-    │
-    └── resident/                # Resident management module
-        ├── data/                # Resident data
-        ├── provider/            # Resident providers
-        ├── view/                # Resident screens
-        └── widgets/             # Resident widgets
+├── assets/                       # Static assets
+│   ├── img/                      # Images
+│   └── lottie/                   # Lottie animations
+│
+├── android/                      # Android-specific files
+├── ios/                          # iOS-specific files
+├── web/                          # Web-specific files
+├── windows/                      # Windows-specific files
+├── linux/                        # Linux-specific files
+├── macos/                        # macOS-specific files
+│
+├── test/                         # Unit & widget tests
+│
+├── pubspec.yaml                  # Dependencies & project config
+├── analysis_options.yaml         # Dart linter rules
+├── build.yaml                    # Build runner configuration
+│
+└── Documentation Files:
+    ├── ACTIVITY_MANAGEMENT_DOCS.md
+    ├── AJUKAN_SURAT_DOCS.md
+    ├── BACKEND_FIX_TRANSACTION_STATUS.md
+    ├── LETTER_FEATURE_DOCS.md
+    └── PRODUCT_RATING_API_FRONTEND.md
 ```
-
-### `/assets` - Static Assets
-
-```
-assets/
-├── img/                  # Image assets (PNG, JPG)
-│   └── jawara.png        # App logo
-└── lottie/               # Lottie animation files
-    ├── citizen.json      # Citizen animation
-    ├── finance.json      # Finance animation
-    ├── list_loading.json # List loading animation
-    ├── Loading.json      # Loading animation
-    └── marketplace.json  # Marketplace animation
-```
-
-### Documentation Files
-
-File dokumentasi fitur-fitur spesifik:
-
-- `ACTIVITY_MANAGEMENT_DOCS.md` - Dokumentasi manajemen kegiatan RT
-- `AJUKAN_SURAT_DOCS.md` - Dokumentasi fitur pengajuan surat
-- `LETTER_FEATURE_DOCS.md` - Dokumentasi lengkap fitur surat
-- `PRODUCT_RATING_API_FRONTEND.md` - Dokumentasi API rating produk
-- `BACKEND_FIX_TRANSACTION_STATUS.md` - Dokumentasi fix status transaksi
 
 ---
 
-## 🛠️ Teknologi yang Digunakan
+## 📌 Prerequisites
 
-### Framework & Language
-- **Flutter** `^3.9.2` - UI framework
-- **Dart** `^3.9.2` - Programming language
+Sebelum memulai, pastikan Anda sudah menginstall:
 
-### State Management & Architecture
-- **flutter_riverpod** `^2.6.1` - State management
-- **riverpod_generator** `^2.6.4` - Code generation untuk Riverpod
-- **go_router** `^17.0.0` - Routing & navigation
-
-### UI Components & Utilities
-- **intl** `^0.19.0` - Internationalization & date formatting
-- **auto_size_text** `^3.0.0` - Responsive text
-- **qr_flutter** `^4.1.0` - QR code generation
-- **lottie** `^3.3.2` - Lottie animations
-- **fl_chart** `^1.1.1` - Charts & graphs
-- **photo_view** `^0.15.0` - Image viewer
-- **cached_network_image** `^3.4.1` - Image caching
-
-### Network & Storage
-- **http** `^1.6.0` - HTTP client
-- **dio** `^5.6.0` - Advanced HTTP client
-- **shared_preferences** `^2.5.3` - Local storage
-- **flutter_secure_storage** `^9.2.4` - Secure storage
-- **path_provider** `^2.1.5` - Path utilities
-
-### Media & Files
-- **image_picker** `^1.1.2` - Image picker
-- **camera** `^0.11.3` - Camera access
-- **file_picker** `^10.3.7` - File picker
-- **syncfusion_flutter_pdfviewer** `^31.2.18` - PDF viewer
-
-### Other
-- **permission_handler** `^12.0.1` - Permission handling
-- **url_launcher** `^6.3.1` - URL launcher
-
-### Development Tools
-- **build_runner** `^2.4.15` - Code generation
-- **flutter_lints** `^5.0.0` - Linting rules
-- **custom_lint** `^0.7.2` - Custom linting
-- **riverpod_lint** `^2.6.4` - Riverpod linting
-
----
-
-## 🚀 Cara Instalasi
-
-### Prerequisites
-
-Pastikan Anda sudah menginstall:
 - **Flutter SDK** (versi 3.9.2 atau lebih tinggi)
-- **Dart SDK** (versi 3.9.2 atau lebih tinggi)
-- **Android Studio** / **VS Code** dengan Flutter extension
-- **Git**
+  - [Install Flutter](https://docs.flutter.dev/get-started/install)
+- **Dart SDK** (included with Flutter)
+- **IDE/Editor**:
+  - Visual Studio Code + Flutter Extension, atau
+  - Android Studio + Flutter Plugin
+- **Platform Development Tools**:
+  - **Android**: Android Studio, Android SDK, Java JDK
+  - **iOS**: Xcode (macOS only)
+  - **Windows**: Visual Studio 2022 with C++ development tools
+- **Git** untuk version control
+- **Backend API** yang sudah running (FastAPI)
 
-Untuk mengecek instalasi Flutter:
-```bash
-flutter --version
-flutter doctor
-```
+---
 
-### Langkah Instalasi
+## 🚀 Instalasi & Setup
 
-#### 1. Clone Repository
+### 1. Clone Repository
+
 ```bash
 git clone <repository-url>
 cd ti3h_k1_jawara
 ```
 
-#### 2. Install Dependencies
+### 2. Install Dependencies
+
 ```bash
 flutter pub get
 ```
 
-#### 3. Generate Code (Riverpod, Freezed, dll)
+### 3. Generate Files (untuk freezed & json_serializable)
+
 ```bash
 flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
-Atau untuk watch mode (auto-generate saat ada perubahan):
+### 4. Verifikasi Flutter Installation
+
 ```bash
-flutter pub run build_runner watch --delete-conflicting-outputs
+flutter doctor
 ```
 
-#### 4. Setup Platform
+Pastikan semua checklist ✓ hijau. Jika ada masalah, ikuti instruksi perbaikan yang diberikan.
 
-##### Android
-```bash
-cd android
-./gradlew clean
-cd ..
+---
+
+## ⚙️ Konfigurasi
+
+### 1. Backend API Configuration
+
+Edit file konfigurasi API di `lib/core/provider/config_provider.dart`:
+
+```dart
+final configProvider = Provider<AppConfig>((ref) {
+  return AppConfig(
+    baseUrl: 'http://your-backend-api-url.com/api/v1',
+    // Atau untuk development lokal:
+    // baseUrl: 'http://10.0.2.2:8000/api/v1',  // Android Emulator
+    // baseUrl: 'http://localhost:8000/api/v1',  // iOS Simulator/Web
+  );
+});
 ```
 
-##### iOS (Mac only)
-```bash
-cd ios
-pod install
-cd ..
+### 2. Android Configuration
+
+Buka `android/app/src/main/AndroidManifest.xml` dan pastikan permissions sudah benar:
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 ```
 
-#### 5. Run Application
+### 3. iOS Configuration (jika develop untuk iOS)
 
-Untuk development:
+Buka `ios/Runner/Info.plist` dan tambahkan permissions:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>App memerlukan akses kamera untuk upload foto</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>App memerlukan akses galeri untuk upload foto</string>
+```
+
+---
+
+## 🎯 Menjalankan Aplikasi
+
+### Development Mode
+
 ```bash
+# List available devices
+flutter devices
+
+# Run on specific device
+flutter run -d <device-id>
+
+# Run with hot reload (default)
 flutter run
+
+# Run in debug mode (verbose logging)
+flutter run --debug
+
+# Run in release mode (optimized performance)
+flutter run --release
 ```
 
-Untuk build release:
+### Build untuk Production
+
 ```bash
 # Android APK
 flutter build apk --release
@@ -271,116 +257,169 @@ flutter build apk --release
 # Android App Bundle (untuk Google Play)
 flutter build appbundle --release
 
-# iOS (Mac only)
+# iOS (macOS only)
 flutter build ios --release
+
+# Windows
+flutter build windows --release
+
+# Web
+flutter build web --release
 ```
 
+Output build akan tersedia di folder `build/`:
+- Android: `build/app/outputs/flutter-apk/app-release.apk`
+- Windows: `build/windows/runner/Release/`
+- Web: `build/web/`
+
 ---
 
-## ⚙️ Konfigurasi
+## ✅ To-Do List
 
-### 1. API Configuration
+### ✔️ Completed Tasks
 
-Edit file `lib/core/provider/config_provider.dart` untuk mengatur base URL API:
+- [x] **Memperbarui Database** - Alex
+- [x] **Memperbarui Seeder** - Alex
+- [x] **Memperbaiki Bug atau Logic yang keliru (CRUD)** - Alex
+- [x] **Request Surat screen** - Alex
+- [x] **Laporan Screen** - Alex
+- [x] **Managemen Banner (dashboard + marketplace)** - Alex
+- [x] **Rework Registrasi pending (sekarang kurang bagus sih)** - Alex
+- [x] **Rapikan Backend** - Ninis
+- [x] **Rapikan UI** - Ninis
 
-```dart
-final configProvider = Provider<AppConfig>((ref) {
-  return AppConfig(
-    baseUrl: 'http://your-api-domain.com/api/v1',
-  );
-});
+### 🔄 In Progress / Planned
+
+- [ ] Testing & Bug Fixes
+- [ ] Performance Optimization
+- [ ] UI/UX Improvements
+- [ ] Documentation Updates
+- [ ] Deployment ke Production
+
+---
+
+## 📚 Dokumentasi API
+
+Untuk detail lengkap API integration, lihat dokumentasi berikut:
+
+- **[ACTIVITY_MANAGEMENT_DOCS.md](ACTIVITY_MANAGEMENT_DOCS.md)** - Manajemen kegiatan RT
+- **[AJUKAN_SURAT_DOCS.md](AJUKAN_SURAT_DOCS.md)** - Sistem pengajuan surat
+- **[LETTER_FEATURE_DOCS.md](LETTER_FEATURE_DOCS.md)** - Fitur surat lengkap
+- **[PRODUCT_RATING_API_FRONTEND.md](PRODUCT_RATING_API_FRONTEND.md)** - Rating & review produk
+- **[BACKEND_FIX_TRANSACTION_STATUS.md](BACKEND_FIX_TRANSACTION_STATUS.md)** - Fix transaction status
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend (Mobile)
+- **Framework**: Flutter 3.9.2
+- **Language**: Dart
+- **State Management**: Riverpod (flutter_riverpod)
+- **Routing**: GoRouter
+- **HTTP Client**: Dio & HTTP package
+- **Local Storage**: 
+  - SharedPreferences (preferences)
+  - FlutterSecureStorage (secure tokens)
+- **UI Components**:
+  - Auto Size Text
+  - Cached Network Image
+  - Lottie Animations
+  - QR Flutter
+  - FL Chart (charts)
+  - Photo View
+  - Syncfusion PDF Viewer
+- **Image & File**:
+  - Image Picker
+  - File Picker
+  - Camera
+  - Path Provider
+- **Other**: 
+  - Intl (internationalization)
+  - Permission Handler
+  - URL Launcher
+
+### Backend
+- **Framework**: FastAPI (Python)
+- **Database**: PostgreSQL
+- **Authentication**: JWT
+- **File Storage**: Local/Cloud storage
+
+---
+
+## 🔐 Authentication Flow
+
+1. User login/register → Dapat access token
+2. Token disimpan di `FlutterSecureStorage`
+3. Setiap API request menggunakan token di header:
+   ```
+   Authorization: Bearer <token>
+   ```
+4. Token expired → Auto logout & redirect ke login
+
+---
+
+## 📱 Supported Platforms
+
+- ✅ Android (Min SDK 21 / Android 5.0)
+- ✅ iOS (Min iOS 12.0)
+- ✅ Web
+- ✅ Windows
+- ✅ Linux
+- ✅ macOS
+
+---
+
+## 🐛 Troubleshooting
+
+### Build Errors
+
+```bash
+# Clean build cache
+flutter clean
+
+# Get dependencies
+flutter pub get
+
+# Rebuild generated files
+flutter pub run build_runner build --delete-conflicting-outputs
+
+# Rebuild app
+flutter run
 ```
 
-### 2. Secure Storage
+### API Connection Issues
 
-Aplikasi menggunakan `flutter_secure_storage` untuk menyimpan token dan data sensitif. Konfigurasi sudah otomatis.
+- Pastikan backend API sudah running
+- Check URL di `config_provider.dart`
+- Untuk Android Emulator, gunakan `10.0.2.2` bukan `localhost`
+- Untuk iOS Simulator/Web, gunakan `localhost` atau IP komputer
 
-### 3. Permissions
+### Permission Errors
 
-Permissions yang dibutuhkan (sudah dikonfigurasi di `AndroidManifest.xml`):
-- Camera
-- Storage (Read/Write)
-- Internet
-- Network State
-
----
-
-## ✅ To-Do List Completed
-
-### Backend Development - Alex
-- [x] Memperbarui Database
-- [x] Memperbarui Seeder
-- [x] Memperbaiki Bug atau Logic yang keliru (CRUD)
-
-### Frontend Development - Alex
-- [x] Request Surat screen
-- [x] Laporan Screen
-- [x] Managemen Banner (dashboard + marketplace)
-- [x] Rework Registrasi pending (sekarang kurang bagus sih)
-
-### UI/UX Development - Ninis
-- [x] Rapikan Backend
-- [x] Rapikan UI
-
-### Additional Features Completed
-- [x] Activity Management untuk Admin
-- [x] Product Rating & Review System
-- [x] Marketplace dengan sistem transaksi
-- [x] Letter Request System (Domisili & Usaha)
-- [x] Finance Management (Iuran RT/RW)
-- [x] Citizen Report System
-- [x] Authentication & Authorization
-- [x] Profile Management dengan Family Data
+- Android: Check `AndroidManifest.xml`
+- iOS: Check `Info.plist`
+- Runtime permissions dihandle oleh `permission_handler` package
 
 ---
 
-## 👥 Tim Pengembang
+## 👥 Team
 
-- **Alex** - FullStack Developer
-- **Ninis** - ML/AI Developer
-- **Candra** - Frontend Developer
-- **Ekya** - FullStack Developer
+- **Alex** - Backend & API Integration
+- **Ninis** - Frontend & UI/UX
 
 ---
 
-## 📝 Catatan Penting
+## 📄 License
 
-### Status Format
-Aplikasi menggunakan format status yang berbeda untuk request dan response dari API:
-
-**Response dari Backend**:
-- `"Akan Datang"`, `"Ongoing"`, `"Selesai"`
-
-**Request ke Backend**:
-- `"akan_datang"`, `"ongoing"`, `"selesai"`
-
-Konversi otomatis dilakukan oleh aplikasi.
-
-### Transaction Status
-Status transaksi marketplace:
-- **Belum Dibayar** - Transaksi belum dibayar
-- **Proses** - Pesanan sedang diproses
-- **Dikirim** - Pesanan sedang dikirim
-- **Selesai** - Transaksi selesai
-- **Dibatalkan** - Transaksi dibatalkan
-- **Ditolak** - Transaksi ditolak
+[Specify your license here]
 
 ---
 
-## 🔗 Link Dokumentasi Fitur
+## 📞 Contact & Support
 
-Untuk dokumentasi detail per fitur, lihat file-file berikut:
-- [Activity Management](./ACTIVITY_MANAGEMENT_DOCS.md)
-- [Letter Request Feature](./LETTER_FEATURE_DOCS.md)
-- [Product Rating API](./PRODUCT_RATING_API_FRONTEND.md)
-- [Ajukan Surat](./AJUKAN_SURAT_DOCS.md)
+Untuk pertanyaan atau issue, silakan hubungi tim development atau buat issue di repository ini.
 
 ---
 
-## 📞 Support
-
-Jika ada pertanyaan atau menemukan bug, silakan hubungi tim pengembang atau buat issue di repository.
-
----
-
-**© 2024 Jawara App - Manajemen RT/RW Digital**
+**Happy Coding! 🚀**
