@@ -42,6 +42,21 @@ Aplikasi mobile untuk manajemen RT berbasis Flutter dengan backend FastAPI. Apli
 
 ---
 
+## 🎓 Implementasi Materi Pembelajaran
+
+Proyek ini mengimplementasikan berbagai konsep dan teknik Flutter yang dipelajari dalam kurikulum mobile development:
+
+| Jobsheet | Materi | Penjelasan Implementasi | Status |
+|----------|--------|------------------------|--------|
+| #09 | Kamera | Capture foto dari kamera di marketplace (upload produk), activity management (upload kegiatan), dan report (lampiran laporan) | ✅ Completed |
+| #10 | Dasar State Management | Riverpod untuk mengelola UI state. Provider patterns untuk auth, marketplace, finance, dan fitur lainnya | ✅ Completed |
+| #11 | Pemrograman Asynchronous | Async/await di API calls, file operations, dan permission handling di `lib/core/services/` | ✅ Completed |
+| #12 | Streams | StreamProvider untuk real-time updates di dashboard, activity list, dan marketplace transactions | ✅ Completed |
+| #13 | Persistensi Data | JSON serialization dengan `freezed` & `json_serializable`, local storage dengan SharedPreferences & FlutterSecureStorage | ✅ Completed |
+| #14 | Restful API | Backend FastAPI dengan endpoint CRUD. HTTP requests via `Dio` & `http` di `lib/core/services/` | ✅ Completed |
+
+---
+
 ## 📌 Prerequisites
 
 Sebelum memulai, pastikan Anda sudah menginstall:
@@ -133,135 +148,7 @@ Buka `ios/Runner/Info.plist` dan tambahkan permissions:
 
 ---
 
-## 🎯 Fitur Wajib Diimplementasikan
-
-### 1️⃣ Marketplace & Product Rating
-
-| Fitur | Component | State Management | Package | Status |
-|-------|-----------|------------------|---------|--------|
-| Upload Foto Produk | `image_picker_widget.dart` | `ProductImageProvider` | `image_picker` | ✅ Implemented |
-| Ambil Foto dari Kamera | `camera_capture_screen.dart` | `CameraProvider` | `camera` | ✅ Implemented |
-| Perlihatkan Gallery | `product_gallery_view.dart` | `GalleryProvider` | `photo_view` | ✅ Implemented |
-| Rating Produk (1-5 Star) | `product_rating_widget.dart` | `ProductRatingProvider` | `fl_chart` | ✅ Implemented |
-| Review Produk | `product_review_screen.dart` | `ReviewProvider` | `dio` | ✅ Implemented |
-| Marketplace List | `marketplace_list_view.dart` | `MarketplaceProvider` | `flutter_riverpod` | ✅ Implemented |
-| Transaksi Produk | `transaction_detail_view.dart` | `TransactionProvider` | `http` | ✅ Implemented |
-
-**Location:** `lib/features/market/`
-**Key Files:**
-- `lib/features/market/models/product_model.dart`
-- `lib/features/market/provider/product_provider.dart`
-- `lib/features/market/view/marketplace_list_view.dart`
-
----
-
-### 2️⃣ Activity Management (Admin)
-
-| Fitur | Component | State Management | File Location | Status |
-|-------|-----------|------------------|---------------|--------|
-| List Kegiatan | `admin_activity_view.dart` | `ActivityProvider` | `lib/features/admin/view/` | ✅ Implemented |
-| Create Kegiatan | `admin_activity_form_view.dart` | `ActivityFormProvider` | `lib/features/admin/view/` | ✅ Implemented |
-| Edit Kegiatan | `admin_activity_form_view.dart` | `ActivityFormProvider` | `lib/features/admin/view/` | ✅ Implemented |
-| Delete Kegiatan | `admin_activity_view.dart` | `ActivityProvider` | `lib/features/admin/view/` | ✅ Implemented |
-| Upload Foto Kegiatan (Multi) | `activity_image_picker.dart` | `ActivityImageProvider` | `lib/features/admin/widget/` | ✅ Implemented |
-| Detail Kegiatan | `admin_activity_detail_view.dart` | `ActivityDetailProvider` | `lib/features/admin/view/` | ✅ Implemented |
-| Filter by Status | `activity_filter_widget.dart` | `ActivityFilterProvider` | `lib/features/admin/widget/` | ✅ Implemented |
-| Search Kegiatan | `activity_search_widget.dart` | `ActivitySearchProvider` | `lib/features/admin/widget/` | ✅ Implemented |
-
-**Location:** `lib/features/admin/`
-**Key Files:**
-- `lib/features/admin/model/activity_model.dart`
-- `lib/features/admin/provider/activity_provider.dart`
-- `lib/features/admin/repository/activity_repository.dart`
-
----
-
-### 3️⃣ Letter Request System
-
-| Fitur | Component | State Management | User Type | Status |
-|-------|-----------|------------------|-----------|--------|
-| Pilih Jenis Surat | `letter_selection_screen.dart` | `LetterTypeProvider` | Warga | ✅ Implemented |
-| Form Surat Domisili | `domisili_form_screen.dart` | `DomisiliFormProvider` | Warga | ✅ Implemented |
-| Form Surat Usaha | `usaha_form_screen.dart` | `UsahaFormProvider` | Warga | ✅ Implemented |
-| Lihat Status Pengajuan | `my_letter_requests_screen.dart` | `LetterRequestsProvider` | Warga | ✅ Implemented |
-| Download/View PDF | `letter_pdf_viewer.dart` | `LetterPdfProvider` | Warga | ✅ Implemented |
-| Approval Pengajuan | `admin_letter_approval_screen.dart` | `LetterApprovalProvider` | Admin | ✅ Implemented |
-| Reject dengan Alasan | `letter_rejection_dialog.dart` | `LetterRejectionProvider` | Admin | ✅ Implemented |
-
-**Location:** `lib/features/letter/`
-**Key Files:**
-- `lib/features/letter/data/models/letter_transaction.dart`
-- `lib/features/letter/data/services/letter_api_service.dart`
-- `lib/features/letter/presentation/screens/`
-
----
-
-### 4️⃣ Finance Management
-
-| Fitur | Component | State Management | Status |
-|-------|-----------|------------------|--------|
-| Lihat Iuran RT | `finance_list_view.dart` | `FinanceProvider` | ✅ Implemented |
-| Bayar Iuran | `payment_screen.dart` | `PaymentProvider` | ✅ Implemented |
-| Riwayat Pembayaran | `payment_history_view.dart` | `PaymentHistoryProvider` | ✅ Implemented |
-| QR Code Pembayaran | `payment_qr_screen.dart` | `QrProvider` | ✅ Implemented |
-| Struk Pembayaran | `payment_receipt_view.dart` | `ReceiptProvider` | ✅ Implemented |
-
-**Location:** `lib/features/finance/`
-**Key Files:**
-- `lib/features/finance/data/models/fee_model.dart`
-- `lib/features/finance/provider/finance_provider.dart`
-
----
-
-### 5️⃣ Report & Dashboard
-
-| Fitur | Component | State Management | User Type | Status |
-|-------|-----------|------------------|-----------|--------|
-| Buat Laporan | `report_form_screen.dart` | `ReportFormProvider` | Warga | ✅ Implemented |
-| Lihat Laporan Saya | `my_reports_view.dart` | `MyReportsProvider` | Warga | ✅ Implemented |
-| Dashboard Warga | `dashboard_citizen_view.dart` | `DashboardProvider` | Warga | ✅ Implemented |
-| Dashboard Admin | `admin_dashboard_view.dart` | `AdminDashboardProvider` | Admin | ✅ Implemented |
-| Statistik & Chart | `dashboard_chart_widget.dart` | `ChartProvider` | Admin | ✅ Implemented |
-| Lihat Laporan Warga | `admin_laporan_view.dart` | `LaporanAdminProvider` | Admin | ✅ Implemented |
-
-**Location:** `lib/features/dashboard/`, `lib/features/report/`
-**Key Files:**
-- `lib/features/report/models/report_model.dart`
-- `lib/features/dashboard/provider/dashboard_provider.dart`
-
----
-
-### 6️⃣ Authentication & Profile
-
-| Fitur | Component | State Management | Status |
-|-------|-----------|------------------|--------|
-| Login | `login_screen.dart` | `AuthProvider` | ✅ Implemented |
-| Register | `register_screen.dart` | `RegisterProvider` | ✅ Implemented |
-| Profile Management | `profile_view.dart` | `ProfileProvider` | ✅ Implemented |
-| Family Data | `family_management_view.dart` | `FamilyProvider` | ✅ Implemented |
-| Logout | `profile_view.dart` | `AuthProvider` | ✅ Implemented |
-| Token Management | `auth_service.dart` | FlutterSecureStorage | ✅ Implemented |
-
-**Location:** `lib/features/auth/`, `lib/features/profile/`
-**Key Files:**
-- `lib/core/services/auth_service.dart`
-- `lib/core/models/user_model.dart`
-
----
-
-### 7️⃣ Additional Features
-
-| Fitur | State Management | Location | Status |
-|-------|------------------|----------|--------|
-| Permission Handler | `permission_provider.dart` | `lib/core/provider/` | ✅ Implemented |
-| File Download/Storage | `download_service.dart` | `lib/core/services/` | ✅ Implemented |
-| PDF Viewer | `pdf_viewer_widget.dart` | `lib/core/widgets/` | ✅ Implemented |
-| Banner Management | `BannerProvider` | `lib/features/admin/` | ✅ Implemented |
-| Resident Registration Approval | `RegistrationProvider` | `lib/features/admin/` | ✅ Implemented |
-
----
-
-### Development Mode
+## 🎯 Menjalankan Aplikasi
 
 ```bash
 # List available devices
@@ -338,7 +225,7 @@ Output build akan tersedia di folder `build/`:
 
 ## 📚 Dokumentasi API
 
-Untuk detail lengkap API integration, lihat dokumentasi berikut:
+Untuk detail lengkap implementasi, lihat dokumentasi berikut:
 
 - **[ACTIVITY_MANAGEMENT_DOCS.md](ACTIVITY_MANAGEMENT_DOCS.md)** - Manajemen kegiatan RT
 - **[AJUKAN_SURAT_DOCS.md](AJUKAN_SURAT_DOCS.md)** - Sistem pengajuan surat
@@ -383,6 +270,26 @@ Untuk detail lengkap API integration, lihat dokumentasi berikut:
 - **Authentication**: JWT
 - **File Storage**: Local/Cloud storage
 
+## 🎓 Implementasi Materi Pembelajaran
+
+Proyek ini mengimplementasikan berbagai konsep dan teknik Flutter yang dipelajari dalam kurikulum mobile development:
+
+| Jobsheet | Materi | Penjelasan Implementasi | Status |
+|----------|--------|------------------------|--------|
+| #09 | Kamera | Capture foto dari kamera di marketplace (upload produk), activity management (upload kegiatan), dan report (lampiran laporan) | ✅ Completed |
+| #10 | Dasar State Management | Riverpod untuk mengelola UI state. Provider patterns untuk auth, marketplace, finance, dan fitur lainnya | ✅ Completed |
+| #11 | Pemrograman Asynchronous | Async/await di API calls, file operations, dan permission handling di `lib/core/services/` | ✅ Completed |
+| #12 | Streams | StreamProvider untuk real-time updates di dashboard, activity list, dan marketplace transactions | ✅ Completed |
+| #13 | Persistensi Data | JSON serialization dengan `freezed` & `json_serializable`, local storage dengan SharedPreferences & FlutterSecureStorage | ✅ Completed |
+| #14 | Restful API | Backend FastAPI dengan endpoint CRUD. HTTP requests via `Dio` & `http` di `lib/core/services/` | ✅ Completed |
+
+---
+
+## 🔗 Repository Links
+
+- **Frontend (Flutter)**: Repository ini
+- **Backend (FastAPI)**: [github.com/pblkelompok1/backend_jawara](https://github.com/pblkelompok1/backend_jawara)
+
 ---
 
 ## 📱 Supported Platform
@@ -397,12 +304,12 @@ Proyek ini mengimplementasikan berbagai konsep dan teknik Flutter yang dipelajar
 
 | Jobsheet | Materi | Penjelasan Implementasi | Status |
 |----------|--------|------------------------|--------|
-| #09 | Kamera | Capture foto dari kamera di marketplace (upload produk), activity management (upload kegiatan), dan report (lampiran laporan) | ✅ Implemented |
-| #10 | Dasar State Management | Riverpod untuk mengelola UI state. Provider patterns untuk auth, marketplace, finance, dan fitur lainnya | ✅ Implemented |
-| #11 | Pemrograman Asynchronous | Async/await di API calls, file operations, dan permission handling di `lib/core/services/` | ✅ Implemented |
-| #12 | Streams | StreamProvider untuk real-time updates di dashboard, activity list, dan marketplace transactions | ✅ Implemented |
-| #13 | Persistensi Data | JSON serialization dengan `freezed` & `json_serializable`, local storage dengan SharedPreferences & FlutterSecureStorage | ✅ Implemented |
-| #14 | Restful API | Backend FastAPI dengan endpoint CRUD. HTTP requests via `Dio` & `http` di `lib/core/services/` | ✅ Implemented |
+| #09 | Kamera | Capture foto dari kamera di marketplace (upload produk), activity management (upload kegiatan), dan report (lampiran laporan) | ✅ Completed |
+| #10 | Dasar State Management | Riverpod untuk mengelola UI state. Provider patterns untuk auth, marketplace, finance, dan fitur lainnya | ✅ Completed |
+| #11 | Pemrograman Asynchronous | Async/await di API calls, file operations, dan permission handling di `lib/core/services/` | ✅ Completed |
+| #12 | Streams | StreamProvider untuk real-time updates di dashboard, activity list, dan marketplace transactions | ✅ Completed |
+| #13 | Persistensi Data | JSON serialization dengan `freezed` & `json_serializable`, local storage dengan SharedPreferences & FlutterSecureStorage | ✅ Completed |
+| #14 | Restful API | Backend FastAPI dengan endpoint CRUD. HTTP requests via `Dio` & `http` di `lib/core/services/` | ✅ Completed |
 | #15 | Progress Project - Bagian 1 | Phase 1: authentication, dashboard, marketplace basic. Struktur project yang clean dan terorganisir | ✅ Completed |
 | #16 | Progress Project - Bagian 2 + #17 UAS | Phase 2: activity management, letter system, finance, reports. Final project comprehensive & production-ready | ✅ Completed |
 
