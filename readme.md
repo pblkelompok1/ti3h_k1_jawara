@@ -1,4 +1,4 @@
-# 🏘️ Jawara - RT Management Mobile Application
+# 🏘️ RuangWarga - RT Management Mobile Application
 
 Aplikasi mobile untuk manajemen RT berbasis Flutter dengan backend FastAPI. Aplikasi ini menyediakan fitur-fitur lengkap untuk pengelolaan RT termasuk marketplace, keuangan, pengajuan surat, laporan warga, dan manajemen kegiatan.
 
