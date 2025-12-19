@@ -355,7 +355,7 @@ class _FinanceViewState extends ConsumerState<FinanceView> {
                                       decoration: BoxDecoration(
                                         color: active
                                             ? AppColors.primary(context)
-                                            : Colors.transparent,
+                                              : Colors.transparent,
                                         borderRadius: BorderRadius.circular(
                                           999,
                                         ),
@@ -376,17 +376,6 @@ class _FinanceViewState extends ConsumerState<FinanceView> {
             ),
           ),
         ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80),
-        child: FloatingActionButton.extended(
-          onPressed: () => AddActionBottomSheet.show(context),
-          backgroundColor: AppColors.primary(context),
-          foregroundColor: Colors.white,
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('Tambah'),
-        ),
       ),
     );
   }

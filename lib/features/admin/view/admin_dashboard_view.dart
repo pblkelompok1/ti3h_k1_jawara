@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
 import 'package:ti3h_k1_jawara/core/provider/auth_service_provider.dart';
-import 'package:ti3h_k1_jawara/features/admin/provider/mock_admin_providers.dart';
+import 'package:ti3h_k1_jawara/features/admin/provider/admin_dashboard_provider.dart';
 import 'package:ti3h_k1_jawara/features/admin/widget/admin_stat_card.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:intl/intl.dart';
@@ -73,16 +73,16 @@ class AdminDashboardView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statisticsAsync = ref.watch(adminStatisticsProviderMock);
-    final financeSummaryAsync = ref.watch(financeAdminProviderMock);
+    final statisticsAsync = ref.watch(adminStatisticsProvider);
+    final financeSummaryAsync = ref.watch(financeSummaryProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(adminStatisticsProviderMock);
-          ref.invalidate(financeAdminProviderMock);
+          ref.invalidate(adminStatisticsProvider);
+          ref.invalidate(financeSummaryProvider);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -215,7 +215,7 @@ class AdminDashboardView extends ConsumerWidget {
                               Color(0xFFF44336),
                               Color(0xFFE57373),
                             ],
-                            onTap: () => context.push('/admin/laporan'),
+                            onTap: () => context.push('/admin/reports'),
                           ),
                           AdminStatCard(
                             icon: Icons.mail_rounded,
@@ -414,57 +414,65 @@ class AdminDashboardView extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 1.5,
-                      children: [
-                        _buildQuickAction(
-                          context,
-                          Icons.how_to_reg_rounded,
-                          'Persetujuan',
-                          Colors.orange,
-                          () => context.push('/admin/registrations'),
-                        ),
-                        _buildQuickAction(
-                          context,
-                          Icons.people_rounded,
-                          'Penduduk',
-                          AppColors.primary(context),
-                          () => context.push('/admin/residents'),
-                        ),
-                        _buildQuickAction(
-                          context,
-                          Icons.run_circle,
-                          'Kegiatan',
-                          Colors.green,
-                          () => context.push('/admin/activities'),
-                        ),
-                        _buildQuickAction(
-                          context,
-                          Icons.image_rounded,
-                          'Banner',
-                          Colors.purple,
-                          () => context.push('/admin/banners'),
-                        ),
-                        _buildQuickAction(
-                          context,
-                          Icons.report_rounded,
-                          'Laporan',
-                          Colors.red,
-                          () => context.push('/admin/reports'),
-                        ),
-                        _buildQuickAction(
-                          context,
-                          Icons.mail_rounded,
-                          'Surat',
-                          Colors.blue,
-                          () => context.push('/admin/letter-approval'),
-                        ),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        // Responsive aspect ratio based on screen width
+                        final width = constraints.maxWidth;
+                        final aspectRatio = width < 360 ? 1.35 : width < 400 ? 1.45 : 1.6;
+                        
+                        return GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: aspectRatio,
+                          children: [
+                            _buildQuickAction(
+                              context,
+                              Icons.how_to_reg_rounded,
+                              'Persetujuan',
+                              Colors.orange,
+                              () => context.push('/admin/registrations'),
+                            ),
+                            _buildQuickAction(
+                              context,
+                              Icons.people_rounded,
+                              'Penduduk',
+                              AppColors.primary(context),
+                              () => context.push('/admin/residents'),
+                            ),
+                            _buildQuickAction(
+                              context,
+                              Icons.run_circle,
+                              'Kegiatan',
+                              Colors.green,
+                              () => context.push('/admin/activities'),
+                            ),
+                            _buildQuickAction(
+                              context,
+                              Icons.account_balance_wallet_rounded,
+                              'Keuangan',
+                              Colors.purple,
+                              () => context.push('/admin/finance'),
+                            ),
+                            _buildQuickAction(
+                              context,
+                              Icons.report_rounded,
+                              'Laporan',
+                              Colors.red,
+                              () => context.push('/admin/reports'),
+                            ),
+                            _buildQuickAction(
+                              context,
+                              Icons.mail_rounded,
+                              'Surat',
+                              Colors.blue,
+                              () => context.push('/admin/letter-approval'),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     
                     const SizedBox(height: 24),
@@ -563,7 +571,7 @@ class AdminDashboardView extends ConsumerWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: AppColors.surface(context),
             borderRadius: BorderRadius.circular(16),
@@ -574,30 +582,33 @@ class AdminDashboardView extends ConsumerWidget {
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
-                  size: 28,
-                  color: color,
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 24,
+                    color: color,
+                  ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               AutoSizeText(
                 label,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary(context),
                 ),
                 maxLines: 1,
-                minFontSize: 10,
+                minFontSize: 9,
               ),
             ],
           ),

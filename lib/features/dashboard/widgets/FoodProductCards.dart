@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_colors.dart';
+import 'package:ti3h_k1_jawara/features/market/provider/marketplace_provider.dart';
+import 'package:ti3h_k1_jawara/features/market/models/marketplace_product_model.dart';
+import 'package:ti3h_k1_jawara/features/market/view/product_list_screen.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class RecommendedFoodCards extends ConsumerStatefulWidget {
   const RecommendedFoodCards({super.key});
@@ -12,31 +17,10 @@ class RecommendedFoodCards extends ConsumerStatefulWidget {
 
 class _RecommendedFoodCardsState
     extends ConsumerState<RecommendedFoodCards> {
-  final PageController _pageController = PageController(viewportFraction: 0.90);
-  int _currentPage = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController.addListener(() {
-      int next = _pageController.page!.round();
-      if (_currentPage != next) {
-        setState(() {
-          _currentPage = next;
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final quickFoodAsync = ref.watch(quickFoodProductsProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,66 +43,51 @@ class _RecommendedFoodCardsState
           child: Container(
             width: double.infinity,
             height: 1.2,
-            color: AppColors.softBorder(context), // atau Colors.grey.shade300
+            color: AppColors.softBorder(context),
           ),
         ),
         const SizedBox(height: 20),
-        // Cards PageView
-          SizedBox(
-            height: 260,
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: 3,
-              itemBuilder: (context, pageIndex) {
-                return Row(
-                  children: [
-                    Expanded(
-                      child: _buildCard(
-                        context,
-                        isDark: isDark,
-                        label: "Nasi Goreng Spesial",
-                        imageUrl: "https://images.unsplash.com/photo-1603133872878-684f208fb84b",
-                        price: "Rp 25.000",
-                      ),
+
+        // Food Products List
+        SizedBox(
+          height: 120,
+          child: quickFoodAsync.when(
+            data: (foodProducts) {
+              if (foodProducts.isEmpty) {
+                return Center(
+                  child: Text(
+                    'Belum ada produk makanan cepat',
+                    style: TextStyle(
+                      color: AppColors.textSecondary(context),
+                      fontSize: 14,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildCard(
-                        context,
-                        isDark: isDark,
-                        label: "Mie Ayam Bakso",
-                        imageUrl: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624",
-                        price: "Rp 20.000",
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                  ],
+                  ),
                 );
-              },
+              }
+
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                itemCount: foodProducts.length,
+                itemBuilder: (context, index) {
+                  final product = foodProducts[index];
+                  return _buildFoodListItem(product: product);
+                },
+              );
+            },
+            loading: () => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            error: (error, stack) => Center(
+              child: Text(
+                'Gagal memuat produk',
+                style: TextStyle(
+                  color: AppColors.textSecondary(context),
+                  fontSize: 14,
+                ),
+              ),
             ),
           ),
-
-        const SizedBox(height: 16),
-
-        // Page Indicator
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(3, (index) {
-            final bool isActive = _currentPage == index;
-
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              height: 8,
-              width: isActive ? 28 : 8,
-              decoration: BoxDecoration(
-                color: isActive
-                    ? AppColors.primary(context)
-                    : AppColors.softBorder(context),
-                borderRadius: BorderRadius.circular(4),
-              ),
-            );
-          }),
         ),
 
         const SizedBox(height: 16),
@@ -129,12 +98,19 @@ class _RecommendedFoodCardsState
           child: Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ProductListScreen(initialCategory: 'Makanan'),
+                  ),
+                );
+              },
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 foregroundColor: AppColors.primaryLight,
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
@@ -144,7 +120,7 @@ class _RecommendedFoodCardsState
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                   Icon(Icons.arrow_forward_rounded, size: 18),
                 ],
               ),
@@ -155,80 +131,143 @@ class _RecommendedFoodCardsState
     );
   }
 
-  Widget _buildCard(
-    BuildContext context, {
-    required bool isDark,
-    required String label,
-    required String imageUrl,
-    required String price,
+  Widget _buildFoodListItem({
+    required MarketplaceProduct product,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.bgDashboardCard(context) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 5,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            child: Container(
-              height: 140,
-              width: double.infinity,
-              color: Colors.grey.shade200,
-              child: Image.network(
-                imageUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey.shade300,
-                  child: Icon(
-                    Icons.fastfood_rounded,
-                    size: 48,
-                    color: Colors.grey.shade400,
-                  ),
+    final service = ref.read(marketplaceServiceProvider);
+    final imageUrl = product.imagesPath.isNotEmpty 
+        ? service.getImageUrl(product.imagesPath.first) 
+        : '';
+    
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        context.push('/product/${product.productId}');
+        service.incrementViewCount(product.productId);
+      },
+      child: Container(
+        width: 260,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          color: AppColors.bgDashboardCard(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.softBorder(context), width: 1.3),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                bottomLeft: Radius.circular(16),
+              ),
+              child: SizedBox(
+                width: 100,
+                height: 120,
+                child: imageUrl.isNotEmpty
+                    ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            Container(
+                          color: AppColors.softBorder(context),
+                          child: Icon(
+                            Icons.fastfood_rounded,
+                            size: 40,
+                            color: AppColors.textSecondary(context),
+                          ),
+                        ),
+                      )
+                    : Container(
+                        color: AppColors.softBorder(context),
+                        child: Icon(
+                          Icons.fastfood_rounded,
+                          size: 40,
+                          color: AppColors.textSecondary(context),
+                        ),
+                      ),
+              ),
+            ),
+
+            // ================= CONTENT =================
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Product Name
+                    AutoSizeText(
+                      product.name,
+                      maxLines: 2,
+                      minFontSize: 11,
+                      maxFontSize: 14,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary(context),
+                        height: 1.2,
+                      ),
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    // Rating & Stock
+                    Row(
+                      children: [
+                        if (product.averageRating != null) ...[
+                          Icon(
+                            Icons.star_rounded,
+                            size: 14,
+                            color: Colors.amber.shade600,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            product.averageRating!.toStringAsFixed(1),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary(context),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Expanded(
+                          child: Text(
+                            'Stok: ${product.stock}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary(context),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    // Price
+                    AutoSizeText(
+                      'Rp ${product.price.toStringAsFixed(0).replaceAllMapped(
+                            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                            (Match m) => '${m[1]}.',
+                          )}',
+                      maxLines: 1,
+                      minFontSize: 10,
+                      maxFontSize: 13,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryLight,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ),
-
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary(context),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  price,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryLight,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

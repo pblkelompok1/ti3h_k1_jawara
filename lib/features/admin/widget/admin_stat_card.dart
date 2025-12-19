@@ -72,41 +72,43 @@ class AdminStatCard extends StatelessWidget {
                         AutoSizeText(
                           value,
                           style: TextStyle(
-                            fontSize: 32,
+                            fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: hasGradient ? Colors.white : AppColors.textPrimary(context),
                             height: 1,
                           ),
                           maxLines: 1,
-                          minFontSize: 24,
+                          minFontSize: 20,
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         AutoSizeText(
                           title,
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             color: hasGradient 
                                 ? Colors.white.withOpacity(0.9)
                                 : AppColors.textSecondary(context),
                             fontWeight: FontWeight.w500,
-                            height: 1.2,
+                            height: 1.1,
                           ),
                           maxLines: 2,
-                          minFontSize: 10,
+                          minFontSize: 9,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         if (subtitle != null) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           AutoSizeText(
                             subtitle!,
                             style: TextStyle(
-                              fontSize: 9,
+                              fontSize: 8,
                               color: hasGradient 
                                   ? Colors.white.withOpacity(0.8)
                                   : AppColors.textSecondary(context),
-                              height: 1.2,
+                              height: 1.1,
                             ),
                             maxLines: 1,
-                            minFontSize: 8,
+                            minFontSize: 7,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ],

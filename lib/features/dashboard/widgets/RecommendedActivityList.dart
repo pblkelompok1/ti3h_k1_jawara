@@ -237,7 +237,7 @@ class RecommendedActivityList extends ConsumerWidget {
     required BuildContext context,
     required KegiatanModel activity,
   }) {
-    final baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+    final baseUrl = "https://prefunctional-albertha-unpessimistically.ngrok-free.dev";
     
     // Use first preview image if available, otherwise use banner image
     String? imageUrl;
@@ -385,7 +385,7 @@ class RecommendedActivityList extends ConsumerWidget {
   }
 
   void _showActivityDetail(BuildContext context, KegiatanModel activity) {
-    final baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+    final baseUrl = "https://prefunctional-albertha-unpessimistically.ngrok-free.dev";
     
     showModalBottomSheet(
       context: context,

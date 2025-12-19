@@ -4,6 +4,7 @@ import '../../../../core/themes/app_colors.dart';
 import '../../provider/account_provider.dart';
 import '../../models/transaction_detail_model.dart';
 import '../../helpers/status_helper.dart';
+import '../../enums/transaction_status.dart';
 
 class TransactionDetailScreen extends ConsumerWidget {
   final TransactionDetail transaction;
@@ -784,8 +785,18 @@ class TransactionDetailScreen extends ConsumerWidget {
         }),
       );
 
-      print('📤 Calling updateFunction with status: $nextStatus');
-      await updateFunction(nextStatus);
+      // Convert backend format to enum, then get next status
+      // transaction.status is already in backend format (e.g., "PROSES")
+      final currentStatusEnum = TransactionStatus.fromBackend(transaction.status);
+      final nextStatusEnum = currentStatusEnum.getNextStatus();
+      
+      if (nextStatusEnum == null) {
+        throw Exception('Cannot update status from ${transaction.status}');
+      }
+      
+      final backendStatus = nextStatusEnum.backendValue;
+      print('📤 Calling updateFunction with backend format: $backendStatus');
+      await updateFunction(backendStatus);
 
       if (!context.mounted) return;
 
@@ -826,33 +837,12 @@ class TransactionDetailScreen extends ConsumerWidget {
     final normalizedStatus = StatusHelper.formatStatus(currentStatus);
     print('   → Normalized: "$normalizedStatus"');
 
-    // Backend database uses Indonesian enum values: PROSES, SEDANG_DIKIRIM, SELESAI, DITOLAK
-    // Must send Indonesian to match database enum
-    String nextStatus;
-    switch (normalizedStatus) {
-      case 'Belum Dibayar':
-        nextStatus = 'Proses'; // Next: Proses (processing)
-        break;
-      case 'Proses':
-        nextStatus = 'Siap Diambil'; // Next: Siap Diambil
-        break;
-      case 'Siap Diambil':
-        nextStatus = 'Sedang Dikirim'; // Next: Sedang Dikirim (shipping)
-        break;
-      case 'Sedang Dikirim':
-        nextStatus = 'Selesai'; // Next: Selesai (completed)
-        break;
-      case 'Selesai':
-        nextStatus = 'Selesai'; // Cannot change
-        break;
-      case 'Ditolak':
-        nextStatus = 'Ditolak'; // Cannot change
-        break;
-      default:
-        nextStatus = 'Proses'; // Fallback
-    }
-
-    print('   → Next status (Indonesian for database): "$nextStatus"');
+    // Use enum to determine next status
+    final currentStatusEnum = TransactionStatus.fromDisplayText(normalizedStatus);
+    final nextStatusEnum = currentStatusEnum.getNextStatus();
+    
+    final nextStatus = nextStatusEnum?.displayText ?? normalizedStatus;
+    print('   → Next status: "$nextStatus"');
     return nextStatus;
   }
 

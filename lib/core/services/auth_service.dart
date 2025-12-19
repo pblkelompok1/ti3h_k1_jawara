@@ -7,7 +7,7 @@ typedef LogoutRedirect = void Function();
 
 class AuthService {
   final storage = const FlutterSecureStorage();
-  final baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+  final baseUrl = "https://prefunctional-albertha-unpessimistically.ngrok-free.dev";
 
   LogoutRedirect? onTokenExpired; // ditambahkan
 

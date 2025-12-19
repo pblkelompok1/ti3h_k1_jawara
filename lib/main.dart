@@ -5,6 +5,7 @@ import 'package:ti3h_k1_jawara/core/themes/theme_provider.dart';
 import 'package:ti3h_k1_jawara/core/themes/app_theme.dart';
 import 'package:ti3h_k1_jawara/features/routes.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter/services.dart';
 
 class MyApp extends ConsumerWidget {
   const MyApp({super.key});

@@ -16,3 +16,4 @@ final authServiceProvider = Provider<AuthService>((ref) {
     },
   );
 });
+

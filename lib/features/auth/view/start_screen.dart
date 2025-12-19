@@ -88,7 +88,7 @@ class _StartScreenState extends State<StartScreen>
                 ),
                 const SizedBox(height: 15),
                 const Text(
-                  'JAWARA',
+                  'RuangWarga',
                   style: TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
@@ -135,7 +135,7 @@ class _StartScreenState extends State<StartScreen>
 
                   const Spacer(flex: 2),
 
-                  // Sign In Button
+                  // Daftar Button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -154,7 +154,7 @@ class _StartScreenState extends State<StartScreen>
                         ),
                       ),
                       child: const Text(
-                        'Sign In',
+                        'Daftar',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -188,7 +188,7 @@ class _StartScreenState extends State<StartScreen>
                         ),
                       ),
                       child: const Text(
-                        'Login',
+                        'Masuk',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../features/report/models/report_model.dart';
 
 class ReportService {
-  static const String baseUrl = 'https://presumptive-renee-uncircled.ngrok-free.dev';
+  static const String baseUrl = 'https://prefunctional-albertha-unpessimistically.ngrok-free.dev';
   final storage = const FlutterSecureStorage();
 
   /// Get authorization headers
