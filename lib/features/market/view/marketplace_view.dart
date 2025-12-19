@@ -1256,11 +1256,38 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
 
   SliverGrid _buildLocalProductsGrid() {
     final productsState = ref.watch(allProductsProvider);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Responsive grid configuration based on device width
+    int crossAxisCount;
+    double childAspectRatio;
+
+    if (screenWidth < 360) {
+      // Extra small phones (iPhone SE, small Android phones)
+      crossAxisCount = 2;
+      childAspectRatio = 0.58;
+    } else if (screenWidth < 400) {
+      // Small phones (iPhone 12 Mini, standard small devices)
+      crossAxisCount = 2;
+      childAspectRatio = 0.62;
+    } else if (screenWidth < 600) {
+      // Standard phones (iPhone 12, 13, most Android phones)
+      crossAxisCount = 2;
+      childAspectRatio = 0.65;
+    } else if (screenWidth < 840) {
+      // Large phones and small tablets (iPhone Pro Max, phablets)
+      crossAxisCount = 3;
+      childAspectRatio = 0.68;
+    } else {
+      // Tablets and larger devices
+      crossAxisCount = 4;
+      childAspectRatio = 0.7;
+    }
 
     return SliverGrid(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.6,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        childAspectRatio: childAspectRatio,
         crossAxisSpacing: 6,
         mainAxisSpacing: 12,
       ),
@@ -1378,12 +1405,34 @@ class _MarketMainScreenState extends ConsumerState<MarketMainScreen>
       );
     }
 
+    // Responsive grid configuration based on device width
+    final screenWidth = MediaQuery.of(context).size.width;
+    int crossAxisCount;
+    double childAspectRatio;
+
+    if (screenWidth < 360) {
+      crossAxisCount = 2;
+      childAspectRatio = 0.58;
+    } else if (screenWidth < 400) {
+      crossAxisCount = 2;
+      childAspectRatio = 0.62;
+    } else if (screenWidth < 600) {
+      crossAxisCount = 2;
+      childAspectRatio = 0.65;
+    } else if (screenWidth < 840) {
+      crossAxisCount = 3;
+      childAspectRatio = 0.68;
+    } else {
+      crossAxisCount = 4;
+      childAspectRatio = 0.7;
+    }
+
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
       sliver: SliverGrid(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.6,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          childAspectRatio: childAspectRatio,
           crossAxisSpacing: 6,
           mainAxisSpacing: 12,
         ),

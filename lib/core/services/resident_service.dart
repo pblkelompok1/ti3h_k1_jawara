@@ -8,7 +8,7 @@ import '../models/resident_model.dart';
 typedef LogoutRedirect = void Function();
 
 class ResidentService {
-  final baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+  final baseUrl = "https://prefunctional-albertha-unpessimistically.ngrok-free.dev";
   late AuthService _authService;
 
   ResidentService(AuthService authService) {

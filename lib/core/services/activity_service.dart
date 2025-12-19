@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:ti3h_k1_jawara/core/models/kegiatan_model.dart';
 
 class ActivityService {
-  final baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+  final baseUrl = "https://prefunctional-albertha-unpessimistically.ngrok-free.dev";
 
   /// Fetch activities with pagination and optional filters
   /// Returns a map with 'total_count' and 'data' (list of KegiatanModel)

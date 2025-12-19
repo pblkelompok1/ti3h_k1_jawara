@@ -107,7 +107,7 @@ class _UsahaFormScreenState extends ConsumerState<UsahaFormScreen> {
 
       if (mounted) {
         _showSnackBar('Pengajuan surat berhasil dikirim!');
-        context.go('/letter/selection');
+        context.pop();
       }
     } catch (e) {
       if (mounted) {

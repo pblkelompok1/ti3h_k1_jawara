@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class PredictService {
-  final String baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+  final String baseUrl = "https://prefunctional-albertha-unpessimistically.ngrok-free.dev";
 
   /// Predict vegetable from image file
   /// 

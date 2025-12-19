@@ -125,22 +125,25 @@ class _AccountViewState extends ConsumerState<AccountView>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // LEFT ICON + TITLE
+            // LEFT: BACK BUTTON + TITLE
             Row(
               children: [
-                // Main icon
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.22),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    mode == "toko"
-                        ? Icons.storefront_rounded
-                        : Icons.shopping_bag_rounded,
-                    color: Colors.white,
-                    size: 26,
+                // Back button
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.22),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.white,
+                      size: 26,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 14),

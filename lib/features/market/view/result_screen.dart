@@ -62,7 +62,7 @@ class _ResultScreenState extends State<ResultScreen> {
         elevation: 0,
         title: const Text("Hasil Deteksi"),
         backgroundColor: primary,
-        foregroundColor: Colors.black,
+        foregroundColor: Colors.white,
       ),
       body: _isLoading
           ? _buildLoadingSkeleton(primary)

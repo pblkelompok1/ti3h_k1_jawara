@@ -60,23 +60,13 @@ class _CustomTopBarState extends ConsumerState<CustomTopBar> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        GestureDetector(
-          onTap: () => GoRouter.of(context).push('/profile'),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 2,
-              ),
-            ),
-            child: const CircleAvatar(
-              radius: 26,
-              backgroundImage: NetworkImage(
-                "https://i.pinimg.com/736x/5d/e7/9e/5de79ee675c983703b09a3fc637a01cd.jpg",
-              ),
-            ),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.20),
+            borderRadius: BorderRadius.circular(12),
           ),
+          child: const Icon(Icons.home, color: Colors.white, size: 28),
         ),
         const SizedBox(width: 16),
         const Expanded(
@@ -84,37 +74,19 @@ class _CustomTopBarState extends ConsumerState<CustomTopBar> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AutoSizeText(
-                "Hallo 👋",
-                maxLines: 1,
+              Text(
+                "Dashboard",
                 style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textPrimaryDark,
-                  fontWeight: FontWeight.w500,
-                ),
-                minFontSize: 12,
-                overflow: TextOverflow.ellipsis,
-              ),
-              SizedBox(height: 2),
-              AutoSizeText(
-                "Nama Pengguna",
-                maxLines: 1,
-                style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimaryDark,
+                  color: Colors.white,
                 ),
-                minFontSize: 14,
-                overflow: TextOverflow.ellipsis,
               ),
+              SizedBox(height: 7,)
             ],
           ),
         ),
-        SizedBox(
-          width: 40,
-          height: 40,
-          child: PopupExample(key: _popupKey),
-        ),
+        SizedBox(width: 40, height: 40, child: PopupExample(key: _popupKey)),
       ],
     );
   }

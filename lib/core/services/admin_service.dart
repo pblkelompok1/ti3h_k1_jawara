@@ -5,7 +5,7 @@ import 'package:ti3h_k1_jawara/core/services/auth_service.dart';
 
 class AdminService {
   final AuthService authService;
-  final baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+  final baseUrl = "https://prefunctional-albertha-unpessimistically.ngrok-free.dev";
 
   AdminService(this.authService);
 

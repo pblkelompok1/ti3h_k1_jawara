@@ -76,52 +76,77 @@ class _DetailKegiatanViewState extends ConsumerState<DetailKegiatanView>
         backgroundColor: AppColors.primary(context),
         foregroundColor: Colors.white,
         elevation: 0,
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          indicatorWeight: 3,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          labelStyle: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: TabBar(
+            controller: _tabController,
+            indicatorColor: Colors.white,
+            indicatorWeight: 3,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            labelStyle: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontWeight: FontWeight.normal,
+              fontSize: 12,
+            ),
+            isScrollable: false,
+            tabs: [
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.schedule, size: 16),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        'Akan Datang',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.play_circle_outline, size: 16),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        'Ongoing',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.check_circle_outline, size: 16),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        'Selesai',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.normal,
-            fontSize: 14,
-          ),
-          tabs: const [
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.schedule, size: 18),
-                  SizedBox(width: 4),
-                  Text('Akan Datang'),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.play_circle_outline, size: 18),
-                  SizedBox(width: 4),
-                  Text('Ongoing'),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.check_circle_outline, size: 18),
-                  SizedBox(width: 4),
-                  Text('Selesai'),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
       body: TabBarView(
@@ -304,7 +329,7 @@ class _DetailKegiatanViewState extends ConsumerState<DetailKegiatanView>
   }
 
   void _showActivityDetail(KegiatanModel activity) {
-    final baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+    final baseUrl = "https://prefunctional-albertha-unpessimistically.ngrok-free.dev";
 
     showModalBottomSheet(
       context: context,
@@ -648,7 +673,13 @@ class _KegiatanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+    final baseUrl = "https://prefunctional-albertha-unpessimistically.ngrok-free.dev";
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    // Responsive sizing
+    final imageSize = (screenWidth * 0.2).clamp(70.0, 90.0);
+    final titleFontSize = (screenWidth * 0.042).clamp(14.0, 16.0);
+    final detailFontSize = (screenWidth * 0.032).clamp(11.0, 13.0);
     
     String? imageUrl;
     if (kegiatan.bannerImg != null) {
@@ -658,34 +689,34 @@ class _KegiatanCard extends StatelessWidget {
     }
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
       color: AppColors.surface(context),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Banner Image or Category Icon
               imageUrl != null
                   ? ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(12),
                       child: Image.network(
                         imageUrl,
-                        width: 80,
-                        height: 80,
+                        width: imageSize,
+                        height: imageSize,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
-                          return _getCategoryIcon(kegiatan.category);
+                          return _getCategoryIcon(kegiatan.category, imageSize);
                         },
                       ),
                     )
-                  : _getCategoryIcon(kegiatan.category),
-              const SizedBox(width: 16),
+                  : _getCategoryIcon(kegiatan.category, imageSize),
+              const SizedBox(width: 12),
 
               // Content
               Expanded(
@@ -696,9 +727,10 @@ class _KegiatanCard extends StatelessWidget {
                     Text(
                       kegiatan.activityName,
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: titleFontSize,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary(context),
+                        height: 1.3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -709,37 +741,17 @@ class _KegiatanCard extends StatelessWidget {
                     Row(
                       children: [
                         Icon(
-                          Icons.calendar_today,
+                          Icons.calendar_today_rounded,
                           size: 14,
                           color: AppColors.textSecondary(context),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          DateFormat('dd MMM yyyy', 'id_ID')
-                              .format(kegiatan.startDate),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-
-                    // Location
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.location_on,
-                          size: 14,
-                          color: AppColors.textSecondary(context),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
+                        Flexible(
                           child: Text(
-                            kegiatan.location,
+                            DateFormat('dd MMM yyyy', 'id_ID')
+                                .format(kegiatan.startDate),
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: detailFontSize,
                               color: AppColors.textSecondary(context),
                             ),
                             maxLines: 1,
@@ -748,7 +760,31 @@ class _KegiatanCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 6),
+
+                    // Location
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_rounded,
+                          size: 14,
+                          color: AppColors.textSecondary(context),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            kegiatan.location,
+                            style: TextStyle(
+                              fontSize: detailFontSize,
+                              color: AppColors.textSecondary(context),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
 
                     // Status Badge
                     _buildStatusBadge(kegiatan.status, isDarkMode),
@@ -773,44 +809,55 @@ class _KegiatanCard extends StatelessWidget {
         backgroundColor = Colors.blue;
         textColor = Colors.white;
         text = 'Akan Datang';
-        icon = Icons.schedule;
+        icon = Icons.schedule_rounded;
         break;
       case 'ongoing':
         backgroundColor = Colors.orange;
         textColor = Colors.white;
-        text = 'Sedang Berlangsung';
-        icon = Icons.play_circle_filled;
+        text = 'Berlangsung';
+        icon = Icons.play_circle_filled_rounded;
         break;
       case 'selesai':
         backgroundColor = Colors.grey;
         textColor = Colors.white;
         text = 'Selesai';
-        icon = Icons.check_circle;
+        icon = Icons.check_circle_rounded;
         break;
       default:
         backgroundColor = Colors.grey;
         textColor = Colors.white;
         text = status;
-        icon = Icons.help;
+        icon = Icons.help_rounded;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: backgroundColor.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: textColor),
+          Icon(icon, size: 13, color: textColor),
           const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 11,
-              color: textColor,
-              fontWeight: FontWeight.bold,
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 10,
+                color: textColor,
+                fontWeight: FontWeight.bold,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -818,43 +865,55 @@ class _KegiatanCard extends StatelessWidget {
     );
   }
 
-  Widget _getCategoryIcon(String kategori) {
+  Widget _getCategoryIcon(String kategori, double size) {
     IconData icon;
     Color color;
 
     switch (kategori) {
       case 'sosial':
-        icon = Icons.people;
+        icon = Icons.people_rounded;
         color = Colors.blue;
         break;
       case 'keagamaan':
-        icon = Icons.mosque;
+        icon = Icons.mosque_rounded;
         color = Colors.green;
         break;
       case 'olahraga':
-        icon = Icons.sports_soccer;
+        icon = Icons.sports_soccer_rounded;
         color = Colors.orange;
         break;
       case 'pendidikan':
-        icon = Icons.school;
+        icon = Icons.school_rounded;
         color = Colors.purple;
         break;
       case 'lainnya':
-        icon = Icons.event;
+        icon = Icons.event_rounded;
         color = Colors.grey;
         break;
       default:
-        icon = Icons.event;
+        icon = Icons.event_rounded;
         color = Colors.grey;
     }
 
     return Container(
-      padding: const EdgeInsets.all(10),
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            color.withOpacity(0.2),
+            color.withOpacity(0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1.5,
+        ),
       ),
-      child: Icon(icon, color: color, size: 24),
+      child: Icon(icon, color: color, size: size * 0.4),
     );
   }
 }

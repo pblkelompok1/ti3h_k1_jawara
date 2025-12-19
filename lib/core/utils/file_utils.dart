@@ -1,5 +1,5 @@
 class FileUtils {
-  static const String baseUrl = "https://presumptive-renee-uncircled.ngrok-free.dev";
+  static const String baseUrl = "https://prefunctional-albertha-unpessimistically.ngrok-free.dev";
 
   /// Build URL for file from storage path
   /// Example: storage/profile/xxx.jpg -> /files/storage%2Fprofile%2Fxxx.jpg

@@ -34,6 +34,22 @@ dependencies:
   cached_network_image: ^3.4.1
   url_launcher: ^6.3.1
 
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/img/jawara.png"
+  adaptive_icon_background: "#ffffff"  # warna background
+  adaptive_icon_foreground: "assets/img/jawara.png"
+
+flutter_native_splash:
+  color: "#ffffff"  # background color
+  image: assets/img/jawara.png
+  android: true
+  ios: true
+  android_12:
+    image: assets/img/jawara.png
+    color: "#ffffff"
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -43,6 +59,8 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   custom_lint: ^0.7.2
   riverpod_lint: ^2.6.4
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
   
 
 flutter:

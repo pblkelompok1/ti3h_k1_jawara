@@ -58,7 +58,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: [
               // Title
               Text(
-                'Sign In',
+                'Masuk',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,

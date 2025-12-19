@@ -102,7 +102,7 @@ class _DomisiliFormScreenState extends ConsumerState<DomisiliFormScreen> {
 
       if (mounted) {
         _showSnackBar('Pengajuan surat berhasil dikirim!');
-        context.go('/letter/selection');
+        context.pop();
       }
     } catch (e) {
       if (mounted) {

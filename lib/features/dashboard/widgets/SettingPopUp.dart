@@ -139,31 +139,37 @@ class PopupExampleState extends ConsumerState<PopupExample>
                                   ),
                                 ),
                                 const SizedBox(width: 14),
-                                const Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Nama Pengguna",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        "user@email.com",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.white70,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
+                                Expanded(
+                                  child: Consumer(
+                                    builder: (context, ref, _) {
+
+                                      return const Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "Dr. Ambatron",
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          SizedBox(height: 4),
+                                          Text(
+                                            "ambatron@email.com",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.white70,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   ),
                                 ),
                               ],
@@ -182,23 +188,9 @@ class PopupExampleState extends ConsumerState<PopupExample>
                                   "Profile",
                                   Icons.person_rounded,
                                   const Color(0xFF4285F4),
+                                  '/profile',
                                 ),
-                                _popupItem(
-                                  "Settings",
-                                  Icons.settings_rounded,
-                                  const Color(0xFF9C27B0),
-                                ),
-                                _popupItem(
-                                  "Notification",
-                                  Icons.notifications_rounded,
-                                  const Color(0xFFFF9800),
-                                ),
-                                _popupItem(
-                                  "Help & Support",
-                                  Icons.help_outline_rounded,
-                                  const Color(0xFF00BCD4),
-                                ),
-                                
+
                                 // Dark Mode Toggle
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -221,8 +213,12 @@ class PopupExampleState extends ConsumerState<PopupExample>
                                         Container(
                                           padding: const EdgeInsets.all(8),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFFFFC107).withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(8),
+                                            color: const Color(
+                                              0xFFFFC107,
+                                            ).withOpacity(0.2),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                           child: const Icon(
                                             Icons.dark_mode_rounded,
@@ -249,7 +245,9 @@ class PopupExampleState extends ConsumerState<PopupExample>
                                                   .read(themeProvider.notifier)
                                                   .toggleTheme();
                                             },
-                                            activeColor: const Color(0xFFFFC107),
+                                            activeColor: const Color(
+                                              0xFFFFC107,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -267,6 +265,7 @@ class PopupExampleState extends ConsumerState<PopupExample>
                                   "Logout",
                                   Icons.logout_rounded,
                                   const Color(0xFFF44336),
+                                  null,
                                   isLogout: true,
                                 ),
                               ],
@@ -289,10 +288,18 @@ class PopupExampleState extends ConsumerState<PopupExample>
     setState(() {});
   }
 
-  Widget _popupItem(String label, IconData icon, Color color, {bool isLogout = false}) {
+  Widget _popupItem(
+    String label,
+    IconData icon,
+    Color color,
+    String? route, {
+    bool isLogout = false,
+  }) {
     return InkWell(
       onTap: () async {
         _hidePopup();
+        if (route != null) GoRouter.of(context).push(route);
+
         // Handle navigation or actions here
         if (isLogout) {
           // Show confirmation dialog
@@ -305,10 +312,7 @@ class PopupExampleState extends ConsumerState<PopupExample>
                 ),
                 title: const Text(
                   'Konfirmasi Logout',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                 ),
                 content: const Text(
                   'Apakah Anda yakin ingin keluar?',
@@ -368,9 +372,7 @@ class PopupExampleState extends ConsumerState<PopupExample>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
-            color: isLogout 
-                ? color.withOpacity(0.1) 
-                : Colors.transparent,
+            color: isLogout ? color.withOpacity(0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -381,11 +383,7 @@ class PopupExampleState extends ConsumerState<PopupExample>
                   color: color.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: color,
-                ),
+                child: Icon(icon, size: 20, color: color),
               ),
               const SizedBox(width: 12),
               Expanded(

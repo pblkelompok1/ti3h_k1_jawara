@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -938,20 +939,23 @@ class _FormInputDataScreenState extends ConsumerState<FormInputDataScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            AutoSizeText(
               _dateOfBirth != null
                   ? '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}'
                   : 'DD/MM/YYYY',
               style: TextStyle(
                 color: _dateOfBirth != null
-                    ? (isDark 
-                        ? AppColors.textPrimaryDark 
-                        : AppColors.textPrimaryLight)
-                    : (isDark 
-                        ? AppColors.textSecondaryDark 
-                        : Colors.grey.shade400),
-                fontSize: 16,
+                    ? (isDark
+                    ? AppColors.textPrimaryDark
+                    : AppColors.textPrimaryLight)
+                    : (isDark
+                    ? AppColors.textSecondaryDark
+                    : Colors.grey.shade400),
+                fontSize: 12,
               ),
+              maxLines: 1,
+              minFontSize: 10, // ukuran minimum teks saat mengecil
+              overflow: TextOverflow.ellipsis, // menambahkan ... jika tetap overflow
             ),
             Icon(
               Icons.calendar_today,

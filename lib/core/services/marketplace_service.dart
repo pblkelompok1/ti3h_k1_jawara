@@ -6,7 +6,7 @@ import '../../features/market/models/transaction_method_model.dart';
 import '../../features/market/models/transaction_detail_model.dart';
 
 class MarketplaceService {
-  static const String baseUrl = 'https://presumptive-renee-uncircled.ngrok-free.dev';
+  static const String baseUrl = 'https://prefunctional-albertha-unpessimistically.ngrok-free.dev';
   
   /// Get products with filters
   /// 
@@ -609,6 +609,14 @@ class MarketplaceService {
   }
 
   /// Update transaction status (seller only)
+  /// 
+  /// Status must be in UPPERCASE with UNDERSCORE format:
+  /// - BELUM_DIBAYAR
+  /// - PROSES
+  /// - SIAP_DIAMBIL
+  /// - SEDANG_DIKIRIM
+  /// - SELESAI
+  /// - DITOLAK
   Future<TransactionDetail> updateTransactionStatus({
     required String transactionId,
     required String userId,
@@ -623,7 +631,8 @@ class MarketplaceService {
       
       print('🔄 UPDATE TRANSACTION STATUS:');
       print('   URI: $uri');
-      print('   Status: $status');
+      print('   Status (Backend Format): $status');
+      print('   Expected format: UPPERCASE with UNDERSCORE (e.g., SIAP_DIAMBIL)');
       
       final response = await http.put(
         uri,
